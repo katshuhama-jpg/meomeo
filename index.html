@@ -913,7 +913,7 @@ function catCard(c,extra=''){const T=now();const t=tierOf(c.g);
 // ---------- Hộp mèo ----------
 const buyPrice=()=>[200,400,800][st.buyN]||0;
 // Mở ra chỉ là lá. Gom đủ lá cùng loài mới ghép ra mèo.
-const NEED=[3,3,2,2,2];
+const NEED=[3,4,6,8,10];// càng hiếm càng cần nhiều lá
 const needOf=sh=>NEED[TIER_OF[sh]];
 const shardsOf=sh=>(st.shards||{})[sh]||0;
 const known=sh=>shardsOf(sh)>0||(st.species||[]).includes(sh)||(st.shardSeen||[]).includes(sh);
@@ -1242,8 +1242,8 @@ function openStray(s){sheet(`<div class="hero">${imgTag(s.g,11)}<div><span class
 // ---------- Cửa hàng ----------
 let shopTab='cats';
 // Tiệm mèo: 4 bé mỗi ngày, đổi hàng lúc 7 giờ sáng ngoài đời
-const CARD_PRICE=[{p:150,c:'cá'},{p:300,c:'cá'},{p:60,c:'xu'},{p:200,c:'xu'},{p:1000,c:'xu'}];
-function petShop(){const dk=dayKey(now());if(!st.pet||st.pet.day!==dk||!st.pet.cards){const tiers=[0,R()<.5?0:1,R()<.6?1:2,R()<.25?3:2];const used=new Set();
+const CARD_PRICE=[{p:120,c:'cá'},{p:300,c:'cá'},{p:700,c:'cá'},{p:1600,c:'cá'},{p:4000,c:'cá'}];// cùng một loại tiền, bậc cao giá cao
+function petShop(){const dk=dayKey(now());if(!st.pet||st.pet.day!==dk||!st.pet.cards){const tiers=[0,R()<.5?0:1,R()<.6?1:2,R()<.06?4:R()<.25?3:2];const used=new Set();
   st.pet={day:dk,cards:1,slots:tiers.map(t=>{let sh;do{sh=pickOne(BY_TIER[t])}while(used.has(sh));used.add(sh);return{s:sh,n:0}})};save()}return st.pet}
 const furnPrice=f=>Math.round(f.price*Math.pow(1.5,Math.min(2,(st.bought[f.id]||0))));
 const SHOPTABS=[['cats','Lá mèo'],['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['home','Nhà đất'],['market','Chợ cá']];
