@@ -213,6 +213,7 @@ details.more[open]>summary{margin-bottom:8px}
 .card.missed .front{opacity:.6;filter:grayscale(.7)}
 .card .nw.miss{background:var(--muted)}
 .card .lk{position:absolute;top:6px;right:6px;font-size:10px;font-weight:800;background:#F7A1B4;color:#2A272C;border:1.5px solid var(--ink);border-radius:99px;padding:0 6px}
+.ci{width:15px;height:15px;vertical-align:-2px;margin-left:2px;display:inline-block}
 @media (min-width:760px){.tray{left:auto;width:460px;top:calc(8px + env(safe-area-inset-top,0px));height:auto}.dock{left:auto;width:440px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -300,6 +301,8 @@ let dbg=0;try{dbg=+(localStorage.getItem('meo-dbg')||0)}catch(e){}
 const now=()=>Date.now()+dbg;
 // 1 ngày ngoài đời = 6 ngày trong game. Lịch đi làm, ngày đêm, bữa ăn chạy theo giờ game.
 const SPEED=6,GE=Date.UTC(2026,10,16,17,0);const G=t=>GE+(t-GE)*SPEED;const gnow=()=>G(now());
+const CI={'cá':'<svg class="ci" viewBox="0 0 24 24" role="img" aria-label="cá"><path d="M3 12c3-5 9-6 13-3l4-3v12l-4-3c-4 3-10 2-13-3Z" fill="#9FD3F5" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/></svg>',xu:'<svg class="ci" viewBox="0 0 24 24" role="img" aria-label="xu"><circle cx="12" cy="12" r="9" fill="#FFD36B" stroke="#2A272C" stroke-width="2"/><path d="M12 7v10" stroke="#2A272C" stroke-width="2" stroke-linecap="round"/></svg>'};
+const M=(n,c)=>fmt(n)+CI[c];
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const dur=ms=>{ms=Math.max(0,ms);const h=Math.floor(ms/H),m=Math.ceil((ms%H)/MIN);return h?`${h} giờ ${m%60?m%60+' phút':''}`.trim():`${Math.max(1,m)} phút`};
 const DOW=['Chủ nhật','Thứ Hai','Thứ Ba','Thứ Tư','Thứ Năm','Thứ Sáu','Thứ Bảy'];
@@ -355,21 +358,21 @@ const FOOD_ICON={
 
 // ---------- Phòng, nhà, đất ----------
 const ROOMT=[
-  {n:'Phòng khách',xu:300,fl:745},{n:'Phòng ngủ',xu:300,fl:758},{n:'Phòng bếp',xu:500,fl:685},{n:'Ban công',xu:600,fl:800},
-  {n:'Phòng tắm',xu:600,fl:773},{n:'Thư viện',xu:1000,fl:764},{n:'Phòng Nhật',xu:1500,fl:612},{n:'Nhà kính',xu:1500,fl:730},
-  {n:'Gác mái',xu:2000,fl:727},{n:'Phòng vũ trụ',xu:3000,fl:701},
+  {n:'Phòng khách',xu:120,fl:745},{n:'Phòng ngủ',xu:120,fl:758},{n:'Phòng bếp',xu:150,fl:685},{n:'Ban công',xu:180,fl:800},
+  {n:'Phòng tắm',xu:180,fl:773},{n:'Thư viện',xu:250,fl:764},{n:'Phòng Nhật',xu:300,fl:612},{n:'Nhà kính',xu:300,fl:730},
+  {n:'Gác mái',xu:350,fl:727},{n:'Phòng vũ trụ',xu:450,fl:701},
   {n:'Hiên nhà',out:1,fl:790,img:'o1'},{n:'Sân trước',out:1,fl:730,img:'o2'},{n:'Vườn sau',out:1,fl:700,img:'o3'}];
 const OUT_T={porch:10,yard:11,garden:12};
 const TPL=[
-  {n:'Nhà ống',min:40,xu:200,rooms:2,out:['porch']},
-  {n:'Nhà phố',min:60,xu:1500,rooms:4,out:['porch','yard']},
+  {n:'Nhà ống',min:40,xu:500,rooms:2,out:['porch']},
+  {n:'Nhà phố',min:60,xu:2000,rooms:4,out:['porch','yard']},
   {n:'Nhà vườn',min:100,xu:6000,rooms:6,out:['porch','yard','garden']},
-  {n:'Biệt thự',min:160,xu:20000,rooms:9,out:['porch','yard','garden']},
-  {n:'Dinh thự VIP',min:240,xu:60000,rooms:14,out:['porch','yard','garden']}];
+  {n:'Biệt thự',min:160,xu:18000,rooms:9,out:['porch','yard','garden']},
+  {n:'Dinh thự VIP',min:240,xu:50000,rooms:14,out:['porch','yard','garden']}];
 const ZONES=[
-  {n:'Ngõ Mèo',area:[40,60],price:[300,800],rent:20,perk:'Khu đầu tiên, giá mềm',need:()=>null},
-  {n:'Phố Cá',area:[60,100],price:[2000,4000],rent:60,perk:'Cá tự ra +10%',fishB:.1,need:()=>st.cats.length>=15?null:'Cần 15 mèo'},
-  {n:'Ven Hồ',area:[100,160],price:[8000,15000],rent:150,perk:'Cá tự ra +20%, mèo hoang hiếm ghé nhiều hơn',fishB:.2,strayB:1,need:()=>st.cats.length>=30&&st.cats.some(c=>tierOf(c.g)>=3)?null:'Cần 30 mèo và 1 mèo Siêu hiếm'},
+  {n:'Ngõ Mèo',area:[40,60],price:[600,1200],rent:20,perk:'Khu đầu tiên, giá mềm',need:()=>null},
+  {n:'Phố Cá',area:[60,100],price:[2500,5000],rent:60,perk:'Cá tự ra +10%',fishB:.1,need:()=>st.cats.length>=15?null:'Cần 15 mèo'},
+  {n:'Ven Hồ',area:[100,160],price:[9000,16000],rent:150,perk:'Cá tự ra +20%, mèo hoang hiếm ghé nhiều hơn',fishB:.2,strayB:1,need:()=>st.cats.length>=30&&st.cats.some(c=>tierOf(c.g)>=3)?null:'Cần 30 mèo và 1 mèo Siêu hiếm'},
   {n:'Đồi Hoa',area:[160,240],price:[25000,50000],rent:300,perk:'Cá tự ra +30%, cho thuê +50%',fishB:.3,strayB:1,need:()=>st.cats.length>=50&&st.houses.length>=3?null:'Cần 50 mèo và 3 nhà'},
   {n:'Khu VIP',area:[240,400],price:[100000,160000],rent:500,perk:'Cá tự ra +50%, mèo hoang Huyền thoại có thể ghé',fishB:.5,strayB:2,need:()=>st.cats.length>=80&&st.cats.some(c=>tierOf(c.g)>=4)?null:'Cần 80 mèo và 1 mèo Huyền thoại'}];
 const TRAITS=[null,null,null,{n:'Lô góc',fishB:.05},{n:'Hướng hồ',fishB:.1},{n:'Gần công viên',stray:1}];
@@ -404,9 +407,9 @@ const FURN=[
 // ---------- Vệ sinh: khay và cát ----------
 const TOILETS=[
   {id:'t_tray',img:'tray',name:'Khay nhựa',price:120,cur:'fish',cap:3,rate:1,w:150,x:150,y:60,desc:'Bình dân, bẩn nhanh'},
-  {id:'t_covered',img:'covered',name:'Khay có nắp',price:450,cur:'fish',cap:4,rate:.8,w:140,x:880,y:60,desc:'Đỡ mùi, bẩn chậm hơn 20%'},
-  {id:'t_wood',img:'wood',name:'Tủ vệ sinh gỗ',price:1200,cur:'fish',cap:5,rate:.65,w:150,x:110,y:50,desc:'Đẹp như đồ nội thất, bẩn chậm hơn 35%'},
-  {id:'t_auto',img:'auto',name:'Khay tự dọn',price:800,cur:'xu',cap:6,rate:.6,w:150,x:900,y:50,auto:1,desc:'Tự dọn mỗi sáng nếu tủ còn cát'}];
+  {id:'t_covered',img:'covered',name:'Khay có nắp',price:350,cur:'fish',cap:4,rate:.8,w:140,x:880,y:60,desc:'Đỡ mùi, bẩn chậm hơn 20%'},
+  {id:'t_wood',img:'wood',name:'Tủ vệ sinh gỗ',price:700,cur:'fish',cap:5,rate:.65,w:150,x:110,y:50,desc:'Đẹp như đồ nội thất, bẩn chậm hơn 35%'},
+  {id:'t_auto',img:'auto',name:'Khay tự dọn',price:1000,cur:'fish',cap:6,rate:.6,w:150,x:900,y:50,auto:1,desc:'Tự dọn mỗi sáng nếu tủ còn cát'}];
 const LITTERS=[
   {id:'clay',n:'Cát đất sét',p:30,uses:5,rate:1,mood:0,desc:'Bình dân'},
   {id:'tofu',n:'Cát đậu nành',p:80,uses:5,rate:.8,mood:3,desc:'Bẩn chậm hơn 20%, mèo +3 tâm trạng mỗi lần dọn'},
@@ -809,7 +812,7 @@ function renderBox(){const P=$('p-box'),T=now();if(st.buyDay!==dayKey(T)){st.buy
     <button type="button" class="btn wide" id="openfree"${st.free<1?' disabled':''}>Mở lượt miễn phí</button>
     ${st.tickets?`<button type="button" class="btn ghost wide" id="openticket">Dùng vé (còn ${st.tickets})</button>`:''}
   </div>
-  <div class="task"><div class="tx"><b>Mua thêm lượt</b><small>Hôm nay ${st.buyN}/3 lượt</small></div><button type="button" class="btn small" id="buybox"${!p||st.fish<p?' disabled':''}>${p?fmt(p)+' cá':'Hết lượt'}</button></div>
+  <div class="task"><div class="tx"><b>Mua thêm lượt</b><small>Hôm nay ${st.buyN}/3 lượt</small></div><button type="button" class="btn small" id="buybox"${!p||st.fish<p?' disabled':''}>${p?M(p,'cá'):'Hết lượt'}</button></div>
   <div class="task"><div class="tx"><b>Điểm Hộp: ${fmt(st.pts)}</b><small>Mỗi lượt +5. Đổi thẳng ra mèo từ 100 điểm</small></div><button type="button" class="btn small ghost" id="exch">Đổi</button></div>
   <details class="more"${owned.length?' open':''}><summary>Lá mèo đang gom (${owned.filter(sh=>shardsOf(sh)>0).length} loài)</summary>
     <div class="grid">${owned.map(sh=>{const n=shardsOf(sh),k=needOf(sh);return `<div class="ccard${n>=k?' sel':''}">${imgTag(plainG(sh))}<span class="nm">${esc(SPR[sh].name)}</span><span class="bar"><i style="width:${Math.min(100,n/k*100)}%"></i></span><em>${n}/${k} lá</em></div>`}).join('')||'<p class="hint">Chưa có lá nào.</p>'}</div></details>
@@ -894,7 +897,7 @@ function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;const T=now
     ${!isWeekend(G(T))?'<p class="hint">Spa mở vào Thứ Bảy và Chủ nhật trong game.</p>':''}
     <div class="box"><div class="row"><h3>Mèo trùng</h3><span class="hint">Có ${dup.length} con cùng loài khác</span></div>
       <div class="acts"><button type="button" class="btn small" data-a="star"${canStar?'':' disabled'}>${c.star>=3?'Đã 3 sao':'Lên sao (gộp 2 con cùng loài)'}</button>
-      <button type="button" class="btn small ghost" data-a="sell">Bán · ${fmt(sellPrice(c))} xu</button></div>
+      <button type="button" class="btn small ghost" data-a="sell">Bán · ${M(sellPrice(c),'xu')}</button></div>
       ${!canStar&&c.star<3?`<p class="hint">Cần thêm ${2-Math.min(2,dup.length)} con cùng loài để lên sao. Mỗi sao lương +30%.</p>`:''}</div>
     <button type="button" class="btn ghost" data-close>Đóng</button>`);
   bind($('sheet'),'[data-a]',(el)=>{const a=el.dataset.a;
@@ -935,7 +938,7 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
     const short=st.houses.some(h=>!h.rent&&usersOf(h)>capOf(h));
     const extra=[st.offline>=1?`ở nhà làm thêm ${fmt(st.offline)} cá`:'',st.rentLog?`thuê nhà +${fmt(st.rentLog)} xu`:''].filter(Boolean).join(', ');
     if(sick.length||hs.length)html+=task(ICON.hosp,sick.length?`${sick.length} con bị ốm`:'Bệnh viện',sick.length?`Khay bẩn làm mèo ốm. Nằm viện 1 tiếng là khỏe${hs.length?` · ${hs.length} con đang nằm viện`:''}`:`${hs.length} con đang nằm viện, sắp về`,
-      sick.length?`<button type="button" class="btn small" id="hospall"${st.fish<hcost?' disabled':''}>Đi viện · ${fmt(hcost)} cá</button>`:'',sick.length);
+      sick.length?`<button type="button" class="btn small" id="hospall"${st.fish<hcost?' disabled':''}>Đi viện · ${M(hcost,'cá')}</button>`:'',sick.length);
     html+=task(ICON.mail,'Lương',st.mail?`${fmt(st.mail)} cá đang chờ${extra?' · '+extra:''}`:(isWeekday(GT)&&hourOf(GT)<17?'Về lúc 17:00 khi mèo đi làm về':'Chưa có lương mới'),
       st.mail?`<button type="button" class="btn small" id="mail">Nhận</button>`:'',st.mail);
     if(st.gifts.length)html+=task(ICON.gift,'Quà mèo hoang',`${st.gifts.length} món ở hiên nhà`,`<button type="button" class="btn small" id="gifts">Nhặt</button>`,1);
@@ -1011,15 +1014,15 @@ function hatchRoll(e){const a={g:e.a},b={g:e.b};const P=eggPlan(a,b);let r=R()*1
 const EGGSVG=(cls,crack)=>`<svg viewBox="0 0 64 78" class="egg ${cls||''}"><path d="M32 4c13 0 26 22 26 40a26 26 0 0 1-52 0C6 26 19 4 32 4Z" fill="#FFF6DE" stroke="#2A272C" stroke-width="3"/><path d="M14 42l6 4 6-5 6 5 6-5 6 5 6-4" fill="none" stroke="#2A272C" stroke-width="2.4" stroke-linejoin="round"/><circle cx="22" cy="26" r="3" fill="#F7A1B4"/><circle cx="42" cy="30" r="4" fill="#9FD3F5"/><circle cx="34" cy="58" r="3" fill="#FFD36B"/>${crack?'<path d="M26 12l4 8-5 5 6 6" fill="none" stroke="#2A272C" stroke-width="2.4"/>':''}</svg>`;
 function eggMs(e){return Math.max(0,e.end-now())}
 function renderEgg(){const P=$('p-egg'),T=now();
-  const nestPrice=[0,500,2000,6000][st.nests]||0;
+  const nestPrice=[0,150,400,1000][st.nests]||0;
   let html=`<p class="hint">Chọn 2 mèo bất kỳ để ấp trứng. Trứng nở theo giờ ngoài đời, kể cả khi tắt game. Mèo Huyền thoại không nở ra từ trứng.</p>
     <div class="list">${Array.from({length:st.nests},(_,i)=>{const e=st.eggs.find(x=>x.nest===i);
       if(!e)return `<div class="li"><div class="ic">${EGGSVG('')}</div><div class="tx"><b>Ổ ấp ${i+1} đang trống</b><small>Chọn bố mẹ ở dưới rồi bấm Ấp</small></div></div>`;
       const ms=eggMs(e);const done=!ms;
       return `<div class="li${done?' ':''}"><div class="ic" data-rub="${e.id}">${EGGSVG(done?'wig':'wig',done)}</div><div class="tx"><b>${done?'Trứng đã nứt, nở được rồi!':'Còn '+dur(ms)}</b><small>${esc(shortName(e.a))} + ${esc(shortName(e.b))}${done?'':` · chạm trứng để vuốt, còn ${6-e.rub} lần`}</small></div>
-        ${done?`<button type="button" class="btn small" data-hatch="${e.id}">Nở!</button>`:`<button type="button" class="btn small ghost" data-now="${e.id}"${st.fish<Math.ceil(ms/MIN)*10?' disabled':''}>Nở ngay · ${fmt(Math.ceil(ms/MIN)*10)} cá</button>`}</div>`}).join('')}</div>
+        ${done?`<button type="button" class="btn small" data-hatch="${e.id}">Nở!</button>`:`<button type="button" class="btn small ghost" data-now="${e.id}"${st.fish<Math.ceil(ms/MIN)*10?' disabled':''}>Nở ngay · ${M(Math.ceil(ms/MIN)*10,'cá')}</button>`}</div>`}).join('')}</div>
     <div class="row"><span class="hint">${st.heater?'Có đèn sưởi: trứng nở nhanh hơn 25%':'Đèn sưởi: trứng mới nở nhanh hơn 25%'}</span>${st.heater?'':`<button type="button" class="btn small ghost" id="heater"${st.fish<400?' disabled':''}>Mua đèn · 400 cá</button>`}</div>
-    ${nestPrice?`<div class="row"><span class="hint">Thêm ổ ấp thứ ${st.nests+1}</span><button type="button" class="btn small ghost" id="nest"${st.xu<nestPrice?' disabled':''}>${fmt(nestPrice)} xu</button></div>`:''}`;
+    ${nestPrice?`<div class="row"><span class="hint">Thêm ổ ấp thứ ${st.nests+1}</span><button type="button" class="btn small ghost" id="nest"${st.xu<nestPrice?' disabled':''}>${M(nestPrice,'xu')}</button></div>`:''}`;
   const freeNest=Array.from({length:st.nests},(_,i)=>i).find(i=>!st.eggs.some(e=>e.nest===i));
   eggSel=eggSel.filter(id=>st.cats.some(c=>c.id===id));
   const sel=eggSel.map(id=>st.cats.find(c=>c.id===id));
@@ -1054,11 +1057,11 @@ function hatch(id){const e=st.eggs.find(x=>x.id===id);if(!e||eggMs(e))return;con
 let zoneOpen=-1;
 function marketLeft(){const dk=dayKey(now());if(st.market.day!==dk){st.market={day:dk,xu:0}}return 150-st.market.xu}
 function homeHtml(){const h=curHouse(),tp=TPL[h.tpl];const inside=h.rooms.filter(r=>!ROOMT[r.t].out).length;const w=waiting();const up=TPL[h.tpl+1];
-  let html=`${w.length?`<p class="why">Phòng chờ có ${w.length} mèo. Xây thêm phòng, mèo tự dọn vào.</p>`:''}
+  let html=`<p class="hint">Nhà đất trả bằng xu, 1 xu = 20 cá. Phòng rẻ nhất 120 xu (2.400 cá), đắt hơn mọi món đồ.</p>${w.length?`<p class="why">Phòng chờ có ${w.length} mèo. Xây thêm phòng, mèo tự dọn vào.</p>`:''}
     <div class="task hl"><div class="ic big"><img src="houses/h${h.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(h))}</b><small>${h.lot.area} m² · ${inside}/${tp.rooms} phòng · ${zoneOf(h).perk}${h.lot.trait?' · '+h.lot.trait.n:''}</small></div></div>`;
-  if(inside<tp.rooms)html+=`<details class="more" open><summary>Xây phòng mới (${tp.rooms-inside} chỗ trống)</summary><div class="list">${ROOMT.map((t,i)=>t.out?'':`<div class="li"><div class="tx"><b>${t.n}</b>${i===2?'<small>Mở việc Phụ bếp</small>':''}</div><button type="button" class="btn small" data-build="${i}"${st.xu<t.xu?' disabled':''}>${fmt(t.xu)} xu</button></div>`).join('')}</div></details>`;
+  if(inside<tp.rooms)html+=`<details class="more" open><summary>Xây phòng mới (${tp.rooms-inside} chỗ trống)</summary><div class="list">${ROOMT.map((t,i)=>t.out?'':`<div class="li"><div class="tx"><b>${t.n}</b>${i===2?'<small>Mở việc Phụ bếp</small>':''}</div><button type="button" class="btn small" data-build="${i}"${st.xu<t.xu?' disabled':''}>${M(t.xu,'xu')}</button></div>`).join('')}</div></details>`;
   if(up)html+=task(`<img src="houses/h${h.tpl+1}.webp" alt="">`,`Lên ${up.n}`,h.lot.area<up.min?`Cần lô từ ${up.min} m², lô này ${h.lot.area} m²`:`${up.rooms} phòng${up.out.length>tp.out.length?', thêm '+up.out.slice(tp.out.length).map(o=>ROOMT[OUT_T[o]].n.toLowerCase()).join(', '):''}`,
-    h.lot.area<up.min?'':`<button type="button" class="btn small" id="upg"${st.xu<up.xu?' disabled':''}>${fmt(up.xu)} xu</button>`);
+    h.lot.area<up.min?'':`<button type="button" class="btn small" id="upg"${st.xu<up.xu?' disabled':''}>${M(up.xu,'xu')}</button>`);
   if(st.houses.length>1)html+=`<h3>Nhà của bạn ${st.houses.length}/5</h3><div class="list">${st.houses.map((x,i)=>{const n=st.cats.filter(c=>c.h===x.id).length;
     return `<div class="li"><div class="ic"><img src="houses/h${x.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(x))}${i===st.ch?' · đang xem':''}</b><small>${x.rent?`Cho thuê, +${fmt(rentOf(x))} xu mỗi ngày`:`${n} mèo`}</small></div>
       ${i===st.ch?'':`<button type="button" class="btn small ghost" data-go="${i}"${x.rent?' disabled':''}>Sang</button>`}
@@ -1066,7 +1069,7 @@ function homeHtml(){const h=curHouse(),tp=TPL[h.tpl];const inside=h.rooms.filter
   html+=`<details class="more"><summary>Mua đất xây nhà mới (${st.houses.length}/5 nhà)</summary><div class="list">${ZONES.map((z,i)=>{const lock=z.need();
     return `<div class="li${lock?' off':''}"><div class="tx"><b>${z.n}</b><small>${lock?esc(lock):`${z.area[0]}-${z.area[1]} m² · từ ${fmt(z.price[0])} xu`}</small></div>${lock?'':`<button type="button" class="btn small ghost" data-zone="${i}">${zoneOpen===i?'Ẩn':'Xem lô'}</button>`}</div>
     ${zoneOpen===i?`<div class="list" style="padding-left:10px">${LOTS[i].map(l=>{const own=st.lots.some(x=>x.z===i&&x.i===l.i);const fit=TPL.filter(t=>t.min<=l.area).pop();
-      return `<div class="li${own?' off':''}"><div class="tx"><b>Lô ${l.i+1} · ${l.area} m²${l.trait?' · '+l.trait.n:''}</b><small>${own?'Của bạn':`Tới ${fit.n}`}</small></div>${own?'':`<button type="button" class="btn small" data-lot="${i}:${l.i}"${st.xu<l.price||st.houses.length>=5?' disabled':''}>${fmt(l.price)} xu</button>`}</div>`}).join('')}</div>`:''}`}).join('')}</div></details>`;
+      return `<div class="li${own?' off':''}"><div class="tx"><b>Lô ${l.i+1} · ${l.area} m²${l.trait?' · '+l.trait.n:''}</b><small>${own?'Của bạn':`Tới ${fit.n}`}</small></div>${own?'':`<button type="button" class="btn small" data-lot="${i}:${l.i}"${st.xu<l.price||st.houses.length>=5?' disabled':''}>${M(l.price,'xu')}</button>`}</div>`}).join('')}</div>`:''}`}).join('')}</div></details>`;
   return html}
 function marketHtml(){const left=marketLeft();
   return `<div class="box hl"><div class="row"><h3>Đổi cá lấy xu</h3><span class="hint">20 cá = 1 xu</span></div><p class="hint">Hôm nay còn đổi được <b>${left} xu</b>. Xu dùng mua đất, xây phòng.</p>
@@ -1084,7 +1087,7 @@ function bindHome(P){const h=curHouse();
 const rentOf=x=>Math.round(zoneOf(x).rent*(x.lot.z===3?1.5:1)*TPL[x.tpl].rooms/2);
 function buyLot(l){const fit=TPL.map((t,i)=>[t,i]).filter(([t])=>t.min<=l.area);
   sheet(`<h2>Lô ${l.i+1} · ${ZONES[l.z].n}</h2><p class="hint">${l.area} m². Chọn mẫu nhà để xây ngay (giá lô ${fmt(l.price)} xu cộng giá xây).</p>
-    <div class="list">${fit.map(([t,i])=>`<div class="li"><div class="ic"><img src="houses/h${i}.webp" alt=""></div><div class="tx"><b>${t.n}</b><small>${t.rooms} phòng · ${t.out.map(o=>ROOMT[OUT_T[o]].n.toLowerCase()).join(', ')}</small></div><button type="button" class="btn small" data-tpl="${i}"${st.xu<l.price+t.xu?' disabled':''}>${fmt(l.price+t.xu)} xu</button></div>`).join('')}</div>
+    <div class="list">${fit.map(([t,i])=>`<div class="li"><div class="ic"><img src="houses/h${i}.webp" alt=""></div><div class="tx"><b>${t.n}</b><small>${t.rooms} phòng · ${t.out.map(o=>ROOMT[OUT_T[o]].n.toLowerCase()).join(', ')}</small></div><button type="button" class="btn small" data-tpl="${i}"${st.xu<l.price+t.xu?' disabled':''}>${M(l.price+t.xu,'xu')}</button></div>`).join('')}</div>
     <button type="button" class="btn ghost" data-close>Thôi</button>`);
   bind($('sheet'),'[data-tpl]',el=>{const i=+el.dataset.tpl,c=l.price+TPL[i].xu;if(st.xu<c)return;st.xu-=c;st.lots.push({z:l.z,i:l.i});
     const h=newHouse({z:l.z,i:l.i,area:l.area,trait:l.trait},i);st.houses.push(h);st.ch=st.houses.length-1;st.cur=0;rebalance();save();closeSheet();view();actors.clear();syncRoom();renderRooms();toast(`Đã xây ${TPL[i].n} ở ${ZONES[l.z].n}`)})}
@@ -1102,26 +1105,26 @@ function openStray(s){sheet(`<div class="hero">${imgTag(s.g,11)}<div><span class
 
 // ---------- Cửa hàng ----------
 let shopTab='food';
-const furnPrice=f=>Math.round(f.price*Math.pow(1.5,Math.min(4,(st.bought[f.id]||0))));
+const furnPrice=f=>Math.round(f.price*Math.pow(1.5,Math.min(2,(st.bought[f.id]||0))));
 const SHOPTABS=[['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['home','Nhà đất'],['market','Chợ cá']];
 function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('details.more')].map(d=>d.open);
   let html=`<div class="sub">${SHOPTABS.map(([k,n])=>`<button type="button" data-t="${k}" class="${shopTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(shopTab==='food'){const room=st.pantryCap-pantryMeals();
     html+=`<p class="hint">Tủ đồ ăn ${pantryMeals()}/${st.pantryCap} phần. Mua 20 rẻ hơn 15%.</p><div class="list">${FOODS.map(f=>{const p20=Math.round(f.p*20*.85);const meal=MEALS.includes(f.id);
       return `<div class="li"><div class="ic">${FOOD_ICON[f.id]}</div><div class="tx"><b>${f.n}</b><small>+${f.mood} vui${f.fb?` · lương +${f.fb*100}%`:''} · có ${st.pantry[f.id]}</small></div>
-        <button type="button" class="btn small" data-buy="${f.id}:1"${st.fish<f.p||(meal&&room<1)?' disabled':''}>${fmt(f.p)}</button>
-        ${f.id!=='cake'?`<button type="button" class="btn small ghost" data-buy="${f.id}:20"${st.fish<p20||(meal&&room<20)?' disabled':''}>20: ${fmt(p20)}</button>`:''}</div>`}).join('')}</div>
-      <div class="task"><div class="tx"><b>Tủ to hơn</b><small>+100 phần</small></div><button type="button" class="btn small ghost" id="cap"${st.xu<300*st.pantryCap/100?' disabled':''}>${fmt(300*st.pantryCap/100)} xu</button></div>`}
+        <button type="button" class="btn small" data-buy="${f.id}:1"${st.fish<f.p||(meal&&room<1)?' disabled':''}>${M(f.p,'cá')}</button>
+        ${f.id!=='cake'?`<button type="button" class="btn small ghost" data-buy="${f.id}:20"${st.fish<p20||(meal&&room<20)?' disabled':''}>20: ${M(p20,'cá')}</button>`:''}</div>`}).join('')}</div>
+      <div class="task"><div class="tx"><b>Tủ to hơn</b><small>+100 phần</small></div><button type="button" class="btn small ghost" id="cap"${st.xu<100*st.pantryCap/100?' disabled':''}>${M(100*st.pantryCap/100,'xu')}</button></div>`}
   else if(shopTab==='toilet'){const R0=curRoom();
     html+=`<p class="hint">Khay đặt vào ${ROOMT[curT()].n}. Khay xịn cho nhiều mèo hơn, bẩn chậm hơn.</p><div class="list">${TOILETS.map(f=>{const placed=!!R0.furn[f.id],owned=R0.owned.includes(f.id);const cur=f.cur==='xu'?'xu':'cá';const have=f.cur==='xu'?st.xu:st.fish;
-      const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${have<f.price?' disabled':''}>${fmt(f.price)} ${cur}</button>`;
+      const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${have<f.price?' disabled':''}>${M(f.price,f.cur==='xu'?'xu':'cá')}</button>`;
       return `<div class="li${placed?' on':''}"><div class="ic"><img src="care/${f.img}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}</b><small>Cho ${f.cap} mèo · ${f.desc}</small></div>${btn}</div>`}).join('')}</div>
     <h3>Cát mèo</h3><div class="list">${LITTERS.map(l=>`<div class="li${st.litterUse===l.id?' on':''}"><div class="ic"><img src="care/${l.id}.webp?v=2" alt=""></div><div class="tx"><b>${l.n}</b><small>Có ${st.litter[l.id]} lần · ${l.desc}</small>
       <button type="button" class="link" data-lit="${l.id}">${st.litterUse===l.id?'Đang dùng khi dọn':'Dùng loại này khi dọn'}</button></div>
-      <button type="button" class="btn small" data-lbuy="${l.id}:1"${st.fish<l.p?' disabled':''}>${fmt(l.p)}</button></div>`).join('')}</div><p class="hint">1 túi = 5 lần dọn, giá tính bằng cá.</p>`}
+      <button type="button" class="btn small" data-lbuy="${l.id}:1"${st.fish<l.p?' disabled':''}>${M(l.p,'cá')}</button></div>`).join('')}</div><p class="hint">1 túi = 5 lần dọn, giá tính bằng cá.</p>`}
   else if(shopTab==='furn'){const R0=curRoom(),own=R0.owned;
     html+=`<p class="hint">Đồ cho ${ROOMT[curT()].n}, đang êm ${comfort(R0)} (cá +${comfort(R0)*10}%).</p><div class="shop">${FURN.filter(f=>!f.toilet).map(f=>{const placed=!!R0.furn[f.id],owned=own.includes(f.id);const p=furnPrice(f);
-      const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.fish<p?' disabled':''}>${fmt(p)} cá</button>`;
+      const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.fish<p?' disabled':''}>${M(p,'cá')}</button>`;
       return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>+${f.c} êm</small></div>${btn}</div>`}).join('')}</div>`}
   else if(shopTab==='home')html+=homeHtml();
   else html+=marketHtml();
@@ -1132,7 +1135,7 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
   bind(P,'[data-lit]',el=>{st.litterUse=el.dataset.lit;save();render()});
   bind(P,'[data-lbuy]',el=>{const [id,n]=el.dataset.lbuy.split(':');const l=LT[id];const cost=l.p*+n;if(st.fish<cost)return;st.fish-=cost;st.litter[id]+=l.uses*+n;save();toast(`+${l.uses*+n} lần dọn ${l.n.toLowerCase()}`);render()});
   bind(P,'[data-buy]',el=>{const [id,n]=el.dataset.buy.split(':');const f=FD[id];const cost=n==='20'?Math.round(f.p*20*.85):f.p;if(st.fish<cost)return;st.fish-=cost;st.pantry[id]+=+n;save();toast(`+${n} ${f.n}`);render()});
-  if($('cap'))$('cap').onclick=e=>{const c=300*st.pantryCap/100;twoTap(e.currentTarget,'cap',`Trả ${fmt(c)} xu?`,()=>{st.xu-=c;st.pantryCap+=100;save();render()})};
+  if($('cap'))$('cap').onclick=e=>{const c=100*st.pantryCap/100;twoTap(e.currentTarget,'cap',`Trả ${fmt(c)} xu?`,()=>{st.xu-=c;st.pantryCap+=100;save();render()})};
   bind(P,'[data-a]',el=>{const id=el.dataset.id,f=FID[id],R0=curRoom();
     if(el.dataset.a==='buy'&&f.toilet){const xu=f.cur==='xu';if((xu?st.xu:st.fish)<f.price)return;if(xu)st.xu-=f.price;else st.fish-=f.price;R0.owned.push(id);R0.furn[id]={x:f.x,y:floorY(f),dirt:0,lit:st.litterUse};clampFurn(id,R0.furn[id]);toast(`Đã đặt ${f.name}`)}
     else if(el.dataset.a==='buy'){const p=furnPrice(f);if(st.fish<p)return;st.fish-=p;st.bought[id]=(st.bought[id]||0)+1;R0.owned.push(id);R0.furn[id]={x:f.x,y:f.wall?f.y:floorY(f)};clampFurn(id,R0.furn[id]);toast(`Đã đặt ${f.name}`)}
@@ -1146,7 +1149,7 @@ function claimable(){return TIERS.map((t,i)=>i).filter(i=>!st.claimed.includes(i
 let bookTab='species';
 function renderBook(){const P=$('p-book');const sp=st.species.length;
   let html=`<div class="box"><div class="row"><h3>Đã gặp ${sp}/${ALLSH.length} loài</h3><span class="hint">${st.seen.length}/${TOTAL} kiểu lông</span></div><div class="meter"><i style="width:${(sp/ALLSH.length*100).toFixed(1)}%"></i></div>
-    ${claimable().map(i=>`<button type="button" class="btn small" data-claim="${i}">Đủ trang ${TIERS[i].n}: nhận ${fmt(TIERS[i].book)} xu</button>`).join('')}</div>
+    ${claimable().map(i=>`<button type="button" class="btn small" data-claim="${i}">Đủ trang ${TIERS[i].n}: nhận ${M(TIERS[i].book,'xu')}</button>`).join('')}</div>
     <div class="sub">${[['species','Theo loài'],['recipes','Công thức trứng'],['photos','Ảnh mèo hoang']].map(([k,n])=>`<button type="button" data-t="${k}" class="${bookTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(bookTab==='species')html+=TIERS.map((t,i)=>{const have=BY_TIER[i].filter(s=>st.species.includes(s)).length;
     return `<div class="row"><h3>${tierTag(i)} ${t.n}</h3><span class="hint">${have}/${BY_TIER[i].length}${st.claimed.includes(i)?' · đã nhận thưởng':` · đủ trang +${fmt(t.book)} xu`}</span></div>
