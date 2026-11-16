@@ -476,7 +476,7 @@ function mkCat(g,extra){return{id:st.nextId++,g,star:0,mood:70,job:null,jobSince
 let st=null;
 function fresh(){
   st={v:2,fish:300,xu:300,pts:0,cats:[],nextId:1,nextHouse:1,houses:[],ch:0,cur:0,seen:[],species:[],favKnown:[],photos:[],
-    free:2,freeAt:0,buyDay:'',buyN:0,tickets:0,firstBox:1,pantry:{kibble:20,good:0,pate:0,salmon:0,stick:3,cake:0},pantryCap:100,diet:'fav',
+    free:2,freeAt:0,buyDay:'',buyN:0,tickets:0,firstBox:1,shards:{round:2},pantry:{kibble:20,good:0,pate:0,salmon:0,stick:3,cake:0},pantryCap:100,diet:'fav',
     mail:0,mailN:0,eggs:[],nests:1,heater:0,market:{day:'',xu:0},strays:[],gifts:[],strayNext:0,claimed:[],lots:[],bought:{},
     t:now(),last:now(),day:dayKey(now()),tut:0};
   const h=newHouse({z:0,i:-1,area:40,gift:1},0);st.houses.push(h);
@@ -747,7 +747,7 @@ function clockText(){const T=now(),d=new Date(G(T)),hm=d.getHours()+':'+String(d
   const sub={night:'Mèo đang ngủ',morning:'Sắp đi làm lúc 8:00',work:nWork?`${nWork} mèo đi làm, về lúc 17:00`:'Giờ làm việc',evening:'Mèo về rồi: cho ăn, vuốt ve',weekend:'Ngày nghỉ: đưa mèo đi spa'}[p];
   return `${DOW[d.getDay()]} ${hm}<small>${sub}</small>`}
 function notices(){const n=[];const sk=sickCats().length;if(sk)n.push(`${sk} mèo bị ốm, cần đưa đi bệnh viện`);const md=maxDirt();if(md>=55)n.push(md>=75?'Khay vệ sinh bẩn lắm rồi, dọn ngay kẻo mèo ốm':'Khay vệ sinh hơi bẩn, chạm vào khay để dọn');
-  if(st.cats.length&&!st.houses.some(h=>boxesOf(h).length))n.push('Nhà chưa có khay vệ sinh');if(!st.cats.length)n.push('Nhà chưa có mèo. Bấm Hộp mèo ở dưới để đón mèo về');if(st.mail>0)n.push(`Hòm thư có ${fmt(st.mail)} cá lương`);
+  if(st.cats.length&&!st.houses.some(h=>boxesOf(h).length))n.push('Nhà chưa có khay vệ sinh');if(readyShards().length)n.unshift('Đủ lá ghép mèo rồi, vào Hộp mèo để ghép');else if(!st.cats.length)n.push('Nhà chưa có mèo. Mở Hộp mèo lấy lá, đủ lá thì ghép ra mèo');if(st.mail>0)n.push(`Hòm thư có ${fmt(st.mail)} cá lương`);
   const ready=st.eggs.filter(e=>now()>=e.end).length;if(ready)n.push(`${ready} trứng đã nở`);
   if(st.gifts.length)n.push(`${st.gifts.length} món quà mèo hoang để lại`);
   if(pantryMeals()<st.cats.filter(c=>c.h>=0).length)n.push('Tủ đồ ăn sắp hết');
@@ -755,7 +755,7 @@ function notices(){const n=[];const sk=sickCats().length;if(sk)n.push(`${sk} mè
   return n}
 function renderHud(){updateWallet();$('clock').innerHTML=clockText();
   const n=notices();$('notice').textContent=n[0]||'';
-  $('dot-box').textContent=st.free>0?st.free:'';
+  $('dot-box').textContent=readyShards().length?'!':st.free>0?st.free:'';
   $('dot-care').textContent=(st.mail>0||st.gifts.length||sickCats().length||maxDirt()>=55)?'!':'';
   $('dot-egg').textContent=st.eggs.filter(e=>now()>=e.end).length||'';
   $('dot-book').textContent=claimable().length||'';
@@ -789,48 +789,71 @@ function catCard(c,extra=''){const T=now();const t=tierOf(c.g);
 
 // ---------- Hộp mèo ----------
 const buyPrice=()=>[200,400,800][st.buyN]||0;
+// Mở ra chỉ là lá. Gom đủ lá cùng loài mới ghép ra mèo.
+const NEED=[3,3,2,2,2];
+const needOf=sh=>NEED[TIER_OF[sh]];
+const shardsOf=sh=>(st.shards||{})[sh]||0;
+const readyShards=()=>ALLSH.filter(sh=>shardsOf(sh)>=needOf(sh));
+const plainG=sh=>({shape:sh,pattern:'plain',color:'white'});
 function renderBox(){const P=$('p-box'),T=now();if(st.buyDay!==dayKey(T)){st.buyDay=dayKey(T);st.buyN=0}
-  const waitFull=waiting().length>=10;const p=buyPrice();
+  if(!st.shards)st.shards={};
+  const waitFull=waiting().length>=10;const p=buyPrice();const ready=readyShards();
+  const owned=ALLSH.filter(sh=>shardsOf(sh)>0||st.species.includes(sh)).sort((a,b)=>(shardsOf(b)/needOf(b))-(shardsOf(a)/needOf(a))||TIER_OF[b]-TIER_OF[a]);
   P.innerHTML=`
-  <div class="box hl">
+  ${ready.length?`<div class="box hl"><div class="row"><h3>Ghép được ${ready.length} mèo</h3>${ready.length>1?`<button type="button" class="btn small" id="mergeall"${waitFull?' disabled':''}>Ghép hết</button>`:''}</div>
+    <div class="list">${ready.map(sh=>`<div class="li"><div class="ic">${imgTag(plainG(sh))}</div><div class="tx"><b>${esc(SPR[sh].name)}</b><small>${tierTag(TIER_OF[sh])} ${shardsOf(sh)}/${needOf(sh)} lá</small></div><button type="button" class="btn small" data-merge="${sh}"${waitFull?' disabled':''}>Ghép</button></div>`).join('')}</div>
+    ${waitFull?'<p class="why">Phòng chờ đầy 10 con. Bán bớt mèo hoặc xây thêm phòng rồi ghép tiếp.</p>':''}</div>`:''}
+  <div class="box${ready.length?'':' hl'}">
     <div class="row"><h3>Lượt miễn phí ${st.free}/2</h3><span class="hint">${st.free<2?'Lượt mới sau '+dur(st.freeAt-T):'Đầy lượt, mở đi kẻo phí'}</span></div>
-    <p class="hint">Úp 3 lá mèo, bạn chọn 2. Một lá là lá may mắn, dễ ra con hiếm.${st.firstBox?' Lần đầu chắc chắn có mèo Hiếm.':''}</p>
-    <button type="button" class="btn wide" id="openfree"${st.free<1||waitFull?' disabled':''}>Mở lượt miễn phí</button>
-    ${st.tickets?`<button type="button" class="btn ghost wide" id="openticket"${waitFull?' disabled':''}>Dùng vé (còn ${st.tickets})</button>`:''}
-    ${waitFull?'<p class="why">Phòng chờ đầy 10 con. Bán bớt mèo hoặc xây thêm phòng rồi mở tiếp.</p>':''}
+    <p class="hint">Úp 3 lá, chọn 2. Gom đủ lá cùng loài thì ghép ra mèo: Thường, Khá cần 3 lá; Hiếm trở lên cần 2 lá.</p>
+    <button type="button" class="btn wide" id="openfree"${st.free<1?' disabled':''}>Mở lượt miễn phí</button>
+    ${st.tickets?`<button type="button" class="btn ghost wide" id="openticket">Dùng vé (còn ${st.tickets})</button>`:''}
   </div>
-  <div class="task"><div class="tx"><b>Mua thêm lượt</b><small>Hôm nay ${st.buyN}/3 lượt</small></div><button type="button" class="btn small" id="buybox"${!p||st.fish<p||waitFull?' disabled':''}>${p?fmt(p)+' cá':'Hết lượt'}</button></div>
-  <div class="task"><div class="tx"><b>Điểm Hộp: ${fmt(st.pts)}</b><small>Mỗi lượt +5. Đổi đúng con mình muốn từ 100 điểm</small></div><button type="button" class="btn small ghost" id="exch">Đổi</button></div>
-  <details class="more"><summary>Tỉ lệ ra mèo</summary>
-    <table class="odds"><thead><tr><th>Bậc</th><th>Lá thường</th><th>Lá may mắn</th></tr></thead><tbody>
-    ${TIERS.map((t,i)=>`<tr><td>${tierTag(i)} ${BY_TIER[i].length} con</td><td>${ODDS[0][i]}%</td><td>${ODDS[1][i]}%</td></tr>`).join('')}</tbody></table>
-    <p class="hint">Kiểu lông: trơn 70%, hoa văn 25% (lương +10%), lấp lánh 5% (lương +25%, bán gấp 3).</p></details>`;
+  <div class="task"><div class="tx"><b>Mua thêm lượt</b><small>Hôm nay ${st.buyN}/3 lượt</small></div><button type="button" class="btn small" id="buybox"${!p||st.fish<p?' disabled':''}>${p?fmt(p)+' cá':'Hết lượt'}</button></div>
+  <div class="task"><div class="tx"><b>Điểm Hộp: ${fmt(st.pts)}</b><small>Mỗi lượt +5. Đổi thẳng ra mèo từ 100 điểm</small></div><button type="button" class="btn small ghost" id="exch">Đổi</button></div>
+  <details class="more"${owned.length?' open':''}><summary>Lá mèo đang gom (${owned.filter(sh=>shardsOf(sh)>0).length} loài)</summary>
+    <div class="grid">${owned.map(sh=>{const n=shardsOf(sh),k=needOf(sh);return `<div class="ccard${n>=k?' sel':''}">${imgTag(plainG(sh))}<span class="nm">${esc(SPR[sh].name)}</span><span class="bar"><i style="width:${Math.min(100,n/k*100)}%"></i></span><em>${n}/${k} lá</em></div>`}).join('')||'<p class="hint">Chưa có lá nào.</p>'}</div></details>
+  <details class="more"><summary>Tỉ lệ ra lá</summary>
+    <table class="odds"><thead><tr><th>Bậc</th><th>Lá thường</th><th>Lá may mắn</th><th>Cần</th></tr></thead><tbody>
+    ${TIERS.map((t,i)=>`<tr><td>${tierTag(i)} ${BY_TIER[i].length} con</td><td>${ODDS[0][i]}%</td><td>${ODDS[1][i]}%</td><td>${NEED[i]} lá</td></tr>`).join('')}</tbody></table>
+    <p class="hint">Lúc ghép mới ra kiểu lông: trơn 70%, hoa văn 25% (lương +10%), lấp lánh 5% (lương +25%, bán gấp 3).</p></details>`;
   $('openfree').onclick=()=>{if(st.free<1)return;st.free--;if(!st.freeAt)st.freeAt=now()+12*H;openBox()};
   if($('openticket'))$('openticket').onclick=()=>{st.tickets--;openBox()};
   $('buybox').onclick=e=>{const p=buyPrice();if(!p||st.fish<p)return;twoTap(e.currentTarget,'buybox',`Trả ${fmt(p)} cá?`,()=>{st.fish-=p;st.buyN++;openBox()})};
-  $('exch').onclick=openExchange}
+  $('exch').onclick=openExchange;
+  bind(P,'[data-merge]',el=>merge(el.dataset.merge));
+  if($('mergeall'))$('mergeall').onclick=()=>{const l=readyShards();const made=[];l.forEach(sh=>{while(shardsOf(sh)>=needOf(sh)&&waiting().length<10)made.push(mergeOne(sh))});save();showMerged(made)}}
+function mergeOne(sh){st.shards[sh]-=needOf(sh);const g=rollFur(sh);const isNew=see(g);const c=mkCat(g);home(c);st.cats.push(c);return{c,isNew}}
+function merge(sh){if(shardsOf(sh)<needOf(sh))return;const r=mergeOne(sh);save();showMerged([r])}
+function showMerged(list){if(!list.length)return;const S2=$('stage');S2.hidden=false;
+  S2.innerHTML=`<h2>${list.length>1?'Ghép xong '+list.length+' mèo!':list[0].isNew==='species'?'Loài mới!':'Ghép xong!'}</h2><div class="cards" style="flex-wrap:wrap">${list.map(r=>`<div class="card up"><div class="back">${PAW}</div>${cardFront(r.c.g,r.isNew?'<span class="nw">Mới</span>':'')}</div>`).join('')}</div>
+    <p class="hint">${list.some(r=>r.c.h<0)?'Nhà đầy, có con vào Phòng chờ.':'Mèo mới đã chạy vào nhà'}</p><button type="button" class="btn" id="mdone">Xong</button>`;
+  $('mdone').onclick=()=>{S2.hidden=true;S2.innerHTML='';syncRoom(list[list.length-1].c.id);renderRooms();render()}}
 function rollTier(lucky){const o=ODDS[lucky?1:0];let r=R()*100;for(let i=0;i<5;i++){r-=o[i];if(r<0)return i}return 0}
 function openBox(){// rút sẵn 3 lá, lưu lại để tắt app giữa chừng cũng không rút lại được
-  const lucky=Math.floor(R()*3);
-  const cards=[0,1,2].map(i=>{let t=rollTier(i===lucky);if(i===lucky&&st.firstBox)t=Math.max(2,t);return{g:rollFur(pickOne(BY_TIER[t])),lucky:i===lucky}});
+  if(!st.shards)st.shards={};const lucky=Math.floor(R()*3);
+  let cards=[0,1,2].map(i=>{let t=rollTier(i===lucky);if(i===lucky&&st.firstBox)t=Math.max(2,t);return{s:pickOne(BY_TIER[t]),lucky:i===lucky}});
+  if(st.firstBox)cards=cards.map(c=>c.lucky?c:{s:'round',lucky:false});
   st.pack={cards,picked:[],first:!!st.firstBox};st.firstBox=0;st.pts+=5;save();showPack()}
 const PAW='<svg viewBox="0 0 60 60"><circle cx="30" cy="38" r="12" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="14" cy="24" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="24" cy="14" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="36" cy="14" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="46" cy="24" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/></svg>';
-function cardFront(g,extra){const t=tierOf(g);return `<div class="front ${TIERS[t].c}${shinyOf(g)?' sh':''}">${extra||''}${imgTag(g,11)}<b>${esc(shortName(g))}</b>${tierTag(t)}</div>`}
-function showPack(){const pk=st.pack;if(!pk)return;const S2=$('stage');S2.hidden=false;
+function cardFront(g,extra,foot){const t=tierOf(g);return `<div class="front ${TIERS[t].c}${shinyOf(g)?' sh':''}">${extra||''}${imgTag(g,11)}<b>${esc(shortName(g))}</b>${foot||tierTag(t)}</div>`}
+const shardFoot=(sh,n)=>{const k=needOf(sh);return `<span class="tag ${TIERS[TIER_OF[sh]].c}">${n>=k?'Đủ lá ghép!':`${n}/${k} lá`}</span>`};
+function showPack(){const pk=st.pack;if(!pk)return;pk.cards.forEach(c=>{if(!c.s&&c.g)c.s=c.g.shape});const S2=$('stage');S2.hidden=false;
   const done=pk.picked.length>=2;
-  S2.innerHTML=`<h2>${done?'Hai bé mèo mới!':'Chọn 2 lá'}</h2>
-    <div class="cards">${pk.cards.map((c,i)=>{const up=pk.picked.includes(i)||done;const missed=done&&!pk.picked.includes(i);
-      return `<div class="card${up?' up':''}${missed?' missed':''}" data-i="${i}"><div class="back">${PAW}</div>${cardFront(c.g,(missed?'<span class="nw miss">Bỏ lỡ</span>':c.isNew?'<span class="nw">Mới</span>':'')+(up&&c.lucky?'<span class="lk">May mắn</span>':''))}</div>`}).join('')}</div>
-    <p class="hint" id="packhint">${done?(pk.wait?`${pk.wait} con vào Phòng chờ vì nhà đầy.`:'Mèo mới đã chạy vào nhà'):pk.picked.length?'Chọn thêm 1 lá':'Một trong ba lá là lá may mắn'}</p>
-    ${done?'<button type="button" class="btn" id="packdone">Xong</button>':''}`;
+  const face=(c,i)=>{const missed=done&&!pk.picked.includes(i);return `<div class="back">${PAW}</div>${cardFront(plainG(c.s),(missed?'<span class="nw miss">Bỏ lỡ</span>':'<span class="nw">+1 lá</span>')+(c.lucky?'<span class="lk">May mắn</span>':''),missed?tierTag(TIER_OF[c.s]):shardFoot(c.s,shardsOf(c.s)))}`};
+  const ready=readyShards();
+  S2.innerHTML=`<h2>${done?'Nhận 2 lá mèo':'Chọn 2 lá'}</h2>
+    <div class="cards">${pk.cards.map((c,i)=>{const up=pk.picked.includes(i)||done;return `<div class="card${up?' up':''}${done&&!pk.picked.includes(i)?' missed':''}" data-i="${i}">${up?face(c,i):`<div class="back">${PAW}</div>`}</div>`}).join('')}</div>
+    <p class="hint" id="packhint">${done?(ready.length?`Đủ lá ghép ${ready.map(sh=>SPR[sh].name).join(', ')}!`:'Gom thêm lá cùng loài để ghép ra mèo'):pk.picked.length?'Chọn thêm 1 lá':'Một trong ba lá là lá may mắn'}</p>
+    ${done?`<div class="acts" style="justify-content:center">${ready.length?'<button type="button" class="btn" id="gomerge">Đi ghép mèo</button>':''}<button type="button" class="btn${ready.length?' ghost':''}" id="packdone">Xong</button></div>`:''}`;
   if(!done)S2.querySelectorAll('.card:not(.up)').forEach(cd=>cd.onclick=()=>{const i=+cd.dataset.i;if(pk.picked.includes(i)||pk.picked.length>=2)return;
-    if(pk.first&&!pk.picked.length){const L=pk.cards.findIndex(c=>c.lucky);if(L!==i){const tmp=pk.cards[i];pk.cards[i]=pk.cards[L];pk.cards[L]=tmp}}
-    const c=pk.cards[i];c.isNew=see(c.g);const cat=mkCat({...c.g});if(!home(cat))pk.wait=(pk.wait||0)+1;st.cats.push(cat);pk.lastId=cat.id;pk.picked.push(i);save();
-    cd.innerHTML=`<div class="back">${PAW}</div>${cardFront(c.g,(c.isNew?'<span class="nw">Mới</span>':'')+(c.lucky?'<span class="lk">May mắn</span>':''))}`;
-    requestAnimationFrame(()=>cd.classList.add('up'));const t=tierOf(c.g);
-    $('packhint').textContent=t>=4?'Huyền thoại! Hiếm lắm đó':shinyOf(c.g)?'Mèo lấp lánh!':t>=3?'Siêu hiếm!':pk.picked.length<2?'Chọn thêm 1 lá':'';
+    if(pk.first){const L=pk.cards.findIndex(c=>c.lucky);if(pk.picked.length===0&&pk.cards[i].lucky){const o=pk.cards.findIndex((c,j)=>!c.lucky&&j!==i);const tmp=pk.cards[i];pk.cards[i]=pk.cards[o];pk.cards[o]=tmp}}
+    const c=pk.cards[i];st.shards[c.s]=shardsOf(c.s)+1;pk.picked.push(i);save();
+    cd.innerHTML=face(c,i);requestAnimationFrame(()=>cd.classList.add('up'));const t=TIER_OF[c.s];
+    $('packhint').textContent=t>=4?'Lá Huyền thoại! Hiếm lắm đó':t>=3?'Lá Siêu hiếm!':shardsOf(c.s)>=needOf(c.s)?`Đủ lá ghép ${SPR[c.s].name}!`:pk.picked.length<2?'Chọn thêm 1 lá':'';
     if(pk.picked.length>=2)setTimeout(showPack,1100)});
-  if(done)$('packdone').onclick=()=>{const id=pk.lastId;st.pack=null;save();S2.hidden=true;S2.innerHTML='';syncRoom(id);renderRooms();render()}}
+  const close=()=>{st.pack=null;save();S2.hidden=true;S2.innerHTML='';render()};
+  if(done){$('packdone').onclick=close;if($('gomerge'))$('gomerge').onclick=()=>{close();openTray('box')}}}
 function openExchange(){const cost=[0,0,100,300,800];
   sheet(`<div class="row"><h2>Đổi Điểm Hộp</h2><span class="hint">Đang có ${fmt(st.pts)} điểm</span></div>
   ${[2,3,4].map(t=>`<h3>${TIERS[t].n} · ${cost[t]} điểm</h3><div class="grid">${BY_TIER[t].map(s=>{const g=s&&isW(s)?{shape:s,pattern:'plain',color:'white'}:{shape:s,pattern:'plain',color:'white'};const own=st.species.includes(s);
@@ -1148,7 +1171,7 @@ resize();window.addEventListener('resize',resize);view();renderRooms();renderHud
 loadBases().then(()=>{$('loading').remove();syncRoom();render();
   if(st.pack)setTimeout(showPack,300);
   if(st.migrated){st.migrated=0;save();setTimeout(()=>toast('Game đã lên bản mới! Mèo và đồ đạc vẫn giữ nguyên. Thử mở Hộp mèo nhé',4200),700)}
-  else if(!st.tut){st.tut=1;save();setTimeout(()=>{toast('Chào mừng về Nhà Mèo Méo! Nhà còn trống, mở Hộp mèo để đón những con mèo đầu tiên',4500)},700)}
+  else if(!st.tut){st.tut=1;save();setTimeout(()=>{toast('Chào mừng về Nhà Mèo Méo! Mở Hộp mèo lấy lá, đủ lá thì ghép ra mèo',4500)},700)}
   let sec=0;
   setInterval(()=>{const T=now();st.fish+=passivePerHour(T)/3600;sec++;
     if(sec%10===0){const before=st.t;process();syncRoom();renderRooms()}
