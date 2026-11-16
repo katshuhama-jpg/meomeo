@@ -271,6 +271,13 @@ body.visiting .dock,body.visiting .notice,body.visiting #editbtn,body.visiting .
 .li.fr .av{width:40px;height:40px;border-radius:50%;background:#FFE3C2;border:2px solid var(--ink,#2A272C);display:grid;place-items:center;font-weight:800;font-family:var(--display);flex:none}
 .li.fr .tx{flex:1;min-width:0}.li.fr .tx b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #fsearch input{font:inherit;font-size:16px;padding:10px 12px;border:2px solid var(--line);border-radius:12px;background:#fff;min-height:44px}
+.stiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:4px 0 10px}
+.stile{border:2px solid var(--line);border-radius:14px;background:var(--card,#fff);padding:8px 6px;text-align:center;display:flex;flex-direction:column;gap:2px}
+.stile b{font-family:var(--display);font-size:22px;line-height:1.1}.stile span{font-size:12.5px;color:var(--mute,#7a7276);line-height:1.2}
+.stile.warn{border-color:#F2A541;background:#FFF4E2}
+.tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.hcard .ic img{width:44px;height:auto}.hcard .tx{flex:1;min-width:0}
+.rmini{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.rmini i{font-style:normal;font-size:12px;background:var(--paper,#F6F1E8);border-radius:99px;padding:1px 8px}
 </style>
 
 <div class="room" id="room"><div class="loading" id="loading">Đang gọi mèo về…</div><canvas id="cv"></canvas></div>
@@ -1115,7 +1122,7 @@ const ICON={
   pet:'<svg viewBox="0 0 48 48"><path d="M24 40C11 31 6 25 6 18a9 9 0 0 1 18-3 9 9 0 0 1 18 3c0 7-5 13-18 22Z" fill="#F7A1B4" stroke="#2A272C" stroke-width="2.4"/></svg>'};
 const task=(ic,title,sub,btn,hl)=>`<div class="task${hl?' hl':''}"><div class="ic">${ic}</div><div class="tx"><b>${title}</b><small>${sub}</small></div>${btn||''}</div>`;
 function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
-  const tabs=[['today','Hôm nay'],['jobs','Đi làm'],['cats','Mèo nhà mình']];
+  const tabs=[['today','Hôm nay'],['sum','Tổng quan'],['jobs','Đi làm'],['cats','Mèo nhà mình']];
   let html=`<div class="sub">${tabs.map(([k,n])=>`<button type="button" data-t="${k}" class="${careTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(careTab==='today'){const home=st.cats.filter(c=>c.h>=0);const dk=dayKey(GT);const unfed=home.filter(c=>c.fed!==dk);
     const sick=sickCats(),hs=st.cats.filter(c=>inHosp(c)),hcost=sick.reduce((a,c)=>a+HOSP[tierOf(c.g)],0);
@@ -1141,6 +1148,19 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
         return `<div class="li${lock?' off':''}" data-job="${j.id}"><div class="tx"><b>${j.n} · ×${String(j.m).replace('.',',')}</b><small>${lock?esc(lock):`Hợp: ${j.fit.map(s=>SPR[s]?SPR[s].name:s).join(', ')}${j.shinyFit?', mèo lấp lánh':''}`}</small>
           ${lock?'':`<div class="chips" style="margin-top:4px">${Array.from({length:j.slots},(_,i)=>ws[i]?`<span class="mini">${imgTag(ws[i].g)}</span>`:'<span class="mini empty"></span>').join('')}</div>`}</div>
           ${lock?'':`<button type="button" class="btn small ghost" data-pick="${j.id}">Chọn</button>`}</div>`}).join('')}</div>`}
+  if(careTab==='sum'){const T=now(),dk=dayKey(GT),all=st.cats;
+    const atHome=all.filter(c=>c.h>=0&&present(c,T)).length,working=all.filter(c=>away(c,T)).length,hosp=all.filter(c=>inHosp(c,T)).length,sick=sickCats().length,wait=waiting().length;
+    const home=all.filter(c=>c.h>=0),avg=home.length?Math.round(home.reduce((a,c)=>a+c.mood,0)/home.length):0,sad=home.filter(c=>c.mood<40).length,unfed=home.filter(c=>c.fed!==dk).length,jobless=home.filter(c=>!c.job).length;
+    const tile=(n,l,warn)=>`<div class="stile${warn&&n?' warn':''}"><b>${n}</b><span>${l}</span></div>`;
+    html+=`<div class="stiles">${tile(all.length,'Tổng số mèo')}${tile(atHome,'Đang ở nhà')}${tile(working,'Đang đi làm')}${tile(sick+hosp,'Ốm, nằm viện',1)}${tile(wait,'Phòng chờ',1)}${tile(jobless,'Chưa có việc')}</div>
+      <div class="box"><div class="row"><h3>Tâm trạng trung bình</h3><b>${avg}/100</b></div><div class="meter"><i style="width:${avg}%"></i></div>
+      <p class="hint">${[sad&&`${sad} con đang buồn`,unfed&&`${unfed} con chưa ăn hôm nay`,maxDirt()>=55&&'khay vệ sinh đang bẩn'].filter(Boolean).join(', ')||'Mèo nào cũng ổn.'}</p></div>
+      <div class="box"><h3>Theo độ hiếm</h3><div class="tagrow">${TIERS.map((t,i)=>{const n=all.filter(c=>tierOf(c.g)===i).length;return n?`<span class="tag ${t.c}">${t.n} ${n}</span>`:''}).join('')||'<span class="hint">Chưa có mèo</span>'}</div></div>
+      <h3>Nhà của bạn (${st.houses.length})</h3><div class="list">${st.houses.map((h,i)=>{const n=all.filter(c=>c.h===h.id).length,cap=h.rooms.length*CAP;
+        return `<div class="li hcard"><div class="ic"><img src="houses/h${h.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(h))}${i===st.ch?' · đang xem':''}</b>
+          <small>${h.rent?`Cho thuê, +${fmt(rentOf(h))} xu mỗi ngày`:`${n}/${cap} mèo · ${h.rooms.length} phòng`}</small>
+          ${h.rent?'':`<span class="rmini">${h.rooms.map((r,ri)=>`<i>${ROOMT[r.t].n} ${catsIn(h,ri).length}</i>`).join('')}</span>`}</div>
+          ${i===st.ch||h.rent?'':`<button type="button" class="btn small ghost" data-gohome="${i}">Sang</button>`}</div>`}).join('')}</div>`}
   if(careTab==='cats'){const w=waiting();
     html+=`<p class="hint">${st.cats.length} con. Chạm một con để xem chi tiết.</p>
       ${w.length?`<h3>Phòng chờ ${w.length}/10</h3><div class="grid">${w.map(c=>catCard(c)).join('')}</div>`:''}
@@ -1148,6 +1168,7 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
   P.innerHTML=html;
   bind(P,'[data-t]',el=>{careTab=el.dataset.t;render()});
   bind(P,'[data-cat]',el=>openCat(+el.dataset.cat));
+  bind(P,'[data-gohome]',el=>{st.ch=+el.dataset.gohome;st.cur=0;save();view();actors.clear();syncRoom();renderRooms();closeTray();toast(`Đang ở ${houseName(curHouse())}`)});
   if($('guestclaim'))$('guestclaim').onclick=async e=>{e.currentTarget.disabled=true;try{const x=await rpc('meo_guests_claim',{p_token:ses.token});if(x>0){st.xu+=x;save();toast(`+${fmt(x)} xu từ khách ghé thăm`)}guests.xu=0}catch(err){toast('Không kết nối được, thử lại sau')}render()};
   if($('mail'))$('mail').onclick=()=>{st.fish+=st.mail;toast(`+${fmt(st.mail)} cá lương`);st.mail=0;st.mailN=0;st.offline=0;st.offXu=0;st.rentLog=0;save();render()};
   if($('gifts'))$('gifts').onclick=()=>{const sum={fish:0,pts:0,ticket:0};st.gifts.forEach(g=>sum[g.k]+=g.n);st.fish+=sum.fish;st.pts+=sum.pts;st.tickets+=sum.ticket;st.gifts=[];save();
@@ -1258,7 +1279,7 @@ function homeHtml(){const h=curHouse(),tp=TPL[h.tpl];const inside=h.rooms.filter
   let html=`${w.length?`<p class="why">Phòng chờ có ${w.length} mèo. Xây thêm phòng, mèo tự dọn vào.</p>`:''}
     <div class="task hl"><div class="ic big"><img src="houses/h${h.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(h))}</b><small>${h.lot.area} m² · ${inside}/${tp.rooms} phòng · ${zoneOf(h).perk}${h.lot.trait?' · '+h.lot.trait.n:''}</small></div></div>`;
   if(inside<tp.rooms)html+=`<details class="more" open><summary>Xây phòng mới (${tp.rooms-inside} chỗ trống)</summary><div class="list">${ROOMT.map((t,i)=>t.out?'':`<div class="li"><div class="tx"><b>${t.n}</b>${i===2?'<small>Mở việc Phụ bếp</small>':''}</div><button type="button" class="btn small" data-build="${i}"${st.xu<t.xu?' disabled':''}>${M(t.xu,'xu')}</button></div>`).join('')}</div></details>`;
-  if(up)html+=task(`<img src="houses/h${h.tpl+1}.webp" alt="">`,`Lên ${up.n}`,h.lot.area<up.min?`Cần lô từ ${up.min} m², lô này ${h.lot.area} m²`:`${up.rooms} phòng${up.out.length>tp.out.length?', thêm '+up.out.slice(tp.out.length).map(o=>ROOMT[OUT_T[o]].n.toLowerCase()).join(', '):''}`,
+  if(up)html+=task(`<img src="houses/h${h.tpl}.webp" alt="">`,`Lên ${up.n}`,h.lot.area<up.min?`Cần lô từ ${up.min} m², lô này ${h.lot.area} m²`:`${up.rooms} phòng${up.out.length>tp.out.length?', thêm '+up.out.slice(tp.out.length).map(o=>ROOMT[OUT_T[o]].n.toLowerCase()).join(', '):''}`,
     h.lot.area<up.min?'':`<button type="button" class="btn small" id="upg"${st.xu<up.xu?' disabled':''}>${M(up.xu,'xu')}</button>`);
   if(st.houses.length>1)html+=`<h3>Nhà của bạn ${st.houses.length}/5</h3><div class="list">${st.houses.map((x,i)=>{const n=st.cats.filter(c=>c.h===x.id).length;
     return `<div class="li"><div class="ic"><img src="houses/h${x.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(x))}${i===st.ch?' · đang xem':''}</b><small>${x.rent?`Cho thuê, +${fmt(rentOf(x))} xu mỗi ngày`:`${n} mèo`}</small></div>
