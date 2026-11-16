@@ -1446,7 +1446,8 @@ async function startVisit(u){if(visit||!CFG||!ses)return;let d;
   try{const r=await rpc('meo_visit',{p_token:ses.token,p_username:visit.u});if(visit){visit.pets=r.pets;visit.heart=r.heart;if(r.first){visit.real.fish+=20;toast(`Chào mừng tới nhà ${visit.u}! +20 cá lần đầu ghé hôm nay`)}else toast(`Nhà của ${visit.u}. Chạm vào mèo để vuốt`);updVisit()}}catch(e){}}
 function endVisit(){if(!visit)return;const v=visit,hrs=(now()-v.t0)/H;visit=null;st=v.real;
   st.fish+=passivePerHour()*hrs;st.xu+=xuPerHour()*hrs;
-  document.body.classList.remove('visiting');actors.clear();view();clampRoom();syncRoom();renderRooms();renderHud();save();loadSocial(true)}
+  document.body.classList.remove('visiting');const vb=$('visitbar');vb.hidden=true;vb.innerHTML='';vb.dataset.h='';
+  actors.clear();view();clampRoom();syncRoom();renderRooms();renderHud();save();loadSocial(true)}
 async function guestPet(a){if(!visit||visit.busy)return;const c=a.c;a.jump=1;a.state='idle';a.t=1.6;
   if(visit.pets>=3){a.expr=10;a.exprT=1;say(a,`<b>${esc(shortName(c.g))}</b> · hôm nay vuốt đủ 3 lần rồi`);return}
   visit.busy=true;try{const r=await rpc('meo_visit',{p_token:ses.token,p_username:visit.u,p_pet:true});if(!visit)return;visit.pets=r.pets;
