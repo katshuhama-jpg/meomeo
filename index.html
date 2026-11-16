@@ -740,8 +740,14 @@ function bgTint(h,dp){const [n,g,d]=skyLevels(h);const out=!!ROOMT[curT()].out;i
   const k=out?1:.5;
   if(g){ctx.fillStyle=`rgba(255,176,110,${.4*g*k})`;ctx.fillRect(0,0,VW,VH)}
   if(d){ctx.fillStyle=`rgba(255,190,200,${.3*d*k})`;ctx.fillRect(0,0,VW,VH)}
-  if(out&&n){ctx.fillStyle=`rgba(60,70,130,${.6*n})`;ctx.fillRect(0,0,VW,VH)}
+  if(out&&n){const on=lightOn();ctx.fillStyle=`rgba(50,60,125,${(on?.42:.78)*n})`;ctx.fillRect(0,0,VW,VH);
+    if(on){// đèn ngoài trời: quầng vàng ở bóng đèn dây, đèn tường, cột đèn
+      ctx.globalCompositeOperation='screen';ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);const L=OUT_LIGHTS[ROOMT[curT()].img]||[];const fl=.5+.5*Math.sin(performance.now()/700);
+      L.forEach(([x,y,r,a2])=>{const g2=ctx.createRadialGradient(x*S,y*S,2,x*S,y*S,r*S);g2.addColorStop(0,`rgba(255,214,140,${a2*n*(.92+.08*fl)})`);g2.addColorStop(1,'rgba(255,200,120,0)');ctx.fillStyle=g2;ctx.fillRect((x-r)*S,(y-r)*S,2*r*S,2*r*S)})}}
   ctx.restore()}
+// vị trí đèn trong ảnh hiên, sân, vườn (đơn vị phòng 1024x1536)
+const OUT_LIGHTS={o1:[[175,175,150,.55],[334,170,150,.55],[457,168,150,.55],[600,170,150,.5],[686,170,150,.55],[826,175,150,.55],[466,378,330,.75],[512,1000,700,.25]],
+  o2:[[240,290,360,.8],[512,1050,700,.25]],o3:[[272,215,320,.75],[512,1050,700,.25]]};
 // Bước 2, phủ cả phòng lẫn mèo: chỉ khi trong nhà và đã tắt đèn
 function darkTint(h,dp){const n=skyLevels(h)[0];if(!n||ROOMT[curT()].out||lightOn())return;ctx.save();ctx.setTransform(dp,0,0,dp,0,0);ctx.globalCompositeOperation='multiply';
   ctx.fillStyle=`rgba(46,54,112,${.78*n})`;ctx.fillRect(0,0,VW,VH);ctx.restore()}
