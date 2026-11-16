@@ -533,6 +533,8 @@ function fresh(){
     t:now(),last:now(),day:dayKey(now()),tut:0};
   const h=newHouse({z:0,i:-1,area:40,gift:1},0);st.houses.push(h);
   ensureToilet();ensureInv();
+  // nhà mới có sẵn 2 bé mèo
+  [{shape:'round',pattern:'plain',color:'white'},{shape:'loaf',pattern:'plain',color:'ginger'}].forEach(g=>{const c=mkCat(g);c.mood=80;place(c,0,0);st.cats.push(c);see(g)});
 }
 function migrate(o){// bản demo cũ: giữ cá, mèo, phòng đã mở và đồ đạc
   fresh();st.cats=[];st.fish=Math.round(o.fish||0);st.xu=400;
@@ -1328,7 +1330,7 @@ resize();window.addEventListener('resize',()=>{resize();clampRoom()});view();cla
 loadBases().then(()=>{$('loading').remove();syncRoom();render();
   if(st.pack)setTimeout(showPack,300);
   if(st.migrated){st.migrated=0;save();setTimeout(()=>toast('Game đã lên bản mới! Mèo và đồ đạc vẫn giữ nguyên. Thử mở Hộp mèo nhé',4200),700)}
-  else if(!st.tut){st.tut=1;save();setTimeout(()=>{toast('Chào mừng về Nhà Mèo Méo! Mở Hộp mèo lấy lá, đủ lá thì ghép ra mèo',4500)},700)}
+  else if(!st.tut){st.tut=1;save();setTimeout(()=>{toast('Chào mừng về Nhà Mèo Méo! Bánh Bao và Bánh Mì đã dọn vào. Mở Hộp mèo lấy lá để ghép thêm mèo',4500)},700)}
   let sec=0;
   setInterval(()=>{const T=now();st.fish+=passivePerHour(T)/3600;st.xu+=xuPerHour()/3600;sec++;
     if(sec%10===0){const before=st.t;process();syncRoom();renderRooms()}
