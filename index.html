@@ -397,9 +397,9 @@ const FOOD_ICON={
 
 // ---------- Phòng, nhà, đất ----------
 const ROOMT=[
-  {n:'Phòng khách',xu:120,fl:745},{n:'Phòng ngủ',xu:120,fl:758},{n:'Phòng bếp',xu:150,fl:685},{n:'Ban công',xu:180,fl:800},
-  {n:'Phòng tắm',xu:180,fl:773},{n:'Thư viện',xu:250,fl:764},{n:'Phòng Nhật',xu:300,fl:612},{n:'Nhà kính',xu:300,fl:730},
-  {n:'Gác mái',xu:350,fl:727},{n:'Phòng vũ trụ',xu:450,fl:701},
+  {n:'Phòng khách',xu:60,fl:745},{n:'Phòng ngủ',xu:60,fl:758},{n:'Phòng bếp',xu:80,fl:685},{n:'Ban công',xu:100,fl:800},
+  {n:'Phòng tắm',xu:100,fl:773},{n:'Thư viện',xu:150,fl:764},{n:'Phòng Nhật',xu:180,fl:612},{n:'Nhà kính',xu:180,fl:730},
+  {n:'Gác mái',xu:220,fl:727},{n:'Phòng vũ trụ',xu:280,fl:701},
   {n:'Hiên nhà',out:1,fl:790,img:'o1'},{n:'Sân trước',out:1,fl:730,img:'o2'},{n:'Vườn sau',out:1,fl:700,img:'o3'}];
 const OUT_T={porch:10,yard:11,garden:12};
 const TPL=[
@@ -423,32 +423,32 @@ const CAP=6;
 
 // ---------- Đồ đạc ----------
 const FURN=[
-  {id:'catbed',name:'Ổ mèo',price:120,c:2,w:180,x:640,y:324},
-  {id:'painting',name:'Tranh cá',price:100,c:1,w:120,x:800,y:430,wall:1},
-  {id:'lamp',name:'Đèn cây',price:150,c:1,w:100,x:60,y:108},
-  {id:'clock',name:'Đồng hồ mèo',price:160,c:1,w:115,x:660,y:400,wall:1},
-  {id:'coffeetable',name:'Bàn trà',price:180,c:1,w:210,x:470,y:342},
-  {id:'beanbag',name:'Ghế lười',price:200,c:2,w:190,x:840,y:270},
-  {id:'mirror',name:'Gương đứng',price:220,c:1,w:135,x:170,y:108},
-  {id:'monstera',name:'Cây monstera',price:250,c:2,w:170,x:960,y:117},
-  {id:'armchair',name:'Ghế bành',price:300,c:3,w:200,x:210,y:144},
-  {id:'dresser',name:'Tủ ngăn kéo',price:300,c:2,w:170,x:930,y:90},
-  {id:'bookshelf',name:'Kệ sách',price:350,c:2,w:200,x:110,y:90},
-  {id:'hammock',name:'Võng mèo',price:380,c:3,w:220,x:700,y:396},
-  {id:'desk',name:'Bàn học',price:400,c:2,w:230,x:260,y:90},
-  {id:'wallshelf',name:'Kệ leo tường',price:450,c:3,w:220,x:900,y:470,wall:1},
-  {id:'record',name:'Máy hát',price:500,c:3,w:150,x:880,y:108},
-  {id:'sofa',name:'Sofa bạc hà',price:600,c:4,w:340,x:520,y:108},
-  {id:'tv',name:'Tivi cổ',price:700,c:3,w:220,x:760,y:90},
-  {id:'fishtank',name:'Bể cá',price:800,c:4,w:180,x:620,y:99},
-  {id:'kotatsu',name:'Bàn sưởi kotatsu',price:900,c:5,w:300,x:380,y:432},
-  {id:'cattree',name:'Trụ cào',price:1000,c:5,w:220,x:900,y:144}];
+  {id:'catbed',name:'Ổ mèo',price:6,c:2,w:180,x:640,y:324},
+  {id:'painting',name:'Tranh cá',price:5,c:1,w:120,x:800,y:430,wall:1},
+  {id:'lamp',name:'Đèn cây',price:8,c:1,w:100,x:60,y:108},
+  {id:'clock',name:'Đồng hồ mèo',price:8,c:1,w:115,x:660,y:400,wall:1},
+  {id:'coffeetable',name:'Bàn trà',price:9,c:1,w:210,x:470,y:342},
+  {id:'beanbag',name:'Ghế lười',price:10,c:2,w:190,x:840,y:270},
+  {id:'mirror',name:'Gương đứng',price:11,c:1,w:135,x:170,y:108},
+  {id:'monstera',name:'Cây monstera',price:12,c:2,w:170,x:960,y:117},
+  {id:'armchair',name:'Ghế bành',price:15,c:3,w:200,x:210,y:144},
+  {id:'dresser',name:'Tủ ngăn kéo',price:15,c:2,w:170,x:930,y:90},
+  {id:'bookshelf',name:'Kệ sách',price:18,c:2,w:200,x:110,y:90},
+  {id:'hammock',name:'Võng mèo',price:19,c:3,w:220,x:700,y:396},
+  {id:'desk',name:'Bàn học',price:20,c:2,w:230,x:260,y:90},
+  {id:'wallshelf',name:'Kệ leo tường',price:22,c:3,w:220,x:900,y:470,wall:1},
+  {id:'record',name:'Máy hát',price:25,c:3,w:150,x:880,y:108},
+  {id:'sofa',name:'Sofa bạc hà',price:30,c:4,w:340,x:520,y:108},
+  {id:'tv',name:'Tivi cổ',price:35,c:3,w:220,x:760,y:90},
+  {id:'fishtank',name:'Bể cá',price:40,c:4,w:180,x:620,y:99},
+  {id:'kotatsu',name:'Bàn sưởi kotatsu',price:45,c:5,w:300,x:380,y:432},
+  {id:'cattree',name:'Trụ cào',price:50,c:5,w:220,x:900,y:144}];
 // ---------- Vệ sinh: khay và cát ----------
 const TOILETS=[
-  {id:'t_tray',img:'tray',name:'Khay nhựa',price:120,cur:'fish',cap:3,rate:1,w:150,x:150,y:60,desc:'Bình dân, bẩn nhanh'},
-  {id:'t_covered',img:'covered',name:'Khay có nắp',price:350,cur:'fish',cap:4,rate:.8,w:140,x:880,y:60,desc:'Đỡ mùi, bẩn chậm hơn 20%'},
-  {id:'t_wood',img:'wood',name:'Tủ vệ sinh gỗ',price:700,cur:'fish',cap:5,rate:.65,w:150,x:110,y:50,desc:'Đẹp như đồ nội thất, bẩn chậm hơn 35%'},
-  {id:'t_auto',img:'auto',name:'Khay tự dọn',price:1000,cur:'fish',cap:6,rate:.6,w:150,x:900,y:50,auto:1,desc:'Tự dọn mỗi sáng nếu tủ còn cát'}];
+  {id:'t_tray',img:'tray',name:'Khay nhựa',price:6,cur:'xu',cap:3,rate:1,w:150,x:150,y:60,desc:'Bình dân, bẩn nhanh'},
+  {id:'t_covered',img:'covered',name:'Khay có nắp',price:18,cur:'xu',cap:4,rate:.8,w:140,x:880,y:60,desc:'Đỡ mùi, bẩn chậm hơn 20%'},
+  {id:'t_wood',img:'wood',name:'Tủ vệ sinh gỗ',price:35,cur:'xu',cap:5,rate:.65,w:150,x:110,y:50,desc:'Đẹp như đồ nội thất, bẩn chậm hơn 35%'},
+  {id:'t_auto',img:'auto',name:'Khay tự dọn',price:50,cur:'xu',cap:6,rate:.6,w:150,x:900,y:50,auto:1,desc:'Tự dọn mỗi sáng nếu tủ còn cát'}];
 const LITTERS=[
   {id:'clay',n:'Cát đất sét',p:30,uses:5,rate:1,mood:0,desc:'Bình dân'},
   {id:'tofu',n:'Cát đậu nành',p:80,uses:5,rate:.8,mood:3,desc:'Bẩn chậm hơn 20%, mèo +3 tâm trạng mỗi lần dọn'},
@@ -1193,7 +1193,7 @@ function hatch(id){const e=st.eggs.find(x=>x.id===id);if(!e||eggMs(e))return;con
 let zoneOpen=-1;
 function marketLeft(){const dk=dayKey(now());if(st.market.day!==dk){st.market={day:dk,xu:0}}return 150-st.market.xu}
 function homeHtml(){const h=curHouse(),tp=TPL[h.tpl];const inside=h.rooms.filter(r=>!ROOMT[r.t].out).length;const w=waiting();const up=TPL[h.tpl+1];
-  let html=`<p class="hint">Nhà đất trả bằng xu, 1 xu = 20 cá. Phòng rẻ nhất 120 xu (2.400 cá), đắt hơn mọi món đồ.</p>${w.length?`<p class="why">Phòng chờ có ${w.length} mèo. Xây thêm phòng, mèo tự dọn vào.</p>`:''}
+  let html=`${w.length?`<p class="why">Phòng chờ có ${w.length} mèo. Xây thêm phòng, mèo tự dọn vào.</p>`:''}
     <div class="task hl"><div class="ic big"><img src="houses/h${h.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(h))}</b><small>${h.lot.area} m² · ${inside}/${tp.rooms} phòng · ${zoneOf(h).perk}${h.lot.trait?' · '+h.lot.trait.n:''}</small></div></div>`;
   if(inside<tp.rooms)html+=`<details class="more" open><summary>Xây phòng mới (${tp.rooms-inside} chỗ trống)</summary><div class="list">${ROOMT.map((t,i)=>t.out?'':`<div class="li"><div class="tx"><b>${t.n}</b>${i===2?'<small>Mở việc Phụ bếp</small>':''}</div><button type="button" class="btn small" data-build="${i}"${st.xu<t.xu?' disabled':''}>${M(t.xu,'xu')}</button></div>`).join('')}</div></details>`;
   if(up)html+=task(`<img src="houses/h${h.tpl+1}.webp" alt="">`,`Lên ${up.n}`,h.lot.area<up.min?`Cần lô từ ${up.min} m², lô này ${h.lot.area} m²`:`${up.rooms} phòng${up.out.length>tp.out.length?', thêm '+up.out.slice(tp.out.length).map(o=>ROOMT[OUT_T[o]].n.toLowerCase()).join(', '):''}`,
@@ -1249,6 +1249,7 @@ const furnPrice=f=>Math.round(f.price*Math.pow(1.5,Math.min(2,(st.bought[f.id]||
 const SHOPTABS=[['cats','Lá mèo'],['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['home','Nhà đất'],['market','Chợ cá']];
 function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('details.more')].map(d=>d.open);
   let html=`<div class="sub">${SHOPTABS.map(([k,n])=>`<button type="button" data-t="${k}" class="${shopTab===k?'on':''}">${n}</button>`).join('')}</div>`;
+  if(['furn','toilet','home'].includes(shopTab))html+=`<p class="hint">Nội thất, phòng, nhà và đất trả bằng xu, từ rẻ đến đắt: đồ 5-50, phòng 60-280, nhà từ 500, đất từ 600. Đồ ăn, cát và lá mèo trả bằng cá.</p>`;
   if(shopTab==='cats'){const ps=petShop();const T=now();const next=at(T-7*H+DAY,7);
     html+=`<p class="hint">Tiệm bán lá mèo. Gom đủ lá cùng loài rồi ghép ở Hộp mèo. Mỗi loài bán tối đa 3 lá một ngày, hàng mới sau ${dur(next-T)}.</p><div class="grid">${ps.slots.map((sl,i)=>{const sh=sl.s,t=TIER_OF[sh],P=CARD_PRICE[t];const have=P.c==='xu'?st.xu:st.fish;const n=shardsOf(sh),k=needOf(sh),left=3-(sl.n||0);
       return `<div class="ccard${left?'':' away'}">${known(sh)?'':'<span class="tag" style="position:absolute;top:4px;left:4px;background:#F26B6B;color:#fff;border-color:#F26B6B">Mới</span>'}${imgTag(plainG(sh))}<span class="nm">Lá ${esc(SPR[sh].name)}</span>${tierTag(t)}
@@ -1270,7 +1271,7 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
       <button type="button" class="btn small" data-lbuy="${l.id}:1"${st.fish<l.p?' disabled':''}>${M(l.p,'cá')}</button></div>`).join('')}</div><p class="hint">1 túi = 5 lần dọn, giá tính bằng cá.</p>`}
   else if(shopTab==='furn'){const R0=curRoom();
     html+=`<p class="hint">Mua xong đồ đặt vào ${ROOMT[curT()].n} (đang êm ${comfort(R0)}, cá +${comfort(R0)*10}%).</p><div class="shop">${FURN.filter(f=>!f.toilet).map(f=>{const tot=totalOf(f.id);const p=furnPrice(f);const placed=false;
-      const btn=`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.fish<p?' disabled':''}>${M(p,'cá')}</button>`;
+      const btn=`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.xu<p?' disabled':''}>${M(p,'xu')}</button>`;
       return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}<small>+${f.c} êm</small></div>${btn}</div>`}).join('')}</div>
     <p class="hint">Muốn dời, cất hoặc lấy đồ từ kho ra: đóng bảng này, bấm Sắp xếp đồ trong phòng.</p>`}
   else if(shopTab==='home')html+=homeHtml();
@@ -1289,7 +1290,7 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
   if($('cap'))$('cap').onclick=e=>{const c=100*st.pantryCap/100;twoTap(e.currentTarget,'cap',`Trả ${fmt(c)} xu?`,()=>{st.xu-=c;st.pantryCap+=100;save();render()})};
   bind(P,'[data-a]',el=>{const id=el.dataset.id,f=fid(id),a=el.dataset.a;
     if(a==='buy'){if(f.toilet){const xu=f.cur==='xu';if((xu?st.xu:st.fish)<f.price)return;if(xu)st.xu-=f.price;else st.fish-=f.price}
-      else{const p=furnPrice(f);if(st.fish<p)return;st.fish-=p;st.bought[id]=(st.bought[id]||0)+1}
+      else{const p=furnPrice(f);if(st.xu<p)return;st.xu-=p;st.bought[id]=(st.bought[id]||0)+1}
       placeOne(id,{});toast(`Đã đặt ${f.name} vào ${ROOMT[curT()].n}`)}
     else if(a==='place'){const o=(st.inv[id]||[]).pop();if(!o)return;placeOne(id,o)}
     else{const ks=hereOf(id);const k=ks[ks.length-1];if(!k)return;const R0=curRoom();(st.inv[id]=st.inv[id]||[]).push(f.toilet?{dirt:R0.furn[k].dirt||0}:{});delete R0.furn[k]}
