@@ -218,6 +218,8 @@ details.more[open]>summary{margin-bottom:8px}
 .swatch i{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--ink);display:inline-block}
 .tierhead{margin:14px 0 8px}
 .tierhead:first-of-type{margin-top:6px}
+button.task.pick{width:100%;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
+button.task.pick[disabled]{opacity:.45;cursor:not-allowed}
 @media (min-width:760px){.tray{left:auto;width:460px;top:calc(8px + env(safe-area-inset-top,0px));height:auto}.dock{left:auto;width:440px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -958,7 +960,6 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
     if(st.gifts.length)html+=task(ICON.gift,'Quà mèo hoang',`${st.gifts.length} món ở hiên nhà`,`<button type="button" class="btn small" id="gifts">Nhặt</button>`,1);
     html+=task(FOOD_ICON.kibble,'Bữa tối',`${home.length-unfed.length}/${home.length} con đã ăn · tủ còn ${pantryMeals()} phần`,
       `<button type="button" class="btn small" id="feed"${unfed.length&&pantryMeals()?'':' disabled'}>${unfed.length?'Cho ăn':'No rồi'}</button>`,unfed.length&&ph==='evening');
-    html+=`<div class="seg">${[['kibble','Tiết kiệm'],['good','Vừa'],['pate','Xịn'],['fav','Theo khẩu vị']].map(([k,n])=>`<button type="button" data-diet="${k}" class="${st.diet===k?'on':''}">${n}</button>`).join('')}</div>`;
     html+=task(`<img src="care/tray.webp?v=2" alt="">`,'Vệ sinh',`${md>=3?`Khay bẩn ${md}%`:'Khay sạch'} · cát còn ${lit} lần${short?' · <span class="warn">thiếu khay</span>':''}`,
       `<button type="button" class="btn small" id="cleanall"${md<3?' disabled':''}>Dọn</button>`,md>=55||short);
     if(isWeekend(GT))html+=task(ICON.spa,'Ngày nghỉ: spa','Chạm vào mèo, chọn Đi spa. Lương tuần sau +15%','');
@@ -981,11 +982,23 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
   if($('gifts'))$('gifts').onclick=()=>{const sum={fish:0,pts:0,ticket:0};st.gifts.forEach(g=>sum[g.k]+=g.n);st.fish+=sum.fish;st.pts+=sum.pts;st.tickets+=sum.ticket;st.gifts=[];save();
     toast([sum.fish&&`+${fmt(sum.fish)} cá`,sum.pts&&`+${sum.pts} Điểm Hộp`,sum.ticket&&`+${sum.ticket} vé`].filter(Boolean).join(', '));render()};
   bind(P,'[data-diet]',el=>{st.diet=el.dataset.diet;save();render()});
-  if($('feed'))$('feed').onclick=feedAll;
+  if($('feed'))$('feed').onclick=openFeed;
   if($('cleanall'))$('cleanall').onclick=cleanAll;
   if($('hospall'))$('hospall').onclick=e=>{const l=sickCats();const cost=l.reduce((a,c)=>a+HOSP[tierOf(c.g)],0);if(st.fish<cost)return;twoTap(e.currentTarget,'hospall',`Trả ${fmt(cost)} cá?`,()=>{l.forEach(toHosp);st.healed=0;save();syncRoom();renderRooms();toast(`${l.length} mèo đã tới bệnh viện`);render()})};
   if($('auto'))$('auto').onclick=autoAssign;
   bind(P,'[data-pick]',el=>pickJob(el.dataset.pick))}
+function openFeed(){const dk=dayKey(gnow());const hungry=st.cats.filter(c=>c.h>=0&&c.fed!==dk);const n=hungry.length;
+  const favCount=hungry.filter(c=>st.pantry[favOf(c.g.shape)]>0).length;
+  const row=(k,ic,title,sub,ok)=>`<button type="button" class="task pick${st.diet===k?' hl':''}" data-feed="${k}"${ok?'':' disabled'}><div class="ic">${ic}</div><div class="tx"><b>${title}</b><small>${sub}</small></div></button>`;
+  sheet(`<div class="row"><h2>Cho ${n} con ăn gì?</h2></div>
+    <p class="hint">Mỗi con ăn 1 phần. Món ngon hơn thì mèo vui hơn, lương hôm sau cao hơn.</p>
+    <div class="list">
+      ${row('fav',ICON.pet,'Món mỗi con thích nhất',`Mỗi con ăn món khoái khẩu của nó, vui thêm +10. Tủ đủ món cho ${favCount}/${n} con`,pantryMeals()>0)}
+      ${MEALS.map(k=>{const f=FD[k],have=st.pantry[k];return row(k,FOOD_ICON[k],f.n,`Vui +${f.mood}${f.fb?` · lương mai +${f.fb*100}%`:''} · tủ có ${have} phần${have&&have<n?`, thiếu ${n-have} con ăn món khác`:''}`,have>0)}).join('')}
+    </div>
+    <p class="hint">Tủ hết món đã chọn thì mèo ăn món khác còn trong tủ. Mua thêm ở Mua sắm, mục Đồ ăn.</p>
+    <button type="button" class="btn ghost" data-close>Thôi</button>`);
+  bind($('sheet'),'[data-feed]',el=>{st.diet=el.dataset.feed;closeSheet();feedAll()})}
 function takeFood(c){let want=st.diet==='fav'?favOf(c.g.shape):st.diet;let i=MEALS.indexOf(want);
   for(let k=i;k>=0;k--)if(st.pantry[MEALS[k]]>0)return MEALS[k];for(let k=i+1;k<MEALS.length;k++)if(st.pantry[MEALS[k]]>0)return MEALS[k];return null}
 function feedAll(){const dk=dayKey(gnow());let n=0,favN=0,miss=0;
