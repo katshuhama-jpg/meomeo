@@ -253,6 +253,16 @@ body.editing .notice{display:none}
 .jobpick.on .radio{background:#2A272C;box-shadow:inset 0 0 0 3px #fff}
 .jobpick:disabled{opacity:.5;cursor:default}
 .jobnow{margin:4px 0 8px;font-size:15px}.jobnow.work{color:#2E6B39}
+.catfields{flex:none;border:2px solid var(--line);border-radius:14px;background:var(--card);overflow:hidden}
+.field-row{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;padding:8px 12px;background:none;border:0;border-top:2px solid var(--line);font:inherit;color:inherit;text-align:left;cursor:pointer}
+.catfields>.field-row:first-child{border-top:0}
+.field-row .fl{font-weight:800;width:62px;flex:none}
+.field-row .fv{flex:1;min-width:0;display:flex;flex-direction:column}.field-row .fv b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.field-row .fv small{color:var(--mute,#7a7276);display:flex;align-items:center;gap:2px}
+.field-row .chev{width:9px;height:9px;border-right:2.5px solid var(--ink,#2A272C);border-bottom:2.5px solid var(--ink,#2A272C);transform:rotate(-45deg);margin-right:4px;transition:transform .15s;flex:none}
+.field-row.open .chev{transform:rotate(45deg)}.field-row.open{background:#FFF8EA}
+.field-row:disabled{cursor:default}.field-row:disabled .chev{display:none}
+.catfields .pick{padding:4px 10px 10px;background:#FFF8EA}.fields .pick h3{margin:8px 0 6px}.fields .pick .list+.list{margin-top:8px}.fields .pick .hint{margin:4px 0 8px}
 </style>
 
 <div class="room" id="room"><div class="loading" id="loading">Đang gọi mèo về…</div><canvas id="cv"></canvas></div>
@@ -1008,7 +1018,8 @@ function closeSheet(){veil.hidden=true;$('sheet').innerHTML='';render()}
 veil.addEventListener('click',e=>{if(e.target===veil)closeSheet()});
 function sameSpecies(c){return st.cats.filter(x=>x.id!==c.id&&x.g.shape===c.g.shape)}
 function sellPrice(c){return TIERS[tierOf(c.g)].sell*(shinyOf(c.g)?3:1)*(1+c.star)}
-function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;const T=now(),t=tierOf(c.g),dk=dayKey(G(T));
+let pickFor=null;
+function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;if(pickFor!==id){catPick=null;pickFor=id}const T=now(),t=tierOf(c.g),dk=dayKey(G(T));
   const h=houseById(c.h);const where=c.h<0?'Phòng chờ':`${ROOMT[h.rooms[c.r].t].n} · ${houseName(h)}`;
   const fav=st.favKnown.includes(c.g.shape)?FD[favOf(c.g.shape)].n:'Chưa biết, cho ăn thử để biết';
   const dup=sameSpecies(c);const canStar=c.star<3&&dup.length>=2;
@@ -1018,8 +1029,7 @@ function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;const T=now
     <h2>${esc(nameOf(c.g))}</h2><p class="hint">${esc(where)}</p></div></div>
     ${inHosp(c,T)?`<div class="box hl"><h3>Đang nằm viện</h3><p class="hint">Về nhà sau ${dur((c.hosp-G(T))/SPEED)} nữa, khỏe lại và vui hơn.</p></div>`:c.sick?`<div class="box hl"><h3>Mèo đang ốm</h3><p class="hint">Khay vệ sinh bẩn quá nên mèo bị ốm. Mèo ốm không đi làm được và buồn dần. Đưa đi bệnh viện 1 tiếng ngoài đời là khỏe.</p><button type="button" class="btn" data-a="hosp"${st.fish<HOSP[t]?' disabled':''}>Đi bệnh viện · ${HOSP[t]} cá</button></div>`:''}
     <div class="row"><span class="hint" style="width:90px">Tâm trạng ${c.mood}</span><span class="bar mood" style="flex:1"><i style="width:${c.mood}%"></i></span></div>
-    ${placeBox(c)}
-    ${c.h<0?`<div class="box"><h3>Đi làm</h3><p class="hint">Mèo ở Phòng chờ chưa đi làm được. Chuyển mèo về một phòng trước.</p></div>`:jobBox(c,job)}
+    <div class="catfields">${placeBox(c)}${jobBox(c,job)}</div>
     <p class="hint">Món khoái khẩu: <b>${esc(fav)}</b>. Vuốt hôm nay: ${c.petDay===dk?c.pets:0}/3.</p>
     <div class="acts">
       <button type="button" class="btn small" data-a="stick"${c.stick===dk||!st.pantry.stick?' disabled':''}>Đút súp que${st.pantry.stick?` (còn ${st.pantry.stick})`:''}</button>
@@ -1032,14 +1042,15 @@ function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;const T=now
       <button type="button" class="btn small ghost" data-a="sell">Bán · ${M(sellPrice(c),'xu')}</button></div>
       ${!canStar&&c.star<3?`<p class="hint">Cần thêm ${2-Math.min(2,dup.length)} con cùng loài để lên sao. Mỗi sao lương +30%.</p>`:''}</div>
     <button type="button" class="btn ghost" data-close>Đóng</button>`);
+  bind($('sheet'),'[data-field]',el=>{const k=el.dataset.field;catPick=catPick===k?null:k;const sc=$('sheet').scrollTop;openCat(id);$('sheet').scrollTop=sc});
   bind($('sheet'),'[data-place]',el=>{const v=el.dataset.place;const sc=$('sheet').scrollTop;
     if(v==='wait'){if(c.h<0)return;c.h=-1;c.job=null;toast(`${shortName(c.g)} ra Phòng chờ`)}
     else{const [hid,ri]=v.split(':').map(Number);if(c.h===hid&&c.r===ri)return;const h=houseById(hid);if(catsIn(h,ri).length>=CAP){toast('Phòng này đầy rồi');return}
       c.h=hid;c.r=ri;toast(`${shortName(c.g)} chuyển tới ${ROOMT[h.rooms[ri].t].n}`)}
-    save();syncRoom();renderRooms();openCat(id);const d=$('place');if(d)d.open=true;$('sheet').scrollTop=sc});
+    catPick=null;save();syncRoom();renderRooms();openCat(id);$('sheet').scrollTop=sc});
   bind($('sheet'),'[data-job]',el=>{const jid=el.dataset.job;if((c.job||'')===jid)return;const j=jid?JID[jid]:null;
     if(j&&jobCount(jid)>=j.slots){toast('Việc này hết chỗ');return}
-    const sc=$('sheet').scrollTop;c.job=jid||null;if(j)c.jobSince=gnow();save();syncRoom();renderRooms();
+    const sc=$('sheet').scrollTop;c.job=jid||null;if(j)c.jobSince=gnow();catPick=null;save();syncRoom();renderRooms();
     toast(j?(isWorkTime(gnow())?`${shortName(c.g)} sẽ đi ${j.n.toLowerCase()} từ ca sau`:`${shortName(c.g)} sẽ đi ${j.n.toLowerCase()}`):`${shortName(c.g)} ở nhà nghỉ`);openCat(id);$('sheet').scrollTop=sc});
   bind($('sheet'),'[data-a]',(el)=>{const a=el.dataset.a;
     if(a==='hosp'){if(toHosp(c)){save();syncRoom();renderRooms();toast('Mèo đã tới bệnh viện, 1 tiếng nữa về');closeSheet()}return}
@@ -1051,28 +1062,27 @@ function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;const T=now
     if(a==='star'){twoTap(el,'star'+id,'Bấm lần nữa: gộp 2 con',()=>{const use=dup.slice().sort((p,q)=>sellPrice(p)-sellPrice(q)).slice(0,2);st.cats=st.cats.filter(x=>!use.includes(x));c.star++;faceHappy(c);save();syncRoom();renderRooms();toast(`${shortName(c.g)} lên ${c.star} sao`);openCat(id)})}
     if(a==='sell'){twoTap(el,'sell'+id,`Bán lấy ${fmt(sellPrice(c))} xu?`,()=>{st.xu+=sellPrice(c);st.cats=st.cats.filter(x=>x!==c);save();syncRoom();renderRooms();toast(`Đã bán, +${fmt(sellPrice(c))} xu`);closeSheet()})}})}
 // Chọn chỗ ở: nhà nào, phòng nào, hoặc Phòng chờ
+let catPick=null;// 'place' | 'job' | null: ô nào đang mở danh sách chọn
+const field=(k,label,val,sub)=>`<button type="button" class="field-row${catPick===k?' open':''}" data-field="${k}" aria-expanded="${catPick===k}"><span class="fl">${label}</span><span class="fv"><b>${val}</b>${sub?`<small>${sub}</small>`:''}</span><span class="chev" aria-hidden="true"></span></button>`;
+const opt=(attr,on,dis,title,sub,right)=>`<button type="button" class="li jobpick${on?' on':''}" ${attr} aria-pressed="${on}"${dis?' disabled':''}><span class="radio" aria-hidden="true"></span><span class="tx"><b>${title}</b><small>${sub}</small></span>${right||''}</button>`;
 function placeBox(c){const homes=st.houses.filter(h=>!h.rent);const multi=homes.length>1;
-  const row=(h,i)=>{const r=h.rooms[i],n=catsIn(h,i).length,on=c.h===h.id&&c.r===i,full=!on&&n>=CAP;
-    return `<button type="button" class="li jobpick${on?' on':''}" data-place="${h.id}:${i}" aria-pressed="${on}"${full?' disabled':''}>
-      <span class="radio" aria-hidden="true"></span><span class="tx"><b>${ROOMT[r.t].n}</b><small>${full?'Đầy':`${n}/${CAP} mèo`}${ROOMT[r.t].out?' · ngoài trời':''}</small></span></button>`};
-  const where=c.h<0?'Phòng chờ':`${ROOMT[houseById(c.h).rooms[c.r].t].n}${multi?' · '+houseName(houseById(c.h)):''}`;
-  return `<details class="box more" id="place"><summary><span><b>Chỗ ở</b> · ${esc(where)}</span></summary>
-    ${homes.map(h=>`${multi?`<h3 style="margin:10px 0 6px">${esc(houseName(h))}</h3>`:''}<div class="list">${h.rooms.map((_,i)=>row(h,i)).join('')}</div>`).join('')}
-    <div class="list" style="margin-top:8px"><button type="button" class="li jobpick${c.h<0?' on':''}" data-place="wait" aria-pressed="${c.h<0}"${c.h>=0&&waiting().length>=10?' disabled':''}>
-      <span class="radio" aria-hidden="true"></span><span class="tx"><b>Phòng chờ</b><small>Không đi làm, không vào nhà</small></span></button></div></details>`}
+  const where=c.h<0?'Phòng chờ':ROOMT[houseById(c.h).rooms[c.r].t].n;
+  let html=field('place','Chỗ ở',esc(where),c.h>=0&&multi?esc(houseName(houseById(c.h))):'');
+  if(catPick==='place')html+=`<div class="pick">${homes.map(h=>`${multi?`<h3>${esc(houseName(h))}</h3>`:''}<div class="list">${h.rooms.map((r,i)=>{const n=catsIn(h,i).length,on=c.h===h.id&&c.r===i,full=!on&&n>=CAP;
+      return opt(`data-place="${h.id}:${i}"`,on,full,ROOMT[r.t].n,`${full?'Đầy':`${n}/${CAP} mèo`}${ROOMT[r.t].out?' · ngoài trời':''}`)}).join('')}</div>`).join('')}
+    <div class="list">${opt('data-place="wait"',c.h<0,c.h>=0&&waiting().length>=10,'Phòng chờ','Không đi làm, không vào nhà')}</div></div>`;
+  return html}
 // Chọn việc ngay trong thẻ mèo: một danh sách chọn một, lương mỗi việc ghi sẵn
-function jobBox(c,job){const T=gnow();const open=JOBS.filter(j=>!j.need()).map(j=>({j,w:wageOf(c,j)})).sort((a,b)=>b.w-a.w);
+function jobBox(c,job){const T=gnow();
+  if(c.h<0)return field('job','Đi làm','Chưa đi làm được','Mèo ở Phòng chờ, chuyển vào phòng trước').replace('class="field-row','disabled class="field-row');
+  const open=JOBS.filter(j=>!j.need()).map(j=>({j,w:wageOf(c,j)})).sort((a,b)=>b.w-a.w);
   const locked=JOBS.length-open.length;const best=open.length?open[0].j.id:null;
   const late=isWorkTime(T)&&c.job&&c.jobSince>shiftStart(T);
-  const row=({j,w})=>{const on=c.job===j.id,full=!on&&jobCount(j.id)>=j.slots;
-    return `<button type="button" class="li jobpick${on?' on':''}" data-job="${j.id}" aria-pressed="${on}"${full?' disabled':''}>
-      <span class="radio" aria-hidden="true"></span><span class="tx"><b>${esc(j.n)}</b><small>${full?'Hết chỗ':`${jobCount(j.id)}/${j.slots} chỗ`}${fits(c,j)?' · <span class="fit">Hợp mèo này</span>':''}${j.id===best&&!fits(c,j)?' · Lương cao nhất':''}</small></span>
-      <span class="wage">${M(Math.round(w),'cá')}<small>/ca</small></span></button>`};
-  return `<div class="box" id="jobs"><div class="row"><h3>Đi làm</h3><span class="hint">8h-17h, Thứ 2-6</span></div>
-    <p class="jobnow${job?' work':''}">${job?`Đang làm <b>${esc(job.n)}</b>${late?', bắt đầu từ ca sau':''}`:'Đang ở nhà chơi, chưa có việc'}</p>
-    <div class="list">${open.map(row).join('')}
-      <button type="button" class="li jobpick${job?'':' on'}" data-job="" aria-pressed="${!job}"><span class="radio" aria-hidden="true"></span><span class="tx"><b>Ở nhà nghỉ</b><small>Không đi làm, không có lương</small></span></button></div>
-    <p class="hint">Lương tính theo ca, tâm trạng cao thì lương cao hơn.${locked?` Còn ${locked} việc chưa mở.`:''}</p></div>`}
+  let html=field('job','Đi làm',job?esc(job.n):'Ở nhà nghỉ',job?`${M(Math.round(wageOf(c,job)),'cá')}/ca${late?' · từ ca sau':''}`:'Chưa có việc');
+  if(catPick==='job')html+=`<div class="pick"><p class="hint">8h-17h, Thứ 2-6. Tâm trạng cao thì lương cao hơn.</p><div class="list">${open.map(({j,w})=>{const on=c.job===j.id,full=!on&&jobCount(j.id)>=j.slots;
+      return opt(`data-job="${j.id}"`,on,full,esc(j.n),`${full?'Hết chỗ':`${jobCount(j.id)}/${j.slots} chỗ`}${fits(c,j)?' · <span class="fit">Hợp mèo này</span>':''}${j.id===best&&!fits(c,j)?' · Lương cao nhất':''}`,`<span class="wage">${M(Math.round(w),'cá')}<small>/ca</small></span>`)}).join('')}
+      ${opt('data-job=""',!job,false,'Ở nhà nghỉ','Không đi làm, không có lương')}</div>${locked?`<p class="hint">Còn ${locked} việc chưa mở.</p>`:''}</div>`;
+  return html}
 function faceHappy(c){const a=actors.get(c.id);if(a){a.expr=11;a.exprT=1.5;a.jump=1}}
 
 // ---------- Spa ----------
