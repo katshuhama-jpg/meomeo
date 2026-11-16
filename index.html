@@ -7,6 +7,7 @@
 <style>[hidden]{display:none!important}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 </head>
 <body>
+<script>window.MEO_AUTH={url:'https://qncopjgvtjubfqnklbxj.supabase.co',key:'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFuY29wamd2dGp1YmZxbmtsYnhqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTI4NTU1ODksImV4cCI6MjEwODQzMTU4OX0.UaneWi6FPqaKwnc_PWMNFwcJyAfjFzVxChb5EiZa5YI'}</script>
 <title>Nhà Mèo Méo</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -236,6 +237,12 @@ body.editing .notice{display:none}
 .lightbtn .tog{fill:#9AA0C8}.lightbtn.on .tog{fill:#FFD36B}
 .lightbtn .knob{transform:translateY(8px);transition:transform .2s}.lightbtn.on .knob{transform:none}
 .lightbtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.auth{width:100%;max-width:380px;display:flex;flex-direction:column;align-items:center;gap:12px;background:var(--card);border:2.5px solid var(--ink);border-radius:20px;padding:18px 16px}
+.auth .sub{width:100%}.auth form{width:100%}
+.field{display:flex;flex-direction:column;gap:3px;text-align:left}
+.field input{font:inherit;font-size:16px;border:2px solid var(--ink);border-radius:12px;padding:9px 12px;background:#fff;color:var(--ink);min-height:44px}
+.field input:focus-visible{outline:3px solid #F2A541;outline-offset:1px}
+.code{font-family:var(--display);font-weight:800;font-size:30px;letter-spacing:3px;border:2.5px dashed var(--ink);border-radius:14px;padding:8px 16px;background:var(--soft)}
 @media (min-width:760px){.tray{left:auto;width:460px;top:calc(8px + env(safe-area-inset-top,0px));height:auto}.dock{left:auto;width:440px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -473,9 +480,16 @@ const RW=1024,RH=1536,CS=0.8;
 
 // ---------- Ảnh mèo ----------
 const BASE={};
-async function loadBases(){await Promise.all(WEIRD.map(async n=>{const m=SPR[n];const i=await loadImg(`weird/${n}.webp`);const c=mk(i.naturalWidth,i.naturalHeight);c.getContext('2d').drawImage(i,0,0);BASE[n]={...m,W:m.cw*12,fr:m.fr.map(([bb,face])=>({bb,face})),atlas:c}}));
-  await Promise.all(SHAPES.map(async n=>{const m=SPR[n];
-  BASE[n]={...m,W:m.cw*12,fr:m.fr.map(([bb,face])=>({bb,face})),data:await pixels(`cats/${n}.webp`),prop:m.prop?await pixels(`cats/${n}_prop.webp`):null}}))}
+// Tải ảnh mèo theo nhu cầu: mèo đang ở nhà tải trước, các loài khác tải dần sau khi vào game (đỡ nặng lúc mở)
+const LOADING={};
+function loadOne(n){if(BASE[n])return Promise.resolve();if(LOADING[n])return LOADING[n];const m=SPR[n];
+  LOADING[n]=(m.weird?loadImg(`weird/${n}.webp`).then(i=>{const c=mk(i.naturalWidth,i.naturalHeight);c.getContext('2d').drawImage(i,0,0);BASE[n]={...m,W:m.cw*12,fr:m.fr.map(([bb,face])=>({bb,face})),atlas:c}})
+    :Promise.all([pixels(`cats/${n}.webp`),m.prop?pixels(`cats/${n}_prop.webp`):null]).then(([data,prop])=>{BASE[n]={...m,W:m.cw*12,fr:m.fr.map(([bb,face])=>({bb,face})),data,prop}})).catch(e=>{delete LOADING[n];throw e});
+  return LOADING[n]}
+function loadBases(list){return Promise.all([...new Set(list)].filter(n=>SPR[n]).map(loadOne))}
+async function loadRest(){for(const n of ALLSH){if(!BASE[n]){try{await loadOne(n)}catch(e){}await new Promise(r=>setTimeout(r,30))}}laterRender()}
+let lrT=null;function laterRender(){clearTimeout(lrT);lrT=setTimeout(()=>{if(trayP&&veil.hidden&&!document.querySelector('.confirm'))render();try{syncRoom()}catch(e){}},250)}
+const BLANK='data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 function patternMask(g,b){
   const U=b.K/0.55;const W=b.W,H2=b.ch,c=mk(W,H2),x=c.getContext('2d');const r=rng(hash(keyOf(g)));
   const ref=b.fr[8],rb=ref.bb,rf=ref.face,bw0=rb[2]-rb[0],bh0=rb[3]-rb[1];
@@ -513,13 +527,14 @@ function compose(g){
   cx.putImageData(im,0,0);const res={atlas:cv,url:null};CACHE.set(k,res);return res;
 }
 function catURL(g,frame=8){const r=compose(g);const key='u'+frame;if(!r[key]){const b=BASE[g.shape],c=mk(b.cw,b.ch);c.getContext('2d').drawImage(r.atlas,frame*b.cw,0,b.cw,b.ch,0,0,b.cw,b.ch);r[key]=c.toDataURL('image/png')}return r[key]}
-const imgTag=(g,f)=>`<img src="${catURL(g,f)}" alt="${esc(nameOf(g))}">`;
-const silTag=g=>`<img src="${catURL(g)}" alt="Chưa có" style="filter:brightness(0) opacity(.18)">`;
+const ready=g=>{if(BASE[g.shape])return true;loadOne(g.shape).then(laterRender,()=>{});return false};
+const imgTag=(g,f)=>ready(g)?`<img src="${catURL(g,f)}" alt="${esc(nameOf(g))}">`:`<img src="${BLANK}" alt="" style="width:60px;height:60px">`;
+const silTag=g=>ready(g)?`<img src="${catURL(g)}" alt="Chưa có" style="filter:brightness(0) opacity(.18)">`:`<img src="${BLANK}" alt="" style="width:60px;height:60px">`;
 
 // =====================================================================
 // Trạng thái
 // =====================================================================
-const KEY='nha-meo-meo-v2',OLD='nha-meo-meo-d1';
+let KEY='nha-meo-meo-v2';const OLD='nha-meo-meo-d1';
 function newRoom(t){return{t,furn:{},owned:[]}}
 function newHouse(lot,tpl){const h={id:st?st.nextHouse++:1,lot,tpl,rooms:[newRoom(0)],bowl:null,rent:false};syncOutdoor(h);return h}
 function syncOutdoor(h){TPL[h.tpl].out.forEach(o=>{const t=OUT_T[o];if(!h.rooms.some(r=>r.t===t))h.rooms.push(newRoom(t))});
@@ -554,7 +569,7 @@ function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY)||'null')}c
   let o=null;try{o=JSON.parse(localStorage.getItem(OLD)||'null')}catch(e){}
   if(o&&Array.isArray(o.cats)&&o.cats.length){migrate(o);st.migrated=1;ensureToilet();ensureInv()}else fresh()}
 let resetting=false;
-function save(){if(resetting)return;st.last=now();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+function save(){if(resetting||!st)return;st.last=now();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}cloudSoon()}
 function see(g){const k=keyOf(g);let isNew=false;if(!st.seen.includes(k)){st.seen.push(k);isNew=true}if(!st.species.includes(g.shape)){st.species.push(g.shape);isNew='species'}return isNew}
 
 // ---------- Truy vấn ----------
@@ -669,7 +684,7 @@ function view(){VW=room.clientWidth;VH=room.clientHeight;S=Math.max(VW/RW,VH/RH)
   const fl=ROOMT[curT()].fl,vb=(OY+VH-110)/S;FEET=[fl+70,Math.max(fl+120,Math.min(RH-20,vb))]}
 function resize(){const r=room.getBoundingClientRect(),d=Math.min(3,window.devicePixelRatio||1);cv.width=Math.round(r.width*d);cv.height=Math.round(r.height*d);view();for(const a of actors.values()){a.Y=Math.min(Math.max(a.Y,FEET[0]),FEET[1])}}
 const depth=a=>0.88+0.22*(a.Y-FEET[0])/Math.max(1,FEET[1]-FEET[0]);
-function spawn(c,i,enter,stray){const b=BASE[c.g.shape],w=b.cw*CS/b.K;
+function spawn(c,i,enter,stray){const b=BASE[c.g.shape];if(!b){loadOne(c.g.shape).then(laterRender,()=>{});return}const w=b.cw*CS/b.K;
   const a={c,b,stray,X:enter?VX0-w/2:VX0+w/2+20+((i*0.618)%1)*Math.max(10,VX1-VX0-w-40),Y:FEET[0]+((i*0.37+.15)%1)*(FEET[1]-FEET[0]),dir:enter?1:i%2?-1:1,
     speed:b.speed*0.8*(0.85+0.3*R()),state:enter?'walk':'idle',t:enter?3:R()*2,ph:R()*8,expr:8,exprT:0,blinkT:1+R()*4,jump:0,tw:R()*6};
   actors.set(c.id,a)}
@@ -1314,9 +1329,11 @@ function renderBook(){const P=$('p-book');const sp=st.species.length;
       return `<div class="ccard${own?'':' locked'}">${own?imgTag(g):silTag(g)}<span class="nm">${own?esc(SPR[w].name):'???'}</span><em>${own?SPR[w].rec.map(x=>SPR[x].name).join(' + '):esc(SPR[w].hint||'')}</em></div>`}).join('')}</div>`;
   if(bookTab==='photos')html+=`<p class="hint">Chạm vào mèo hoang ghé hiên nhà để chụp ảnh. Đổ đồ ăn vào bát ngoài hiên để mời mèo ghé.</p><div class="grid">${ALLSH.map(s=>{const has=st.photos.includes(s);const g={shape:s,pattern:'plain',color:'white'};
       return has?`<div class="ccard">${imgTag(g,10)}<span class="nm">${esc(SPR[s].name)}</span></div>`:''}).join('')||'<p class="hint">Chưa có ảnh nào.</p>'}</div>`;
-  html+=`<div class="box" style="margin-top:12px"><h3>Chơi lại từ đầu</h3><p class="hint">Xóa hết mèo, nhà, cá và xu trên máy này, bắt đầu lại với nhà trống. Không lấy lại được.</p><button type="button" class="btn small ghost" id="reset">Chơi lại từ đầu</button></div>`;
+  html+=`<div class="box" style="margin-top:12px"><h3>Chơi lại từ đầu</h3><p class="hint">Xóa hết mèo, nhà, cá và xu trên máy này, bắt đầu lại với nhà trống. Không lấy lại được.</p><button type="button" class="btn small ghost" id="reset">Chơi lại từ đầu</button></div>${CFG&&ses?`<div class="task"><div class="tx"><b>Tài khoản: ${esc(ses.username)}</b><small>Tiến độ lưu trên mây, đổi máy vẫn chơi tiếp</small></div><div class="stack"><button type="button" class="btn small ghost" id="acct">Mật khẩu</button><button type="button" class="btn small ghost" id="logout">Đăng xuất</button></div></div>`:''}`;
   P.innerHTML=html;
-  $('reset').onclick=e=>twoTap(e.currentTarget,'reset','Bấm lần nữa để xóa hết',()=>{resetting=true;try{localStorage.removeItem(KEY);localStorage.removeItem(OLD);localStorage.removeItem('meo-dbg')}catch(x){}location.reload()});
+  if($('acct'))$('acct').onclick=openAccount;
+  if($('logout'))$('logout').onclick=e=>twoTap(e.currentTarget,'logout','Bấm lần nữa để đăng xuất',logout);
+  $('reset').onclick=e=>twoTap(e.currentTarget,'reset','Bấm lần nữa để xóa hết',()=>{resetting=true;try{localStorage.removeItem(KEY);localStorage.removeItem(OLD);localStorage.removeItem('meo-dbg');if(CFG)localStorage.setItem('meo.fresh','1')}catch(x){}location.reload()});
   bind(P,'[data-t]',el=>{bookTab=el.dataset.t;render()});
   bind(P,'[data-sp]',el=>openFurs(el.dataset.sp));
   bind(P,'[data-claim]',el=>{const i=+el.dataset.claim;if(st.claimed.includes(i))return;st.claimed.push(i);st.xu+=TIERS[i].book;save();toast(`+${fmt(TIERS[i].book)} xu`);render()})}
@@ -1324,10 +1341,12 @@ function renderBook(){const P=$('p-book');const sp=st.species.length;
 // =====================================================================
 // Khởi động
 // =====================================================================
-load();process();rebalance();
+function boot(cloud){
+if(cloud&&cloud.v===2&&Array.isArray(cloud.cats)){st=cloud;st.cats=st.cats.filter(c=>SPR[c.g.shape]);ensureToilet();ensureInv()}else load();
+process();rebalance();
 if(st.cur>=curHouse().rooms.length)st.cur=0;
 resize();window.addEventListener('resize',()=>{resize();clampRoom()});view();clampRoom();renderRooms();renderHud();
-loadBases().then(()=>{$('loading').remove();syncRoom();render();
+loadBases(['round','loaf',...st.cats.filter(c=>c.h===curHouse().id).map(c=>c.g.shape),...st.strays.map(x=>x.g.shape),...(st.pack?st.pack.cards.map(c=>c.s||(c.g&&c.g.shape)):[])]).then(()=>{$('loading').remove();syncRoom();render();setTimeout(loadRest,1500);
   if(st.pack)setTimeout(showPack,300);
   if(st.migrated){st.migrated=0;save();setTimeout(()=>toast('Game đã lên bản mới! Mèo và đồ đạc vẫn giữ nguyên. Thử mở Hộp mèo nhé',4200),700)}
   else if(!st.tut){st.tut=1;save();setTimeout(()=>{toast('Chào mừng về Nhà Mèo Méo! Bánh Bao và Bánh Mì đã dọn vào. Mở Hộp mèo lấy lá để ghép thêm mèo',4500)},700)}
@@ -1337,7 +1356,89 @@ loadBases().then(()=>{$('loading').remove();syncRoom();render();
     renderHud();if(sec%5===0){save();if(trayP&&!document.querySelector('.confirm')&&veil.hidden)render()}},1000);
   requestAnimationFrame(tick)})
   .catch(e=>{console.error(e);$('loading').textContent='Không tải được hình mèo. Tải lại trang thử nhé.'});
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'){process();syncRoom();renderRooms();render()}else save()});
+}
+
+// =====================================================================
+// Tài khoản (bản trên Vercel): tên + mật khẩu 3-6 ký tự, lưu tiến độ trên mây. Không có chơi thử.
+// =====================================================================
+const CFG=window.MEO_AUTH||null;
+let ses=null;try{ses=JSON.parse(localStorage.getItem('meo.session')||'null')}catch(e){}
+async function rpc(fn,args,keep){const r=await fetch(`${CFG.url}/rest/v1/rpc/${fn}`,{method:'POST',keepalive:!!keep,headers:{apikey:CFG.key,Authorization:'Bearer '+CFG.key,'Content-Type':'application/json'},body:JSON.stringify(args)});
+  const tx=await r.text();let d=null;try{d=tx?JSON.parse(tx):null}catch(e){}if(!r.ok)throw new Error((d&&(d.message||d.hint))||('HTTP '+r.status));return d}
+const AUTH_ERR=m=>/USERNAME_TAKEN/.test(m)?'Tên này đã có người dùng.':/USERNAME_INVALID/.test(m)?'Tên đăng nhập không hợp lệ.':/PASSWORD_INVALID/.test(m)?'Mật khẩu dài từ 3 đến 6 ký tự.':/LOGIN_FAILED/.test(m)?'Sai tên đăng nhập hoặc mật khẩu.':/LOCKED/.test(m)?'Sai quá nhiều lần. Đợi 5 phút rồi thử lại.':'Không kết nối được máy chủ, thử lại sau.';
+function nameIssue(u){if(!u)return null;if(/[^\x00-\x7F]/.test(u))return'Tên đăng nhập không được có dấu tiếng Việt.';if(/\s/.test(u))return'Tên đăng nhập không được có khoảng trắng.';if(/[A-Z]/.test(u))return'Tên đăng nhập không được có chữ hoa.';if(/[^a-z0-9_]/.test(u))return'Chỉ dùng chữ thường, số và dấu _.';if(u.length<3||u.length>16)return'Tên đăng nhập dài từ 3 đến 16 ký tự.';return null}
+let cloudT=null,cloudBusy=false;
+let lastPush='',lastPushAt=Date.now();
+function cloudSoon(){if(!CFG||!ses||cloudT)return;cloudT=setTimeout(()=>{cloudT=null;cloudPush()},Math.max(5000,60000-(Date.now()-lastPushAt)))}
+async function cloudPush(keep){if(!CFG||!ses||!st||cloudBusy)return;const body=JSON.stringify(st);if(body===lastPush)return;cloudBusy=true;try{await rpc('meo_save',{p_token:ses.token,p_state:st},keep);lastPush=body;lastPushAt=Date.now()}catch(e){if(/SESSION/.test(e.message))dropSession()}finally{cloudBusy=false}}
+function dropSession(){try{localStorage.removeItem('meo.session')}catch(e){}ses=null;location.reload()}
+async function logout(){try{await cloudPush()}catch(e){}try{await rpc('meo_logout',{p_token:ses.token})}catch(e){}try{localStorage.removeItem('meo.session')}catch(e){}location.reload()}
+function showAuth(msg){const S2=$('stage');S2.hidden=false;$('loading').textContent='';let mode='in';
+  const draw=()=>{S2.innerHTML=`<div class="auth"><img src="houses/h2.webp" alt="" style="height:110px;width:auto"><h2 style="font-size:30px">Nhà Mèo Méo</h2>
+    <div class="sub"><button type="button" data-m="in" class="${mode==='in'?'on':''}">Đăng nhập</button><button type="button" data-m="up" class="${mode==='up'?'on':''}">Đăng ký</button></div>
+    <p class="hint">${mode==='in'?'Mừng bạn quay lại. Mèo đang chờ ở nhà.':'Tạo tài khoản để nuôi mèo. Tiến độ lưu trên mây, đổi máy vẫn chơi tiếp.'}</p>
+    <form id="authf" class="list" autocomplete="on">
+      <label class="field"><b>Tên đăng nhập</b><input id="au" autocomplete="username" autocapitalize="none" spellcheck="false" maxlength="16" placeholder="vd: meomeo" required><small class="hint" id="aui">3-16 ký tự viết liền: chữ thường không dấu, số, dấu _</small></label>
+      <label class="field"><b>Mật khẩu</b><input id="ap" type="password" autocomplete="${mode==='in'?'current-password':'new-password'}" minlength="3" maxlength="6" required><small class="hint">3-6 ký tự</small></label>
+      <p class="why" id="aerr" role="alert">${msg||''}</p>
+      <button type="submit" class="btn wide" id="ago">${mode==='in'?'Vào nhà':'Tạo tài khoản'}</button>${mode==='in'?'<button type="button" class="link" id="aforgot" style="align-self:center">Quên mật khẩu?</button>':''}</form></div>`;
+    S2.querySelectorAll('[data-m]').forEach(b=>b.onclick=()=>{mode=b.dataset.m;msg='';draw()});
+    if($('aforgot'))$('aforgot').onclick=showForgot;
+    const u=$('au');u.oninput=()=>{const x=nameIssue(u.value);$('aui').textContent=x||'3-16 ký tự viết liền: chữ thường không dấu, số, dấu _';$('aui').className=x?'why':'hint'};
+    $('authf').onsubmit=async e=>{e.preventDefault();const un=u.value.trim(),pw=$('ap').value;const bad=nameIssue(un)||(pw.length<3||pw.length>6?'Mật khẩu dài từ 3 đến 6 ký tự.':null);if(bad){$('aerr').textContent=bad;return}
+      $('ago').disabled=true;$('ago').textContent='Đang vào…';
+      try{const d=await rpc(mode==='in'?'meo_login':'meo_register',{p_username:un,p_password:pw});ses={token:d.token,username:d.username};localStorage.setItem('meo.session',JSON.stringify(ses));
+        if(mode==='up'){try{const r=await rpc('meo_recovery_create',{p_token:ses.token});if(r&&r.code){showCode(r.code,()=>{S2.hidden=true;S2.innerHTML='';start()});return}}catch(x){}}
+        S2.hidden=true;S2.innerHTML='';start()}
+      catch(err){$('aerr').textContent=AUTH_ERR(err.message);$('ago').disabled=false;$('ago').textContent=mode==='in'?'Vào nhà':'Tạo tài khoản'}}};
+  draw()}
+// Mã khôi phục: hiện đúng một lần, ghi lại để lỡ quên mật khẩu
+function showCode(code,next){const S2=$('stage');S2.hidden=false;
+  S2.innerHTML=`<div class="auth"><h2>Mã khôi phục của bạn</h2><p class="hint">Quên mật khẩu thì dùng mã này để đặt mật khẩu mới. Mã chỉ hiện một lần, hãy chụp màn hình hoặc ghi lại.</p>
+    <div class="code">${esc(code)}</div><button type="button" class="btn small ghost" id="ccopy">Chép mã</button>
+    <button type="button" class="btn wide" id="cok">Đã ghi lại, vào nhà</button></div>`;
+  $('ccopy').onclick=()=>{try{navigator.clipboard.writeText(code).then(()=>toast('Đã chép mã'),()=>toast('Không chép được, hãy chụp màn hình'))}catch(e){toast('Không chép được, hãy chụp màn hình')}};
+  $('cok').onclick=next}
+function showForgot(){const S2=$('stage');S2.hidden=false;
+  S2.innerHTML=`<div class="auth"><h2>Quên mật khẩu</h2><p class="hint">Nhập tên đăng nhập, mã khôi phục (dạng ABCD-EFGH) và mật khẩu mới. Không có mã thì nhắn Fanpage hoặc người tạo game để được cấp lại.</p>
+    <form id="ff" class="list"><label class="field"><b>Tên đăng nhập</b><input id="fu" autocapitalize="none" spellcheck="false" maxlength="16" required></label>
+    <label class="field"><b>Mã khôi phục</b><input id="fc" autocapitalize="characters" spellcheck="false" maxlength="9" placeholder="ABCD-EFGH" required></label>
+    <label class="field"><b>Mật khẩu mới</b><input id="fp" type="password" autocomplete="new-password" minlength="3" maxlength="6" required><small class="hint">3-6 ký tự</small></label>
+    <p class="why" id="ferr" role="alert"></p><button type="submit" class="btn wide" id="fgo">Đặt mật khẩu mới</button>
+    <button type="button" class="link" id="fback" style="align-self:center">Quay lại đăng nhập</button></form></div>`;
+  $('fback').onclick=()=>showAuth();
+  $('ff').onsubmit=async e=>{e.preventDefault();const pw=$('fp').value;if(pw.length<3||pw.length>6){$('ferr').textContent='Mật khẩu mới dài từ 3 đến 6 ký tự.';return}
+    $('fgo').disabled=true;try{const d=await rpc('meo_recover',{p_username:$('fu').value.trim().toLowerCase(),p_code:$('fc').value,p_new_password:pw});
+      ses={token:d.token,username:d.username};localStorage.setItem('meo.session',JSON.stringify(ses));
+      try{const r=await rpc('meo_recovery_create',{p_token:ses.token});if(r&&r.code){showCode(r.code,()=>{S2.hidden=true;S2.innerHTML='';start()});return}}catch(x){}
+      S2.hidden=true;S2.innerHTML='';start()}
+    catch(err){$('ferr').textContent=/RECOVER_FAILED/.test(err.message)?'Sai tên đăng nhập hoặc mã khôi phục.':AUTH_ERR(err.message);$('fgo').disabled=false}}}
+function openAccount(){sheet(`<div class="row"><h2>Tài khoản</h2><span class="hint">${esc(ses.username)}</span></div>
+    <h3>Đổi mật khẩu</h3><form id="cpf" class="list"><label class="field"><b>Mật khẩu cũ</b><input id="co" type="password" autocomplete="current-password" maxlength="6" required></label>
+    <label class="field"><b>Mật khẩu mới</b><input id="cn" type="password" autocomplete="new-password" minlength="3" maxlength="6" required><small class="hint">3-6 ký tự</small></label>
+    <p class="why" id="cperr" role="alert"></p><button type="submit" class="btn" id="cpgo">Đổi mật khẩu</button></form>
+    <h3>Mã khôi phục</h3><p class="hint">Tạo mã mới nếu bạn làm mất mã cũ. Mã cũ sẽ hết hiệu lực.</p><button type="button" class="btn small ghost" id="newcode">Tạo mã mới</button>
+    <button type="button" class="btn ghost" data-close>Đóng</button>`);
+  $('cpf').onsubmit=async e=>{e.preventDefault();const nw=$('cn').value;if(nw.length<3||nw.length>6){$('cperr').textContent='Mật khẩu mới dài từ 3 đến 6 ký tự.';return}
+    $('cpgo').disabled=true;try{await rpc('meo_change_password',{p_token:ses.token,p_old:$('co').value,p_new:nw});closeSheet();toast('Đã đổi mật khẩu')}
+    catch(err){$('cperr').textContent=/OLD_WRONG/.test(err.message)?'Mật khẩu cũ không đúng.':/SESSION/.test(err.message)?'Phiên đăng nhập đã hết, đăng nhập lại nhé.':AUTH_ERR(err.message);$('cpgo').disabled=false}};
+  $('newcode').onclick=e=>twoTap(e.currentTarget,'newcode','Bấm lần nữa, mã cũ sẽ hết hiệu lực',async()=>{try{const r=await rpc('meo_recovery_create',{p_token:ses.token});closeSheet();showCode(r.code,()=>{$('stage').hidden=true;$('stage').innerHTML=''})}catch(err){toast('Không tạo được mã, thử lại sau')}})}
+async function start(){
+  if(!CFG){boot(null);return}
+  if(!ses){showAuth();return}
+  KEY='nha-meo-meo-v2:'+ses.username;
+  $('loading').textContent='Đang mở cửa nhà…';
+  let fresh=false;try{fresh=localStorage.getItem('meo.fresh')==='1';localStorage.removeItem('meo.fresh')}catch(e){}
+  let cloud=null;
+  try{const d=await rpc('meo_load',{p_token:ses.token});cloud=d&&d.state}catch(e){if(/SESSION/.test(e.message)){try{localStorage.removeItem('meo.session')}catch(x){}ses=null;showAuth('Phiên đăng nhập đã hết, đăng nhập lại nhé.');return}}
+  if(fresh)cloud=null;
+  // bản trên máy mới hơn bản trên mây (vd lưu trên mây chưa kịp) thì dùng bản trên máy
+  let local=null;try{local=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
+  if(cloud&&local&&local.v===2&&(local.last||0)>(cloud.last||0)+60000)cloud=null;
+  if(!cloud&&!local)resetting=false;
+  boot(cloud);if(!cloud)cloudPush()}
+start();
+document.addEventListener('visibilitychange',()=>{if(!st)return;if(document.visibilityState==='visible'){process();syncRoom();renderRooms();render()}else{save();cloudPush(true)}});
 // Dùng khi thử nghiệm: tua giờ
 window.__meo={skip(h){dbg+=h*H;try{localStorage.setItem('meo-dbg',dbg)}catch(e){}process();syncRoom();renderRooms();render()},get st(){return st},reset(){dbg=0;try{localStorage.removeItem('meo-dbg')}catch(e){}}};
 })();
