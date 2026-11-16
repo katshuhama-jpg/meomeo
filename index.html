@@ -64,19 +64,19 @@ h3{font-family:var(--display);font-weight:800;font-size:16px;margin:0;line-heigh
 .rchip.add b{color:var(--muted)}
 .notice{position:fixed;z-index:9;left:50%;transform:translateX(-50%);top:calc(104px + env(safe-area-inset-top,0px));background:rgba(42,39,44,.88);color:#fff;border-radius:999px;padding:4px 14px;font-size:12.5px;font-weight:600;white-space:nowrap;pointer-events:none;max-width:calc(100vw - 24px);overflow:hidden;text-overflow:ellipsis}
 .notice:empty{display:none}
-.editbtn{position:fixed;z-index:10;left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(84px + env(safe-area-inset-bottom,0px));font-weight:700;font-size:12.5px;border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:4px 12px;cursor:pointer}
+.editbtn{position:fixed;z-index:10;left:calc(10px + env(safe-area-inset-left,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));font-weight:700;font-size:12.5px;border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:4px 12px;cursor:pointer}
 .editbtn.on{background:var(--accent)}
 .edithint{position:fixed;left:50%;top:calc(104px + env(safe-area-inset-top,0px));transform:translateX(-50%);z-index:11;background:var(--ink);color:#fff;border-radius:999px;padding:3px 12px;font-size:12px;font-weight:600;white-space:nowrap}
-.dock{left:calc(8px + env(safe-area-inset-left,0px));right:calc(8px + env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(6,1fr);gap:5px}
-.dock button{position:relative;border:2.5px solid var(--ink);background:var(--card);border-radius:14px;padding:5px 2px 4px;cursor:pointer;box-shadow:0 3px 0 var(--ink);display:flex;flex-direction:column;align-items:center;gap:1px;font-weight:800;font-family:var(--display);font-size:12.5px;line-height:1.1;min-width:0}
-.dock button svg{width:28px;height:28px}
+.dock{left:calc(8px + env(safe-area-inset-left,0px));right:calc(8px + env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));display:grid;grid-template-columns:repeat(5,1fr);gap:4px;background:rgba(255,255,255,.94);border:2.5px solid var(--ink);border-radius:18px;padding:4px}
+.dock button{position:relative;border:0;background:transparent;border-radius:13px;padding:4px 2px 3px;min-height:48px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:0;font-weight:800;font-family:var(--display);font-size:12px;line-height:1.1;min-width:0;white-space:nowrap}
+.dock button svg{width:26px;height:26px}
 .dock button.on{background:var(--accent)}
-.dock button:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
-.dot{position:absolute;top:-6px;right:-4px;min-width:20px;height:20px;border-radius:999px;background:#F26B6B;color:#fff;border:2px solid var(--ink);font-family:var(--body);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
+.dock button:active{transform:scale(.95)}
+.dot{position:absolute;top:-2px;right:2px;min-width:20px;height:20px;border-radius:999px;background:#F26B6B;color:#fff;border:2px solid var(--ink);font-family:var(--body);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;padding:0 4px}
 .dot:empty{display:none}
 
 /* Khay */
-.tray{position:fixed;z-index:20;left:calc(8px + env(safe-area-inset-left,0px));right:calc(8px + env(safe-area-inset-right,0px));bottom:calc(78px + env(safe-area-inset-bottom,0px));height:min(66vh,620px);background:var(--card);border:2.5px solid var(--ink);border-radius:18px;display:flex;flex-direction:column;transform:translateY(calc(100% + 140px));transition:transform .28s ease;box-shadow:0 8px 30px rgba(40,37,42,.25)}
+.tray{position:fixed;z-index:20;left:calc(8px + env(safe-area-inset-left,0px));right:calc(8px + env(safe-area-inset-right,0px));bottom:calc(76px + env(safe-area-inset-bottom,0px));height:min(64vh,600px);background:var(--card);border:2.5px solid var(--ink);border-radius:18px;display:flex;flex-direction:column;transform:translateY(calc(100% + 140px));transition:transform .28s ease;box-shadow:0 8px 30px rgba(40,37,42,.25)}
 .tray.open{transform:none}
 .traytop{display:flex;gap:8px;align-items:center;padding:10px 10px 6px;border-bottom:2px solid var(--line)}
 .traytop h2{flex:1}
@@ -182,6 +182,37 @@ h3{font-family:var(--display);font-weight:800;font-size:16px;margin:0;line-heigh
 .spa .tub{position:absolute;left:0;right:0;bottom:0;height:34%;background:#CFE8F7;border:2.5px solid var(--ink);border-radius:20px 20px 40px 40px}
 .spa .bub{position:absolute;width:44px;height:44px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#fff,#E4F3FF 60%,#BFE0F7);border:2px solid var(--ink);cursor:pointer;animation:float 2s ease-in-out infinite}
 @keyframes float{50%{transform:translateY(-6px)}}
+
+/* Hàng việc cần làm: icon, tên, một dòng trạng thái, một nút */
+.task{display:flex;align-items:center;gap:10px;border:2px solid var(--line);border-radius:14px;padding:8px 10px;background:var(--card);min-height:60px}
+.task.hl{border-color:var(--ink);background:#FFF9EA}
+.task .ic,.li .ic{width:40px;height:40px;flex:0 0 auto;display:flex;align-items:center;justify-content:center}
+.task .ic img,.task .ic svg,.li .ic img,.li .ic svg{max-width:40px;max-height:40px;width:auto;height:auto}
+.task .ic svg,.li .ic svg{width:38px;height:38px}
+.task .ic.big{width:56px;height:56px}.task .ic.big img{max-width:56px;max-height:56px}
+.task .tx{flex:1;min-width:0}
+.task .tx b{display:block;font-size:14.5px;line-height:1.25}
+.task .tx small{display:block;color:var(--muted);font-size:12.5px;line-height:1.3}
+.warn{color:#B0503F;font-weight:700}
+.seg{display:flex;gap:4px;margin-top:-4px;overflow-x:auto;scrollbar-width:none}
+.seg button{flex:1 0 auto;border:1.5px solid var(--line);background:var(--card);border-radius:999px;padding:3px 10px;font-size:12.5px;font-weight:700;color:var(--muted);cursor:pointer;min-height:32px}
+.seg button.on{border-color:var(--ink);background:var(--soft);color:var(--ink)}
+.panel{gap:8px}
+.li{padding:6px 8px;gap:8px}
+.li .tx b{font-size:14px}
+.li.on{border-color:#9CCB9F;background:#F6FBF6}
+.li .btn.small{padding:3px 9px;font-size:13.5px}
+.link{border:0;background:none;padding:2px 0 0;font-size:12px;font-weight:700;color:#2E7BB8;cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+details.more{border:2px solid var(--line);border-radius:14px;padding:8px 10px;background:var(--card)}
+details.more>summary{font-family:var(--display);font-weight:800;font-size:15px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;min-height:28px}
+details.more>summary::-webkit-details-marker{display:none}
+details.more>summary::after{content:"";width:9px;height:9px;border-right:2.5px solid var(--ink);border-bottom:2.5px solid var(--ink);transform:rotate(45deg);margin-right:4px;transition:transform .2s}
+details.more[open]>summary::after{transform:rotate(-135deg)}
+details.more[open]>summary{margin-bottom:8px}
+.sub{position:sticky;top:-10px;z-index:2}
+.card.missed .front{opacity:.6;filter:grayscale(.7)}
+.card .nw.miss{background:var(--muted)}
+.card .lk{position:absolute;top:6px;right:6px;font-size:10px;font-weight:800;background:#F7A1B4;color:#2A272C;border:1.5px solid var(--ink);border-radius:99px;padding:0 6px}
 @media (min-width:760px){.tray{left:auto;width:460px;top:calc(8px + env(safe-area-inset-top,0px));height:auto}.dock{left:auto;width:440px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -201,8 +232,7 @@ h3{font-family:var(--display);font-weight:800;font-size:16px;margin:0;line-heigh
   <button type="button" data-p="box"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12h22v14H5z" fill="#FFD36B" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M3 8h26v5H3z" fill="#F7A1B4" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M16 8v18" stroke="#2A272C" stroke-width="2"/><path d="M16 8c-3-6-9-4-6-1M16 8c3-6 9-4 6-1" fill="none" stroke="#2A272C" stroke-width="2" stroke-linecap="round"/></svg>Hộp mèo<span class="dot" id="dot-box"></span></button>
   <button type="button" data-p="care"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 14h18c0 7-4 11-9 11s-9-4-9-11Z" fill="#CFE8F7" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M10 13c1-3 4-4 6-2 2-2 5-1 6 2" fill="#F2A541" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/></svg>Chăm mèo<span class="dot" id="dot-care"></span></button>
   <button type="button" data-p="egg"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M16 4c5 0 9 8 9 14a9 9 0 0 1-18 0c0-6 4-14 9-14Z" fill="#FFF6DE" stroke="#2A272C" stroke-width="2"/><path d="M10 17l3 2 3-3 3 3 3-2" fill="none" stroke="#2A272C" stroke-width="1.8" stroke-linejoin="round"/></svg>Ấp trứng<span class="dot" id="dot-egg"></span></button>
-  <button type="button" data-p="home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 15 16 5l11 10v12H5Z" fill="#D9F0C8" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M13 27v-7h6v7" fill="#FFD36B" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/></svg>Nhà đất<span class="dot" id="dot-home"></span></button>
-  <button type="button" data-p="shop"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 12h20l-2 14H8Z" fill="#E9DDFF" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M11 12c0-5 2-7 5-7s5 2 5 7" fill="none" stroke="#2A272C" stroke-width="2"/></svg>Cửa hàng</button>
+  <button type="button" data-p="shop"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 12h20l-2 14H8Z" fill="#E9DDFF" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M11 12c0-5 2-7 5-7s5 2 5 7" fill="none" stroke="#2A272C" stroke-width="2"/></svg>Mua sắm<span class="dot" id="dot-shop"></span></button>
   <button type="button" data-p="book"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 7c4-1 8-1 11 2v17c-3-3-7-3-11-2Z" fill="#FFD6DD" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M27 7c-4-1-8-1-11 2v17c3-3 7-3 11-2Z" fill="#FFF6DE" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/></svg>Sổ mèo<span class="dot" id="dot-book"></span></button>
 </nav>
 <section class="tray" id="tray" aria-label="Bảng">
@@ -211,7 +241,6 @@ h3{font-family:var(--display);font-weight:800;font-size:16px;margin:0;line-heigh
     <div class="panel" id="p-box"></div>
     <div class="panel" id="p-care" hidden></div>
     <div class="panel" id="p-egg" hidden></div>
-    <div class="panel" id="p-home" hidden></div>
     <div class="panel" id="p-shop" hidden></div>
     <div class="panel" id="p-book" hidden></div>
   </div>
@@ -506,10 +535,10 @@ function houseDirt(h){const bx=boxesOf(h),n=usersOf(h);if(!n)return 0;if(!bx.len
 function accrue(hours){if(hours<=0)return;st.houses.forEach(h=>{const n=usersOf(h),bx=boxesOf(h);if(!n||!bx.length)return;const load=n/capOf(h);
   bx.forEach(b=>{b.p.dirt=Math.min(100,(b.p.dirt||0)+hours/24*22*load*b.f.rate*(LT[b.p.lit||'clay']||LT.clay).rate)})})}
 function takeLitter(){if(st.litter[st.litterUse]>0)return st.litterUse;return LITTERS.map(l=>l.id).find(k=>st.litter[k]>0)||null}
-function cleanBox(h,b,quiet){const k=takeLitter();if(!k){if(!quiet)toast('Hết cát mèo rồi. Mua ở Cửa hàng, mục Vệ sinh');return false}
+function cleanBox(h,b,quiet){const k=takeLitter();if(!k){if(!quiet)toast('Hết cát mèo rồi. Mua ở Mua sắm, mục Vệ sinh');return false}
   st.litter[k]--;b.p.dirt=0;b.p.lit=k;const m=LT[k].mood;if(m)st.cats.forEach(c=>{if(c.h===h.id)c.mood=Math.min(100,c.mood+m)});return true}
 function cleanAll(){let n=0,miss=0;st.houses.forEach(h=>boxesOf(h).forEach(b=>{if((b.p.dirt||0)<3)return;if(cleanBox(h,b,true))n++;else miss++}));
-  save();toast(n?`Đã dọn ${n} khay${miss?`, còn ${miss} khay chưa dọn vì hết cát`:''}`:miss?'Hết cát mèo rồi. Mua ở Cửa hàng, mục Vệ sinh':'Khay nào cũng sạch');render()}
+  save();toast(n?`Đã dọn ${n} khay${miss?`, còn ${miss} khay chưa dọn vì hết cát`:''}`:miss?'Hết cát mèo rồi. Mua ở Mua sắm, mục Vệ sinh':'Khay nào cũng sạch');render()}
 const maxDirt=()=>Math.max(0,...st.houses.map(h=>Math.max(houseDirt(h),...boxesOf(h).map(b=>b.p.dirt||0))));
 const sickCats=()=>st.cats.filter(c=>c.sick&&!inHosp(c));
 function toHosp(c){const cost=HOSP[tierOf(c.g)];if(st.fish<cost){toast(`Cần ${cost} cá tiền viện phí`);return false}st.fish-=cost;c.hosp=gnow()+6*H;actors.delete(c.id);return true}
@@ -730,7 +759,7 @@ function renderHud(){updateWallet();$('clock').innerHTML=clockText();
   $('dot-care').textContent=(st.mail>0||st.gifts.length||sickCats().length||maxDirt()>=55)?'!':'';
   $('dot-egg').textContent=st.eggs.filter(e=>now()>=e.end).length||'';
   $('dot-book').textContent=claimable().length||'';
-  $('dot-home').textContent=waiting().length?waiting().length:''}
+  $('dot-shop').textContent=waiting().length?waiting().length:''}
 function renderRooms(){const h=curHouse();
   const chips=h.rooms.map((r,i)=>{const n=catsIn(h,i).length;return `<button type="button" class="rchip${i===st.cur?' on':''}${ROOMT[r.t].out?' out':''}" data-i="${i}"><b>${ROOMT[r.t].n}</b><span>${n}/${CAP} mèo</span></button>`});
   const inside=h.rooms.filter(r=>!ROOMT[r.t].out).length;
@@ -738,21 +767,20 @@ function renderRooms(){const h=curHouse();
   if(st.houses.length>1)chips.unshift(`<button type="button" class="rchip add" data-house="1"><b>${esc(houseName(h))}</b><span>đổi nhà</span></button>`);
   $('rooms').innerHTML=chips.join('');
   $('rooms').querySelectorAll('.rchip').forEach(b=>b.onclick=()=>{
-    if(b.dataset.add){openTray('home');homeTab='house';render();return}
-    if(b.dataset.house){openTray('home');homeTab='house';render();return}
+    if(b.dataset.add||b.dataset.house){shopTab='home';openTray('shop');return}
     const i=+b.dataset.i;if(i!==st.cur){st.cur=i;setEdit(false);view();for(const id in curRoom().furn)clampFurn(id,curRoom().furn[id]);actors.clear();syncRoom();renderRooms();if(trayP==='shop')render();save()}})}
 const houseName=h=>`${TPL[h.tpl].n} ${ZONES[h.lot.z].n}`;
 
 // ---------- Khay ----------
 const tray=$('tray');let trayP=null;
-const TITLES={box:'Hộp mèo',care:'Chăm mèo',egg:'Ấp trứng',home:'Nhà đất',shop:'Cửa hàng',book:'Sổ mèo'};
+const TITLES={box:'Hộp mèo',care:'Chăm mèo',egg:'Ấp trứng',shop:'Mua sắm',book:'Sổ mèo'};
 function openTray(p){trayP=p;tray.classList.add('open');setEdit(false);$('traytitle').textContent=TITLES[p];
   document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!=='p-'+p);
   document.querySelectorAll('.dock button').forEach(x=>x.classList.toggle('on',x.dataset.p===p));render();$('panels').scrollTop=0}
 function closeTray(){trayP=null;tray.classList.remove('open');document.querySelectorAll('.dock button').forEach(x=>x.classList.remove('on'))}
 document.querySelectorAll('.dock button').forEach(b=>b.onclick=()=>{trayP===b.dataset.p?closeTray():openTray(b.dataset.p)});
 $('trayclose').onclick=closeTray;
-function render(){renderHud();if(!trayP)return;({box:renderBox,care:renderCare,egg:renderEgg,home:renderHome,shop:renderShop,book:renderBook})[trayP]()}
+function render(){renderHud();if(!trayP)return;({box:renderBox,care:renderCare,egg:renderEgg,shop:renderShop,book:renderBook})[trayP]()}
 function bind(root,sel,fn){root.querySelectorAll(sel).forEach(el=>el.onclick=e=>fn(el,e))}
 const tierTag=t=>`<span class="tag ${TIERS[t].c}">${TIERS[t].n}</span>`;
 const stars=n=>n?'★'.repeat(n):'';
@@ -762,43 +790,47 @@ function catCard(c,extra=''){const T=now();const t=tierOf(c.g);
 // ---------- Hộp mèo ----------
 const buyPrice=()=>[200,400,800][st.buyN]||0;
 function renderBox(){const P=$('p-box'),T=now();if(st.buyDay!==dayKey(T)){st.buyDay=dayKey(T);st.buyN=0}
-  const waitFull=waiting().length>=10;
+  const waitFull=waiting().length>=10;const p=buyPrice();
   P.innerHTML=`
-  <div class="box hl"><div class="row"><h3>Hộp miễn phí: ${st.free}/2</h3><span class="hint">${st.free<2?'Hộp tiếp theo sau '+dur(st.freeAt-T):'Đầy hộp, mở đi kẻo phí'}</span></div>
-    <p class="hint">Mỗi hộp có 3 lá mèo. Lá thứ 3 là lá may mắn, dễ ra con hiếm hơn.${st.firstBox?' <b>Hộp đầu tiên chắc chắn có mèo Hiếm.</b>':''}</p>
-    <button type="button" class="btn wide" id="openfree"${st.free<1||waitFull?' disabled':''}>Mở hộp miễn phí</button>
-    ${st.tickets?`<button type="button" class="btn ghost wide" id="openticket"${waitFull?' disabled':''}>Dùng vé hộp (còn ${st.tickets})</button>`:''}
-    <div class="row"><span class="hint">Mua thêm hôm nay: ${st.buyN}/3</span><button type="button" class="btn small" id="buybox"${!buyPrice()||st.fish<buyPrice()||waitFull?' disabled':''}>${buyPrice()?'Mua hộp · '+fmt(buyPrice())+' cá':'Hết lượt mua hôm nay'}</button></div>
+  <div class="box hl">
+    <div class="row"><h3>Lượt miễn phí ${st.free}/2</h3><span class="hint">${st.free<2?'Lượt mới sau '+dur(st.freeAt-T):'Đầy lượt, mở đi kẻo phí'}</span></div>
+    <p class="hint">Úp 3 lá mèo, bạn chọn 2. Một lá là lá may mắn, dễ ra con hiếm.${st.firstBox?' Lần đầu chắc chắn có mèo Hiếm.':''}</p>
+    <button type="button" class="btn wide" id="openfree"${st.free<1||waitFull?' disabled':''}>Mở lượt miễn phí</button>
+    ${st.tickets?`<button type="button" class="btn ghost wide" id="openticket"${waitFull?' disabled':''}>Dùng vé (còn ${st.tickets})</button>`:''}
     ${waitFull?'<p class="why">Phòng chờ đầy 10 con. Bán bớt mèo hoặc xây thêm phòng rồi mở tiếp.</p>':''}
   </div>
-  <div class="box"><div class="row"><h3>Điểm Hộp: ${fmt(st.pts)}</h3><span class="hint">mỗi hộp +5 điểm</span></div>
-    <p class="hint">Đủ điểm thì đổi đúng con mình muốn: Hiếm 100, Siêu hiếm 300, Huyền thoại 800 điểm.</p>
-    <button type="button" class="btn ghost small" id="exch">Chọn mèo để đổi</button></div>
-  <div class="box"><h3>Tỉ lệ ra mèo</h3>
-    <table class="odds"><thead><tr><th>Bậc</th><th>Lá 1 và 2</th><th>Lá 3</th></tr></thead><tbody>
+  <div class="task"><div class="tx"><b>Mua thêm lượt</b><small>Hôm nay ${st.buyN}/3 lượt</small></div><button type="button" class="btn small" id="buybox"${!p||st.fish<p||waitFull?' disabled':''}>${p?fmt(p)+' cá':'Hết lượt'}</button></div>
+  <div class="task"><div class="tx"><b>Điểm Hộp: ${fmt(st.pts)}</b><small>Mỗi lượt +5. Đổi đúng con mình muốn từ 100 điểm</small></div><button type="button" class="btn small ghost" id="exch">Đổi</button></div>
+  <details class="more"><summary>Tỉ lệ ra mèo</summary>
+    <table class="odds"><thead><tr><th>Bậc</th><th>Lá thường</th><th>Lá may mắn</th></tr></thead><tbody>
     ${TIERS.map((t,i)=>`<tr><td>${tierTag(i)} ${BY_TIER[i].length} con</td><td>${ODDS[0][i]}%</td><td>${ODDS[1][i]}%</td></tr>`).join('')}</tbody></table>
-    <p class="hint">Kiểu lông: trơn 70%, có hoa văn 25% (lương +10%), lấp lánh 5% (lương +25%, bán giá gấp 3). Trong cùng một bậc, các con có tỉ lệ như nhau.</p></div>`;
+    <p class="hint">Kiểu lông: trơn 70%, hoa văn 25% (lương +10%), lấp lánh 5% (lương +25%, bán gấp 3).</p></details>`;
   $('openfree').onclick=()=>{if(st.free<1)return;st.free--;if(!st.freeAt)st.freeAt=now()+12*H;openBox()};
   if($('openticket'))$('openticket').onclick=()=>{st.tickets--;openBox()};
-  $('buybox').onclick=e=>{const p=buyPrice();if(!p||st.fish<p)return;twoTap(e.currentTarget,'buybox',`Mua hộp ${fmt(p)} cá?`,()=>{st.fish-=p;st.buyN++;openBox()})};
+  $('buybox').onclick=e=>{const p=buyPrice();if(!p||st.fish<p)return;twoTap(e.currentTarget,'buybox',`Trả ${fmt(p)} cá?`,()=>{st.fish-=p;st.buyN++;openBox()})};
   $('exch').onclick=openExchange}
 function rollTier(lucky){const o=ODDS[lucky?1:0];let r=R()*100;for(let i=0;i<5;i++){r-=o[i];if(r<0)return i}return 0}
-function openBox(){
-  const cards=[0,1,2].map(i=>{let t=rollTier(i===2);if(i===2&&st.firstBox)t=Math.max(2,t);return rollFur(pickOne(BY_TIER[t]))});
-  st.firstBox=0;st.pts+=5;
-  const res=cards.map(g=>{const isNew=see(g);const c=mkCat(g);home(c);st.cats.push(c);return{c,isNew}});
-  save();showPack(res)}
-const BOXSVG='<svg viewBox="0 0 200 180" class="bigbox" id="bigbox"><path d="M30 70h140v96H30z" fill="#FFD36B" stroke="#2A272C" stroke-width="5" stroke-linejoin="round"/><path d="M18 46h164v30H18z" fill="#F7A1B4" stroke="#2A272C" stroke-width="5" stroke-linejoin="round"/><path d="M100 46v120" stroke="#2A272C" stroke-width="5"/><path d="M100 46c-20-40-62-24-34-6M100 46c20-40 62-24 34-6" fill="#F7A1B4" stroke="#2A272C" stroke-width="5" stroke-linecap="round"/><path d="M58 110c4-8 10-8 14 0M128 110c4-8 10-8 14 0M88 128c6 6 18 6 24 0" fill="none" stroke="#2A272C" stroke-width="4" stroke-linecap="round"/><path d="M40 92l-8-14 14 6M160 92l8-14-14 6" fill="#FFD36B" stroke="#2A272C" stroke-width="4" stroke-linejoin="round"/></svg>';
+function openBox(){// rút sẵn 3 lá, lưu lại để tắt app giữa chừng cũng không rút lại được
+  const lucky=Math.floor(R()*3);
+  const cards=[0,1,2].map(i=>{let t=rollTier(i===lucky);if(i===lucky&&st.firstBox)t=Math.max(2,t);return{g:rollFur(pickOne(BY_TIER[t])),lucky:i===lucky}});
+  st.pack={cards,picked:[],first:!!st.firstBox};st.firstBox=0;st.pts+=5;save();showPack()}
 const PAW='<svg viewBox="0 0 60 60"><circle cx="30" cy="38" r="12" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="14" cy="24" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="24" cy="14" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="36" cy="14" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="46" cy="24" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/></svg>';
-function showPack(res){const S2=$('stage');S2.hidden=false;
-  S2.innerHTML=`<h2>Chạm để xé hộp</h2>${BOXSVG}<p class="hint">Hộp đang rung rung…</p>`;
-  $('bigbox').onclick=()=>{$('bigbox').classList.add('tear');setTimeout(()=>{
-    S2.innerHTML=`<h2>Lật từng lá</h2><div class="cards">${res.map((r,i)=>{const t=tierOf(r.c.g);return `<div class="card" data-i="${i}"><div class="back${i===2?' lucky':''}">${PAW}</div><div class="front ${TIERS[t].c}${shinyOf(r.c.g)?' sh':''}">${r.isNew?'<span class="nw">Mới</span>':''}${imgTag(r.c.g,11)}<b>${esc(shortName(r.c.g))}</b>${tierTag(t)}</div></div>`}).join('')}</div>
-    <p class="hint" id="packhint">Lá thứ 3 màu hồng là lá may mắn</p><button type="button" class="btn" id="packdone" hidden>Xong</button>`;
-    let n=0;S2.querySelectorAll('.card').forEach(cd=>cd.onclick=()=>{if(cd.classList.contains('up'))return;cd.classList.add('up');n++;
-      const r=res[+cd.dataset.i],t=tierOf(r.c.g);if(t>=3||shinyOf(r.c.g))$('packhint').textContent=t>=4?'Huyền thoại! Hiếm lắm đó':shinyOf(r.c.g)?'Mèo lấp lánh!':'Siêu hiếm!';
-      if(n===3){const w=res.filter(r=>r.c.h<0).length;$('packhint').textContent=w?`${w} con vào Phòng chờ vì nhà đã đầy. Xây thêm phòng ở mục Nhà đất.`:'Mèo mới đã chạy vào nhà';$('packdone').hidden=false}});
-    $('packdone').onclick=()=>{S2.hidden=true;S2.innerHTML='';syncRoom(res[0].c.id);renderRooms();render()}},420)}}
+function cardFront(g,extra){const t=tierOf(g);return `<div class="front ${TIERS[t].c}${shinyOf(g)?' sh':''}">${extra||''}${imgTag(g,11)}<b>${esc(shortName(g))}</b>${tierTag(t)}</div>`}
+function showPack(){const pk=st.pack;if(!pk)return;const S2=$('stage');S2.hidden=false;
+  const done=pk.picked.length>=2;
+  S2.innerHTML=`<h2>${done?'Hai bé mèo mới!':'Chọn 2 lá'}</h2>
+    <div class="cards">${pk.cards.map((c,i)=>{const up=pk.picked.includes(i)||done;const missed=done&&!pk.picked.includes(i);
+      return `<div class="card${up?' up':''}${missed?' missed':''}" data-i="${i}"><div class="back">${PAW}</div>${cardFront(c.g,(missed?'<span class="nw miss">Bỏ lỡ</span>':c.isNew?'<span class="nw">Mới</span>':'')+(up&&c.lucky?'<span class="lk">May mắn</span>':''))}</div>`}).join('')}</div>
+    <p class="hint" id="packhint">${done?(pk.wait?`${pk.wait} con vào Phòng chờ vì nhà đầy.`:'Mèo mới đã chạy vào nhà'):pk.picked.length?'Chọn thêm 1 lá':'Một trong ba lá là lá may mắn'}</p>
+    ${done?'<button type="button" class="btn" id="packdone">Xong</button>':''}`;
+  if(!done)S2.querySelectorAll('.card:not(.up)').forEach(cd=>cd.onclick=()=>{const i=+cd.dataset.i;if(pk.picked.includes(i)||pk.picked.length>=2)return;
+    if(pk.first&&!pk.picked.length){const L=pk.cards.findIndex(c=>c.lucky);if(L!==i){const tmp=pk.cards[i];pk.cards[i]=pk.cards[L];pk.cards[L]=tmp}}
+    const c=pk.cards[i];c.isNew=see(c.g);const cat=mkCat({...c.g});if(!home(cat))pk.wait=(pk.wait||0)+1;st.cats.push(cat);pk.lastId=cat.id;pk.picked.push(i);save();
+    cd.innerHTML=`<div class="back">${PAW}</div>${cardFront(c.g,(c.isNew?'<span class="nw">Mới</span>':'')+(c.lucky?'<span class="lk">May mắn</span>':''))}`;
+    requestAnimationFrame(()=>cd.classList.add('up'));const t=tierOf(c.g);
+    $('packhint').textContent=t>=4?'Huyền thoại! Hiếm lắm đó':shinyOf(c.g)?'Mèo lấp lánh!':t>=3?'Siêu hiếm!':pk.picked.length<2?'Chọn thêm 1 lá':'';
+    if(pk.picked.length>=2)setTimeout(showPack,1100)});
+  if(done)$('packdone').onclick=()=>{const id=pk.lastId;st.pack=null;save();S2.hidden=true;S2.innerHTML='';syncRoom(id);renderRooms();render()}}
 function openExchange(){const cost=[0,0,100,300,800];
   sheet(`<div class="row"><h2>Đổi Điểm Hộp</h2><span class="hint">Đang có ${fmt(st.pts)} điểm</span></div>
   ${[2,3,4].map(t=>`<h3>${TIERS[t].n} · ${cost[t]} điểm</h3><div class="grid">${BY_TIER[t].map(s=>{const g=s&&isW(s)?{shape:s,pattern:'plain',color:'white'}:{shape:s,pattern:'plain',color:'white'};const own=st.species.includes(s);
@@ -864,48 +896,54 @@ function startSpa(c){closeSheet();const S2=$('stage');S2.hidden=false;let left=6
 // ---------- Chăm mèo ----------
 const pantryMeals=()=>MEALS.reduce((a,k)=>a+st.pantry[k],0);
 let careTab='today';
+const ICON={
+  mail:'<svg viewBox="0 0 48 48"><path d="M6 14h36v24H6z" fill="#FFF6DE" stroke="#2A272C" stroke-width="2.4" stroke-linejoin="round"/><path d="M6 14l18 14 18-14" fill="none" stroke="#2A272C" stroke-width="2.4" stroke-linejoin="round"/><circle cx="38" cy="14" r="6" fill="#F26B6B" stroke="#2A272C" stroke-width="2"/></svg>',
+  gift:'<svg viewBox="0 0 48 48"><path d="M9 20h30v20H9z" fill="#FFD36B" stroke="#2A272C" stroke-width="2.4" stroke-linejoin="round"/><path d="M6 14h36v7H6z" fill="#F7A1B4" stroke="#2A272C" stroke-width="2.4" stroke-linejoin="round"/><path d="M24 14v26" stroke="#2A272C" stroke-width="2.4"/><path d="M24 14c-4-8-12-5-7-1M24 14c4-8 12-5 7-1" fill="none" stroke="#2A272C" stroke-width="2.4" stroke-linecap="round"/></svg>',
+  hosp:'<svg viewBox="0 0 48 48"><rect x="8" y="10" width="32" height="30" rx="6" fill="#fff" stroke="#2A272C" stroke-width="2.4"/><path d="M24 17v16M16 25h16" stroke="#F26B6B" stroke-width="5" stroke-linecap="round"/></svg>',
+  spa:'<svg viewBox="0 0 48 48"><path d="M6 26h36c0 8-7 14-18 14S6 34 6 26Z" fill="#CFE8F7" stroke="#2A272C" stroke-width="2.4" stroke-linejoin="round"/><circle cx="16" cy="18" r="5" fill="#fff" stroke="#2A272C" stroke-width="2"/><circle cx="27" cy="14" r="6" fill="#fff" stroke="#2A272C" stroke-width="2"/><circle cx="35" cy="20" r="4" fill="#fff" stroke="#2A272C" stroke-width="2"/></svg>',
+  pet:'<svg viewBox="0 0 48 48"><path d="M24 40C11 31 6 25 6 18a9 9 0 0 1 18-3 9 9 0 0 1 18 3c0 7-5 13-18 22Z" fill="#F7A1B4" stroke="#2A272C" stroke-width="2.4"/></svg>'};
+const task=(ic,title,sub,btn,hl)=>`<div class="task${hl?' hl':''}"><div class="ic">${ic}</div><div class="tx"><b>${title}</b><small>${sub}</small></div>${btn||''}</div>`;
 function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
   const tabs=[['today','Hôm nay'],['jobs','Đi làm'],['cats','Mèo nhà mình']];
   let html=`<div class="sub">${tabs.map(([k,n])=>`<button type="button" data-t="${k}" class="${careTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(careTab==='today'){const home=st.cats.filter(c=>c.h>=0);const dk=dayKey(GT);const unfed=home.filter(c=>c.fed!==dk);
-    html+=`${sickHtml()}<div class="box${st.mail?' hl':''}"><div class="row"><h3>Hòm thư lương</h3><span class="hint">${st.mailN?st.mailN+' ca làm':''}</span></div>
-      ${st.mail?`<button type="button" class="btn wide" id="mail">Nhận ${fmt(st.mail)} cá</button>`:`<p class="hint">${isWeekday(GT)&&hourOf(GT)<17?'Lương về lúc 17:00, khi mèo đi làm về.':'Chưa có lương mới. Mèo đi làm Thứ Hai đến Thứ Sáu, 8:00 đến 17:00.'}</p>`}
-      ${st.offline>=1?`<p class="hint">Lúc bạn vắng nhà, mèo ở nhà làm ra thêm ${fmt(st.offline)} cá.</p>`:''}
-      ${st.rentLog?`<p class="hint">Tiền cho thuê nhà: +${fmt(st.rentLog)} xu.</p>`:''}</div>
-    ${st.gifts.length?`<div class="box hl"><h3>Quà mèo hoang để lại</h3><p class="hint">${st.gifts.map(g=>esc(g.from)).join(', ')} đã ghé hiên nhà.</p><button type="button" class="btn wide" id="gifts">Nhặt ${st.gifts.length} món quà</button></div>`:''}
-    <div class="box"><div class="row"><h3>Bữa tối</h3><span class="hint">${home.length-unfed.length}/${home.length} con đã ăn hôm nay</span></div>
-      <p class="hint">Mỗi con ăn 1 phần. Ăn ngon thì vui hơn, ăn đúng món khoái khẩu thêm +10 tâm trạng.</p>
-      <div class="sub">${[['kibble','Tiết kiệm'],['good','Vừa'],['pate','Xịn'],['fav','Theo khẩu vị']].map(([k,n])=>`<button type="button" data-diet="${k}" class="${st.diet===k?'on':''}">${n}</button>`).join('')}</div>
-      <button type="button" class="btn wide" id="feed"${unfed.length&&pantryMeals()?'':' disabled'}>${unfed.length?`Cho cả nhà ăn (${unfed.length} con)`:'Cả nhà đã ăn no'}</button>
-      ${!pantryMeals()?'<p class="why">Tủ đồ ăn hết rồi. Mua ở Cửa hàng, mục Đồ ăn.</p>':''}
-      <div class="chips">${FOODS.map(f=>`<span class="tag t1">${f.n}: ${st.pantry[f.id]}</span>`).join('')}</div>
-      <p class="hint">Tủ chứa ${pantryMeals()}/${st.pantryCap} phần ăn chính.</p></div>
-    ${hygieneHtml()}
-    <div class="box"><h3>Vuốt ve</h3><p class="hint">Chạm vào mèo trong phòng để vuốt, mỗi con 3 lần một ngày, mỗi lần +10 tâm trạng. ${ph==='work'?'Mèo đi làm thì chỉ vuốt được mèo ở nhà.':''}</p></div>
-    ${isWeekend(GT)?'<div class="box hl"><h3>Ngày nghỉ: spa mèo</h3><p class="hint">Chạm vào một con mèo, chọn "Đi spa". 50 cá mỗi con, tâm trạng +40, lương cả tuần sau +15%.</p></div>':''}`}
+    const sick=sickCats(),hs=st.cats.filter(c=>inHosp(c)),hcost=sick.reduce((a,c)=>a+HOSP[tierOf(c.g)],0);
+    const md=Math.round(maxDirt()),lit=LITTERS.reduce((a,l)=>a+st.litter[l.id],0);
+    const short=st.houses.some(h=>!h.rent&&usersOf(h)>capOf(h));
+    const extra=[st.offline>=1?`ở nhà làm thêm ${fmt(st.offline)} cá`:'',st.rentLog?`thuê nhà +${fmt(st.rentLog)} xu`:''].filter(Boolean).join(', ');
+    if(sick.length||hs.length)html+=task(ICON.hosp,sick.length?`${sick.length} con bị ốm`:'Bệnh viện',sick.length?`Khay bẩn làm mèo ốm. Nằm viện 1 tiếng là khỏe${hs.length?` · ${hs.length} con đang nằm viện`:''}`:`${hs.length} con đang nằm viện, sắp về`,
+      sick.length?`<button type="button" class="btn small" id="hospall"${st.fish<hcost?' disabled':''}>Đi viện · ${fmt(hcost)} cá</button>`:'',sick.length);
+    html+=task(ICON.mail,'Lương',st.mail?`${fmt(st.mail)} cá đang chờ${extra?' · '+extra:''}`:(isWeekday(GT)&&hourOf(GT)<17?'Về lúc 17:00 khi mèo đi làm về':'Chưa có lương mới'),
+      st.mail?`<button type="button" class="btn small" id="mail">Nhận</button>`:'',st.mail);
+    if(st.gifts.length)html+=task(ICON.gift,'Quà mèo hoang',`${st.gifts.length} món ở hiên nhà`,`<button type="button" class="btn small" id="gifts">Nhặt</button>`,1);
+    html+=task(FOOD_ICON.kibble,'Bữa tối',`${home.length-unfed.length}/${home.length} con đã ăn · tủ còn ${pantryMeals()} phần`,
+      `<button type="button" class="btn small" id="feed"${unfed.length&&pantryMeals()?'':' disabled'}>${unfed.length?'Cho ăn':'No rồi'}</button>`,unfed.length&&ph==='evening');
+    html+=`<div class="seg">${[['kibble','Tiết kiệm'],['good','Vừa'],['pate','Xịn'],['fav','Theo khẩu vị']].map(([k,n])=>`<button type="button" data-diet="${k}" class="${st.diet===k?'on':''}">${n}</button>`).join('')}</div>`;
+    html+=task(`<img src="care/tray.webp?v=2" alt="">`,'Vệ sinh',`${md>=3?`Khay bẩn ${md}%`:'Khay sạch'} · cát còn ${lit} lần${short?' · <span class="warn">thiếu khay</span>':''}`,
+      `<button type="button" class="btn small" id="cleanall"${md<3?' disabled':''}>Dọn</button>`,md>=55||short);
+    if(isWeekend(GT))html+=task(ICON.spa,'Ngày nghỉ: spa','Chạm vào mèo, chọn Đi spa. Lương tuần sau +15%','');
+    html+=task(ICON.pet,'Vuốt ve','Chạm vào mèo trong phòng, mỗi con 3 lần một ngày','');
+    if(!pantryMeals()||!lit)html+=`<p class="why">${!pantryMeals()?'Tủ hết đồ ăn. ':''}${!lit?'Hết cát mèo. ':''}Mua ở Mua sắm.</p>`}
   if(careTab==='jobs'){
-    html+=`<div class="box"><div class="row"><h3>Xếp việc</h3><button type="button" class="btn small" id="auto">Tự xếp việc</button></div>
-      <p class="hint">Giờ trong game chạy nhanh gấp 6: một ngày trong game dài 4 tiếng ngoài đời. Mèo đi làm Thứ Hai đến Thứ Sáu trong game, 8:00 đến 17:00. Mèo hợp việc được +20% lương. Xếp việc trong giờ làm thì hôm sau mới bắt đầu.</p></div>
+    html+=`<div class="row"><p class="hint" style="flex:1;min-width:0">Thứ Hai - Thứ Sáu, 8:00-17:00 giờ game. Hợp việc +20% lương.</p><button type="button" class="btn small" id="auto">Tự xếp việc</button></div>
       <div class="list">${JOBS.map(j=>{const lock=j.need();const ws=st.cats.filter(c=>c.job===j.id);
         return `<div class="li${lock?' off':''}" data-job="${j.id}"><div class="tx"><b>${j.n} · ×${String(j.m).replace('.',',')}</b><small>${lock?esc(lock):`Hợp: ${j.fit.map(s=>SPR[s]?SPR[s].name:s).join(', ')}${j.shinyFit?', mèo lấp lánh':''}`}</small>
-          <div class="chips" style="margin-top:4px">${Array.from({length:j.slots},(_,i)=>ws[i]?`<span class="mini">${imgTag(ws[i].g)}</span>`:'<span class="mini empty"></span>').join('')}</div></div>
+          ${lock?'':`<div class="chips" style="margin-top:4px">${Array.from({length:j.slots},(_,i)=>ws[i]?`<span class="mini">${imgTag(ws[i].g)}</span>`:'<span class="mini empty"></span>').join('')}</div>`}</div>
           ${lock?'':`<button type="button" class="btn small ghost" data-pick="${j.id}">Chọn</button>`}</div>`}).join('')}</div>`}
   if(careTab==='cats'){const w=waiting();
-    html+=`<p class="hint">${st.cats.length} con. Chạm một con để xem, cho ăn vặt, spa, lên sao hoặc bán.</p>
-      ${w.length?`<div class="box hl"><div class="row"><h3>Phòng chờ ${w.length}/10</h3><span class="hint">mèo ở đây chưa đi làm</span></div><div class="grid">${w.map(c=>catCard(c)).join('')}</div></div>`:''}
+    html+=`<p class="hint">${st.cats.length} con. Chạm một con để xem chi tiết.</p>
+      ${w.length?`<h3>Phòng chờ ${w.length}/10</h3><div class="grid">${w.map(c=>catCard(c)).join('')}</div>`:''}
       ${st.houses.map(h=>h.rooms.map((r,i)=>{const l=catsIn(h,i);return l.length?`<h3>${ROOMT[r.t].n}${st.houses.length>1?' · '+esc(houseName(h)):''}</h3><div class="grid">${l.map(c=>catCard(c,c.job?`<em>${esc(JID[c.job].n)}</em>`:'')).join('')}</div>`:''}).join('')).join('')}`}
   P.innerHTML=html;
   bind(P,'[data-t]',el=>{careTab=el.dataset.t;render()});
   bind(P,'[data-cat]',el=>openCat(+el.dataset.cat));
   if($('mail'))$('mail').onclick=()=>{st.fish+=st.mail;toast(`+${fmt(st.mail)} cá lương`);st.mail=0;st.mailN=0;st.offline=0;st.rentLog=0;save();render()};
   if($('gifts'))$('gifts').onclick=()=>{const sum={fish:0,pts:0,ticket:0};st.gifts.forEach(g=>sum[g.k]+=g.n);st.fish+=sum.fish;st.pts+=sum.pts;st.tickets+=sum.ticket;st.gifts=[];save();
-    toast([sum.fish&&`+${fmt(sum.fish)} cá`,sum.pts&&`+${sum.pts} Điểm Hộp`,sum.ticket&&`+${sum.ticket} vé hộp`].filter(Boolean).join(', '));render()};
+    toast([sum.fish&&`+${fmt(sum.fish)} cá`,sum.pts&&`+${sum.pts} Điểm Hộp`,sum.ticket&&`+${sum.ticket} vé`].filter(Boolean).join(', '));render()};
   bind(P,'[data-diet]',el=>{st.diet=el.dataset.diet;save();render()});
   if($('feed'))$('feed').onclick=feedAll;
   if($('cleanall'))$('cleanall').onclick=cleanAll;
-  bind(P,'[data-lit]',el=>{st.litterUse=el.dataset.lit;save();render()});
-  bind(P,'[data-hosp]',el=>{const c=st.cats.find(x=>x.id==el.dataset.hosp);if(c&&toHosp(c)){save();syncRoom();renderRooms();toast('Mèo đã tới bệnh viện, 1 tiếng nữa về');render()}});
-  if($('hospall'))$('hospall').onclick=e=>{const l=sickCats();const cost=l.reduce((a,c)=>a+HOSP[tierOf(c.g)],0);if(st.fish<cost)return;twoTap(e.currentTarget,'hospall',`Trả ${fmt(cost)} cá?`,()=>{l.forEach(toHosp);save();syncRoom();renderRooms();toast(`${l.length} mèo đã tới bệnh viện`);render()})};
+  if($('hospall'))$('hospall').onclick=e=>{const l=sickCats();const cost=l.reduce((a,c)=>a+HOSP[tierOf(c.g)],0);if(st.fish<cost)return;twoTap(e.currentTarget,'hospall',`Trả ${fmt(cost)} cá?`,()=>{l.forEach(toHosp);st.healed=0;save();syncRoom();renderRooms();toast(`${l.length} mèo đã tới bệnh viện`);render()})};
   if($('auto'))$('auto').onclick=autoAssign;
   bind(P,'[data-pick]',el=>pickJob(el.dataset.pick))}
 function takeFood(c){let want=st.diet==='fav'?favOf(c.g.shape):st.diet;let i=MEALS.indexOf(want);
@@ -915,25 +953,6 @@ function feedAll(){const dk=dayKey(gnow());let n=0,favN=0,miss=0;
     if(f===favOf(c.g.shape)){m+=10;favN++;if(!st.favKnown.includes(c.g.shape))st.favKnown.push(c.g.shape)}
     c.mood=Math.min(100,c.mood+m);c.fed=dk;c.fb=F.fb||0;n++;faceHappy(c)});
   save();toast(`${n} con đã ăn${favN?`, ${favN} con được món khoái khẩu`:''}${miss?`. ${miss} con chưa có phần, tủ hết đồ`:''}`);render()}
-function sickHtml(){const l=sickCats(),hs=st.cats.filter(c=>inHosp(c));if(!l.length&&!hs.length&&!st.healed)return '';
-  const cost=l.reduce((a,c)=>a+HOSP[tierOf(c.g)],0);
-  return `<div class="box hl"><div class="row"><h3>Bệnh viện mèo</h3><span class="hint">${hs.length?hs.length+' con đang nằm viện':''}</span></div>
-    ${l.length?`<p class="hint">${l.length} con bị ốm vì khay vệ sinh bẩn. Mèo ốm không đi làm và buồn dần, không tự khỏi. Nằm viện 1 tiếng ngoài đời là khỏe.</p>
-    <div class="grid">${l.map(c=>catCard(c,`<em>${HOSP[tierOf(c.g)]} cá</em>`)).join('')}</div>
-    <div class="acts">${l.map(c=>`<button type="button" class="btn small" data-hosp="${c.id}"${st.fish<HOSP[tierOf(c.g)]?' disabled':''}>${esc(shortName(c.g))} · ${HOSP[tierOf(c.g)]} cá</button>`).join('')}</div>
-    ${l.length>1?`<button type="button" class="btn wide" id="hospall"${st.fish<cost?' disabled':''}>Đưa cả ${l.length} con đi · ${fmt(cost)} cá</button>`:''}`:''}
-    ${st.healed?`<p class="hint">${st.healed} con đã khỏi bệnh về nhà.</p>`:''}</div>`}
-function hygieneHtml(){const lit=LITTERS.map(l=>st.litter[l.id]).reduce((a,b)=>a+b,0);
-  const rows=st.houses.filter(h=>!h.rent).map(h=>{const bx=boxesOf(h),n=usersOf(h),cap=capOf(h);
-    return `${st.houses.length>1?`<b style="font-size:13px">${esc(houseName(h))}</b>`:''}
-      <p class="hint">${n} mèo dùng, khay đủ cho ${cap} mèo.${n>cap?' <b style="color:#B0503F">Thiếu khay: mèo dễ ốm hơn, mua thêm ở Cửa hàng.</b>':''}</p>
-      ${bx.length?bx.map(b=>{const d=Math.round(b.p.dirt||0);return `<div class="row" style="flex-wrap:nowrap"><span class="hint" style="width:120px">${b.f.name} · ${ROOMT[h.rooms[b.ri].t].n}</span><span class="bar" style="flex:1"><i style="width:${d}%;background:${d>=75?'#F26B6B':d>=55?'#FFD36B':'#9CCB9F'}"></i></span><span class="hint num" style="width:62px;text-align:right">bẩn ${d}%</span></div>`}).join(''):'<p class="why">Nhà này chưa có khay vệ sinh. Mèo sẽ ốm. Mua khay ở Cửa hàng, mục Vệ sinh.</p>'}`}).join('');
-  return `<div class="box${maxDirt()>=55?' hl':''}"><div class="row"><h3>Vệ sinh</h3><span class="hint">Cát còn ${lit} lần dọn</span></div>
-    <p class="hint">Mèo đi vệ sinh nên khay bẩn dần. Khay bẩn quá 55% là mèo bắt đầu có thể bị ốm, càng bẩn càng dễ ốm. Chạm vào khay trong phòng hoặc bấm nút dưới để dọn, mỗi khay tốn 1 lần cát.</p>
-    ${rows}
-    <div class="sub">${LITTERS.map(l=>`<button type="button" data-lit="${l.id}" class="${st.litterUse===l.id?'on':''}">${l.n.replace('Cát ','')} (${st.litter[l.id]})</button>`).join('')}</div>
-    <button type="button" class="btn wide" id="cleanall"${maxDirt()<3?' disabled':''}>${maxDirt()<3?'Khay nào cũng sạch':'Dọn tất cả khay'}</button>
-    ${!lit?'<p class="why">Hết cát. Mua ở Cửa hàng, mục Vệ sinh.</p>':''}</div>`}
 const jobCount=id=>st.cats.filter(c=>c.job===id).length;
 function autoAssign(){const T=gnow();const cats=st.cats.filter(c=>c.h>=0);cats.forEach(c=>c.job=null);
   const open=JOBS.filter(j=>!j.need()).sort((a,b)=>b.m-a.m);
@@ -1009,43 +1028,34 @@ function hatch(id){const e=st.eggs.find(x=>x.id===id);if(!e||eggMs(e))return;con
     $('hdone').onclick=()=>{S2.hidden=true;S2.innerHTML='';syncRoom(c.id);renderRooms();render()}},1300)}
 
 // ---------- Nhà đất ----------
-let homeTab='house',zoneOpen=-1;
+let zoneOpen=-1;
 function marketLeft(){const dk=dayKey(now());if(st.market.day!==dk){st.market={day:dk,xu:0}}return 150-st.market.xu}
-function renderHome(){const P=$('p-home');const h=curHouse(),tp=TPL[h.tpl];
-  const tabs=[['house','Nhà đang ở'],['city','Thành phố Mèo'],['market','Chợ cá']];
-  let html=`<div class="sub">${tabs.map(([k,n])=>`<button type="button" data-t="${k}" class="${homeTab===k?'on':''}">${n}</button>`).join('')}</div>`;
-  if(homeTab==='house'){const inside=h.rooms.filter(r=>!ROOMT[r.t].out).length;const w=waiting();
-    html+=`${w.length?`<div class="box hl"><h3>Phòng chờ: ${w.length}/10 mèo</h3><p class="hint">Nhà hết chỗ. Xây thêm phòng hoặc lên mẫu nhà to hơn, mèo sẽ tự dọn vào.</p></div>`:''}
-      <div class="box"><div class="row" style="flex-wrap:nowrap;align-items:flex-end"><img src="houses/h${h.tpl}.webp" alt="" style="height:84px;width:auto"><div style="flex:1;min-width:0"><h3>${esc(houseName(h))}</h3><span class="tag t2">${h.lot.area} m²</span></div></div>
-      <p class="hint">${tp.rooms} phòng trong nhà tối đa, đang có ${inside}. Mỗi phòng 20 m² sàn, ở được ${CAP} mèo. ${zoneOf(h).perk}${h.lot.trait?' · '+h.lot.trait.n:''}.</p>
-      <div class="chips">${h.rooms.map((r,i)=>`<span class="tag ${ROOMT[r.t].out?'t3':'t1'}">${ROOMT[r.t].n} ${catsIn(h,i).length}/${CAP}</span>`).join('')}</div></div>`;
-    if(inside<tp.rooms)html+=`<div class="box"><h3>Xây phòng mới</h3><p class="hint">Cùng một loại phòng xây được nhiều lần.</p><div class="list">${ROOMT.map((t,i)=>t.out?'':`<div class="li"><div class="tx"><b>${t.n}</b><small>${i===2?'Mở việc Phụ bếp quán mì':'20 m² sàn'}</small></div><button type="button" class="btn small" data-build="${i}"${st.xu<t.xu?' disabled':''}>${fmt(t.xu)} xu</button></div>`).join('')}</div></div>`;
-    else html+=`<div class="box"><h3>Nhà đã đủ phòng</h3><p class="hint">Lên mẫu nhà lớn hơn để xây thêm phòng, hoặc mua lô đất mới ở Thành phố Mèo.</p></div>`;
-    const up=TPL[h.tpl+1];
-    if(up)html+=`<div class="box"><div class="row"><img src="houses/h${h.tpl+1}.webp" alt="" style="height:60px;width:auto"><h3 style="flex:1">Lên ${up.n}</h3><span class="hint">${up.rooms} phòng${up.out.length>tp.out.length?' + '+up.out.map(o=>ROOMT[OUT_T[o]].n.toLowerCase()).slice(tp.out.length).join(', '):''}</span></div>
-      ${h.lot.area<up.min?`<p class="why">Lô này ${h.lot.area} m², ${up.n} cần lô từ ${up.min} m². Mua lô rộng hơn ở khu khác.</p>`:`<button type="button" class="btn small" id="upg"${st.xu<up.xu?' disabled':''}>Xây lại · ${fmt(up.xu)} xu</button>`}</div>`;
-    if(st.houses.length>1)html+=`<h3>Nhà của bạn (${st.houses.length}/5)</h3><div class="list">${st.houses.map((x,i)=>{const n=st.cats.filter(c=>c.h===x.id).length;
-      return `<div class="li"><div class="ic"><img src="houses/h${x.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(x))}${i===st.ch?' · đang xem':''}</b><small>${x.rent?`Đang cho thuê, +${fmt(rentOf(x))} xu mỗi sáng`:`${n} mèo · ${x.lot.area} m²`}</small></div>
-        ${i===st.ch?'':`<button type="button" class="btn small ghost" data-go="${i}"${x.rent?' disabled':''}>Sang</button>`}
-        <button type="button" class="btn small ghost" data-rent="${i}"${!x.rent&&(n||st.houses.filter(y=>!y.rent).length<2)?' disabled':''}>${x.rent?'Thôi thuê':'Cho thuê'}</button></div>`}).join('')}</div><p class="hint">Chỉ cho thuê được nhà không có mèo, và phải còn ít nhất một nhà để ở.</p>`}
-  if(homeTab==='city'){
-    html+=`<p class="hint">Mua lô đất bằng xu, rồi chọn mẫu nhà để xây. Có tối đa 5 nhà. Khu càng cao càng đắt nhưng nhà to hơn và nhiều lợi ích hơn.</p><div class="list">${ZONES.map((z,i)=>{const lock=z.need();
-      return `<div class="li${lock?' off':''}"><div class="tx"><b>${i+1}. ${z.n}</b><small>${lock?esc(lock):esc(z.perk)} · lô ${z.area[0]}-${z.area[1]} m² · ${fmt(z.price[0])}-${fmt(z.price[1])} xu</small></div>${lock?'':`<button type="button" class="btn small ghost" data-zone="${i}">${zoneOpen===i?'Ẩn':'Xem lô'}</button>`}</div>
-      ${zoneOpen===i?`<div class="list" style="padding-left:12px">${LOTS[i].map(l=>{const own=st.lots.some(x=>x.z===i&&x.i===l.i);const fit=TPL.filter(t=>t.min<=l.area).pop();
-        return `<div class="li${own?' off':''}"><div class="tx"><b>Lô ${l.i+1} · ${l.area} m²${l.trait?' · '+l.trait.n:''}</b><small>${own?'Của bạn':`Xây tới ${fit.n}`}</small></div>${own?'':`<button type="button" class="btn small" data-lot="${i}:${l.i}"${st.xu<l.price||st.houses.length>=5?' disabled':''}>${fmt(l.price)} xu</button>`}</div>`}).join('')}</div>`:''}`}).join('')}</div>`}
-  if(homeTab==='market'){const left=marketLeft();
-    html+=`<div class="box hl"><h3>Chợ cá</h3><p class="hint">Đổi cá lấy xu để mua đất, xây nhà. 20 cá đổi 1 xu, mỗi ngày tối đa 150 xu. Không đổi ngược lại được.</p>
-      <p>Hôm nay còn đổi được <b>${left} xu</b>.</p>
-      <div class="acts">${[10,50,left].filter((v,i,a)=>v>0&&a.indexOf(v)===i).map(v=>`<button type="button" class="btn small" data-mk="${v}"${st.fish<v*20||v>left?' disabled':''}>${fmt(v*20)} cá → ${v} xu</button>`).join('')}</div></div>
-      <div class="box"><h3>Kiếm xu ở đâu</h3><p class="hint">Bán mèo trùng (chạm vào mèo, chọn Bán), cho thuê nhà không ở, hoàn thành trang Sổ mèo, và đổi ở Chợ cá.</p></div>`}
-  P.innerHTML=html;
-  bind(P,'[data-t]',el=>{homeTab=el.dataset.t;render()});
-  bind(P,'[data-build]',el=>{const t=+el.dataset.build,T=ROOMT[t];twoTap(el,'b'+t,`Xây ${T.n}?`,()=>{st.xu-=T.xu;h.rooms.push(newRoom(t));syncOutdoor(h);const ri=h.rooms.findIndex(r=>r.t===t&&!catsIn(h,h.rooms.indexOf(r)).length);rebalance();st.cur=h.rooms.lastIndexOf(h.rooms.filter(r=>r.t===t).pop());
+function homeHtml(){const h=curHouse(),tp=TPL[h.tpl];const inside=h.rooms.filter(r=>!ROOMT[r.t].out).length;const w=waiting();const up=TPL[h.tpl+1];
+  let html=`${w.length?`<p class="why">Phòng chờ có ${w.length} mèo. Xây thêm phòng, mèo tự dọn vào.</p>`:''}
+    <div class="task hl"><div class="ic big"><img src="houses/h${h.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(h))}</b><small>${h.lot.area} m² · ${inside}/${tp.rooms} phòng · ${zoneOf(h).perk}${h.lot.trait?' · '+h.lot.trait.n:''}</small></div></div>`;
+  if(inside<tp.rooms)html+=`<details class="more" open><summary>Xây phòng mới (${tp.rooms-inside} chỗ trống)</summary><div class="list">${ROOMT.map((t,i)=>t.out?'':`<div class="li"><div class="tx"><b>${t.n}</b>${i===2?'<small>Mở việc Phụ bếp</small>':''}</div><button type="button" class="btn small" data-build="${i}"${st.xu<t.xu?' disabled':''}>${fmt(t.xu)} xu</button></div>`).join('')}</div></details>`;
+  if(up)html+=task(`<img src="houses/h${h.tpl+1}.webp" alt="">`,`Lên ${up.n}`,h.lot.area<up.min?`Cần lô từ ${up.min} m², lô này ${h.lot.area} m²`:`${up.rooms} phòng${up.out.length>tp.out.length?', thêm '+up.out.slice(tp.out.length).map(o=>ROOMT[OUT_T[o]].n.toLowerCase()).join(', '):''}`,
+    h.lot.area<up.min?'':`<button type="button" class="btn small" id="upg"${st.xu<up.xu?' disabled':''}>${fmt(up.xu)} xu</button>`);
+  if(st.houses.length>1)html+=`<h3>Nhà của bạn ${st.houses.length}/5</h3><div class="list">${st.houses.map((x,i)=>{const n=st.cats.filter(c=>c.h===x.id).length;
+    return `<div class="li"><div class="ic"><img src="houses/h${x.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(x))}${i===st.ch?' · đang xem':''}</b><small>${x.rent?`Cho thuê, +${fmt(rentOf(x))} xu mỗi ngày`:`${n} mèo`}</small></div>
+      ${i===st.ch?'':`<button type="button" class="btn small ghost" data-go="${i}"${x.rent?' disabled':''}>Sang</button>`}
+      <button type="button" class="btn small ghost" data-rent="${i}"${!x.rent&&(n||st.houses.filter(y=>!y.rent).length<2)?' disabled':''}>${x.rent?'Thôi thuê':'Cho thuê'}</button></div>`}).join('')}</div>`;
+  html+=`<details class="more"><summary>Mua đất xây nhà mới (${st.houses.length}/5 nhà)</summary><div class="list">${ZONES.map((z,i)=>{const lock=z.need();
+    return `<div class="li${lock?' off':''}"><div class="tx"><b>${z.n}</b><small>${lock?esc(lock):`${z.area[0]}-${z.area[1]} m² · từ ${fmt(z.price[0])} xu`}</small></div>${lock?'':`<button type="button" class="btn small ghost" data-zone="${i}">${zoneOpen===i?'Ẩn':'Xem lô'}</button>`}</div>
+    ${zoneOpen===i?`<div class="list" style="padding-left:10px">${LOTS[i].map(l=>{const own=st.lots.some(x=>x.z===i&&x.i===l.i);const fit=TPL.filter(t=>t.min<=l.area).pop();
+      return `<div class="li${own?' off':''}"><div class="tx"><b>Lô ${l.i+1} · ${l.area} m²${l.trait?' · '+l.trait.n:''}</b><small>${own?'Của bạn':`Tới ${fit.n}`}</small></div>${own?'':`<button type="button" class="btn small" data-lot="${i}:${l.i}"${st.xu<l.price||st.houses.length>=5?' disabled':''}>${fmt(l.price)} xu</button>`}</div>`}).join('')}</div>`:''}`}).join('')}</div></details>`;
+  return html}
+function marketHtml(){const left=marketLeft();
+  return `<div class="box hl"><div class="row"><h3>Đổi cá lấy xu</h3><span class="hint">20 cá = 1 xu</span></div><p class="hint">Hôm nay còn đổi được <b>${left} xu</b>. Xu dùng mua đất, xây phòng.</p>
+    <div class="acts">${[10,50,left].filter((v,i,a)=>v>0&&a.indexOf(v)===i).map(v=>`<button type="button" class="btn small" data-mk="${v}"${st.fish<v*20||v>left?' disabled':''}>${fmt(v*20)} cá → ${v} xu</button>`).join('')}</div></div>
+    <p class="hint">Xu còn có từ bán mèo trùng, cho thuê nhà và đủ trang Sổ mèo.</p>`}
+function bindHome(P){const h=curHouse();
+  bind(P,'[data-build]',el=>{const t=+el.dataset.build,T=ROOMT[t];twoTap(el,'b'+t,`Xây ${T.n}?`,()=>{st.xu-=T.xu;h.rooms.push(newRoom(t));syncOutdoor(h);rebalance();st.cur=h.rooms.lastIndexOf(h.rooms.filter(r=>r.t===t).pop());
     save();view();actors.clear();syncRoom();renderRooms();toast(`Đã xây ${T.n}`);render()})});
   if($('upg'))$('upg').onclick=e=>{const up=TPL[h.tpl+1];twoTap(e.currentTarget,'upg',`Trả ${fmt(up.xu)} xu?`,()=>{st.xu-=up.xu;h.tpl++;syncOutdoor(h);rebalance();save();renderRooms();toast(`Đã lên ${up.n}`);render()})};
   bind(P,'[data-go]',el=>{st.ch=+el.dataset.go;st.cur=0;save();view();actors.clear();syncRoom();renderRooms();render()});
   bind(P,'[data-rent]',el=>{const x=st.houses[+el.dataset.rent];x.rent=!x.rent;if(x.rent&&st.ch===+el.dataset.rent){st.ch=st.houses.findIndex(y=>!y.rent);st.cur=0;actors.clear();syncRoom();renderRooms()}save();render()});
-  bind(P,'[data-zone]',el=>{const z=+el.dataset.zone;zoneOpen=zoneOpen===z?-1:z;render()});
+  bind(P,'[data-zone]',el=>{const z=+el.dataset.zone;zoneOpen=zoneOpen===z?-1:z;render();const d=P.querySelectorAll('details.more');d[d.length-1].open=true});
   bind(P,'[data-lot]',el=>{const [z,i]=el.dataset.lot.split(':').map(Number);const l=LOTS[z][i];if(st.xu<l.price)return;twoTap(el,'lot'+z+i,`Mua lô ${fmt(l.price)} xu?`,()=>buyLot(l))});
   bind(P,'[data-mk]',el=>{const v=+el.dataset.mk;if(st.fish<v*20||v>marketLeft())return;st.fish-=v*20;st.xu+=v;st.market.xu+=v;save();toast(`+${v} xu`);render()})}
 const rentOf=x=>Math.round(zoneOf(x).rent*(x.lot.z===3?1.5:1)*TPL[x.tpl].rooms/2);
@@ -1070,32 +1080,38 @@ function openStray(s){sheet(`<div class="hero">${imgTag(s.g,11)}<div><span class
 // ---------- Cửa hàng ----------
 let shopTab='food';
 const furnPrice=f=>Math.round(f.price*Math.pow(1.5,Math.min(4,(st.bought[f.id]||0))));
-function renderShop(){const P=$('p-shop');
-  let html=`<div class="sub">${[['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất']].map(([k,n])=>`<button type="button" data-t="${k}" class="${shopTab===k?'on':''}">${n}</button>`).join('')}</div>`;
+const SHOPTABS=[['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['home','Nhà đất'],['market','Chợ cá']];
+function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('details.more')].map(d=>d.open);
+  let html=`<div class="sub">${SHOPTABS.map(([k,n])=>`<button type="button" data-t="${k}" class="${shopTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(shopTab==='food'){const room=st.pantryCap-pantryMeals();
-    html+=`<p class="hint">Cất vào tủ đồ ăn (${pantryMeals()}/${st.pantryCap} phần ăn chính). Mua gói 20 phần rẻ hơn 15%.</p><div class="shop">${FOODS.map(f=>{const p20=Math.round(f.p*20*.85);const meal=MEALS.includes(f.id);
-      return `<div class="sitem"><div class="th">${FOOD_ICON[f.id]}</div><div class="nm">${f.n}<small>${f.tier} · +${f.mood} tâm trạng${f.fb?` · lương mai +${f.fb*100}%`:''}</small><small>Trong tủ: ${st.pantry[f.id]}</small></div>
-        <button type="button" class="btn small" data-buy="${f.id}:1"${st.fish<f.p||(meal&&room<1)?' disabled':''}>1 · ${fmt(f.p)} cá</button>
-        ${f.id!=='cake'?`<button type="button" class="btn small ghost" data-buy="${f.id}:20"${st.fish<p20||(meal&&room<20)?' disabled':''}>20 · ${fmt(p20)} cá</button>`:''}</div>`}).join('')}</div>
-      <div class="row"><span class="hint">Tủ to hơn: +100 phần</span><button type="button" class="btn small ghost" id="cap"${st.xu<300*st.pantryCap/100?' disabled':''}>${fmt(300*st.pantryCap/100)} xu</button></div>`}
+    html+=`<p class="hint">Tủ đồ ăn ${pantryMeals()}/${st.pantryCap} phần. Mua 20 rẻ hơn 15%.</p><div class="list">${FOODS.map(f=>{const p20=Math.round(f.p*20*.85);const meal=MEALS.includes(f.id);
+      return `<div class="li"><div class="ic">${FOOD_ICON[f.id]}</div><div class="tx"><b>${f.n}</b><small>+${f.mood} vui${f.fb?` · lương +${f.fb*100}%`:''} · có ${st.pantry[f.id]}</small></div>
+        <button type="button" class="btn small" data-buy="${f.id}:1"${st.fish<f.p||(meal&&room<1)?' disabled':''}>${fmt(f.p)}</button>
+        ${f.id!=='cake'?`<button type="button" class="btn small ghost" data-buy="${f.id}:20"${st.fish<p20||(meal&&room<20)?' disabled':''}>20: ${fmt(p20)}</button>`:''}</div>`}).join('')}</div>
+      <div class="task"><div class="tx"><b>Tủ to hơn</b><small>+100 phần</small></div><button type="button" class="btn small ghost" id="cap"${st.xu<300*st.pantryCap/100?' disabled':''}>${fmt(300*st.pantryCap/100)} xu</button></div>`}
   else if(shopTab==='toilet'){const R0=curRoom();
-    html+=`<p class="hint">Khay đặt vào ${ROOMT[curT()].n}, mỗi loại một cái mỗi phòng. Khay xịn chứa được nhiều mèo hơn và bẩn chậm hơn. Cát xịn bẩn chậm hơn và làm mèo vui.</p>
-    <h3>Khay vệ sinh</h3><div class="shop">${TOILETS.map(f=>{const placed=!!R0.furn[f.id],owned=R0.owned.includes(f.id);const cur=f.cur==='xu'?'xu':'cá';const have=f.cur==='xu'?st.xu:st.fish;
-      const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất đi</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${have<f.price?' disabled':''}>${fmt(f.price)} ${cur}</button>`;
-      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="care/${f.img}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>Cho ${f.cap} mèo · ${f.desc}</small></div>${btn}</div>`}).join('')}</div>
-    <h3>Cát mèo</h3><div class="shop">${LITTERS.map(l=>`<div class="sitem"><div class="th"><img src="care/${l.id}.webp?v=2" alt="${l.n}" loading="lazy"></div><div class="nm">${l.n}<small>1 túi = ${l.uses} lần dọn · ${l.desc}</small><small>Đang có: ${st.litter[l.id]} lần</small></div>
-      <button type="button" class="btn small" data-lbuy="${l.id}:1"${st.fish<l.p?' disabled':''}>1 túi · ${fmt(l.p)} cá</button><button type="button" class="btn small ghost" data-lbuy="${l.id}:4"${st.fish<Math.round(l.p*4*.85)?' disabled':''}>4 túi · ${fmt(Math.round(l.p*4*.85))} cá</button></div>`).join('')}</div>`}
-  else{const R0=curRoom(),own=R0.owned;
-    html+=`<p class="hint">Đồ mua cho ${ROOMT[curT()].n}. Phòng này đang êm ${comfort(R0)}: mèo ở đây làm ra thêm ${comfort(R0)*10}% cá khi ở nhà. Mua món giống nhau lần nữa thì đắt hơn.</p><div class="shop">${FURN.filter(f=>!f.toilet).map(f=>{const placed=!!R0.furn[f.id],owned=own.includes(f.id);const p=furnPrice(f);
-      const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất đi</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.fish<p?' disabled':''}>${fmt(p)} cá</button>`;
-      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>+${f.c} êm${f.wall?' · treo tường':''}</small></div>${btn}</div>`}).join('')}</div>`}
+    html+=`<p class="hint">Khay đặt vào ${ROOMT[curT()].n}. Khay xịn cho nhiều mèo hơn, bẩn chậm hơn.</p><div class="list">${TOILETS.map(f=>{const placed=!!R0.furn[f.id],owned=R0.owned.includes(f.id);const cur=f.cur==='xu'?'xu':'cá';const have=f.cur==='xu'?st.xu:st.fish;
+      const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${have<f.price?' disabled':''}>${fmt(f.price)} ${cur}</button>`;
+      return `<div class="li${placed?' on':''}"><div class="ic"><img src="care/${f.img}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}</b><small>Cho ${f.cap} mèo · ${f.desc}</small></div>${btn}</div>`}).join('')}</div>
+    <h3>Cát mèo</h3><div class="list">${LITTERS.map(l=>`<div class="li${st.litterUse===l.id?' on':''}"><div class="ic"><img src="care/${l.id}.webp?v=2" alt=""></div><div class="tx"><b>${l.n}</b><small>Có ${st.litter[l.id]} lần · ${l.desc}</small>
+      <button type="button" class="link" data-lit="${l.id}">${st.litterUse===l.id?'Đang dùng khi dọn':'Dùng loại này khi dọn'}</button></div>
+      <button type="button" class="btn small" data-lbuy="${l.id}:1"${st.fish<l.p?' disabled':''}>${fmt(l.p)}</button></div>`).join('')}</div><p class="hint">1 túi = 5 lần dọn, giá tính bằng cá.</p>`}
+  else if(shopTab==='furn'){const R0=curRoom(),own=R0.owned;
+    html+=`<p class="hint">Đồ cho ${ROOMT[curT()].n}, đang êm ${comfort(R0)} (cá +${comfort(R0)*10}%).</p><div class="shop">${FURN.filter(f=>!f.toilet).map(f=>{const placed=!!R0.furn[f.id],owned=own.includes(f.id);const p=furnPrice(f);
+      const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.fish<p?' disabled':''}>${fmt(p)} cá</button>`;
+      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>+${f.c} êm</small></div>${btn}</div>`}).join('')}</div>`}
+  else if(shopTab==='home')html+=homeHtml();
+  else html+=marketHtml();
   P.innerHTML=html;
-  bind(P,'[data-t]',el=>{shopTab=el.dataset.t;render()});
-  bind(P,'[data-lbuy]',el=>{const [id,n]=el.dataset.lbuy.split(':');const l=LT[id];const cost=n==='4'?Math.round(l.p*4*.85):l.p;if(st.fish<cost)return;st.fish-=cost;st.litter[id]+=l.uses*+n;save();toast(`+${l.uses*+n} lần dọn ${l.n.toLowerCase()}`);render()});
+  P.querySelectorAll('details.more').forEach((d,i)=>{if(openDet[i])d.open=true});
+  bind(P,'[data-t]',el=>{shopTab=el.dataset.t;render();$('panels').scrollTop=0});
+  bindHome(P);
+  bind(P,'[data-lit]',el=>{st.litterUse=el.dataset.lit;save();render()});
+  bind(P,'[data-lbuy]',el=>{const [id,n]=el.dataset.lbuy.split(':');const l=LT[id];const cost=l.p*+n;if(st.fish<cost)return;st.fish-=cost;st.litter[id]+=l.uses*+n;save();toast(`+${l.uses*+n} lần dọn ${l.n.toLowerCase()}`);render()});
   bind(P,'[data-buy]',el=>{const [id,n]=el.dataset.buy.split(':');const f=FD[id];const cost=n==='20'?Math.round(f.p*20*.85):f.p;if(st.fish<cost)return;st.fish-=cost;st.pantry[id]+=+n;save();toast(`+${n} ${f.n}`);render()});
   if($('cap'))$('cap').onclick=e=>{const c=300*st.pantryCap/100;twoTap(e.currentTarget,'cap',`Trả ${fmt(c)} xu?`,()=>{st.xu-=c;st.pantryCap+=100;save();render()})};
   bind(P,'[data-a]',el=>{const id=el.dataset.id,f=FID[id],R0=curRoom();
-    if(el.dataset.a==='buy'&&f.toilet){const xu=f.cur==='xu';if((xu?st.xu:st.fish)<f.price)return;if(xu)st.xu-=f.price;else st.fish-=f.price;R0.owned.push(id);R0.furn[id]={x:f.x,y:floorY(f),dirt:0,lit:st.litterUse};clampFurn(id,R0.furn[id]);toast(`Đã đặt ${f.name}. Kéo bằng Sắp xếp đồ nếu muốn đổi chỗ`)}
+    if(el.dataset.a==='buy'&&f.toilet){const xu=f.cur==='xu';if((xu?st.xu:st.fish)<f.price)return;if(xu)st.xu-=f.price;else st.fish-=f.price;R0.owned.push(id);R0.furn[id]={x:f.x,y:floorY(f),dirt:0,lit:st.litterUse};clampFurn(id,R0.furn[id]);toast(`Đã đặt ${f.name}`)}
     else if(el.dataset.a==='buy'){const p=furnPrice(f);if(st.fish<p)return;st.fish-=p;st.bought[id]=(st.bought[id]||0)+1;R0.owned.push(id);R0.furn[id]={x:f.x,y:f.wall?f.y:floorY(f)};clampFurn(id,R0.furn[id]);toast(`Đã đặt ${f.name}`)}
     else if(el.dataset.a==='place'){R0.furn[id]={x:f.x,y:f.wall?f.y:floorY(f),...(f.toilet?{dirt:(R0.tstash||{})[id]||0,lit:st.litterUse}:{})};clampFurn(id,R0.furn[id])}
     else{if(f.toilet){R0.tstash=R0.tstash||{};R0.tstash[id]=R0.furn[id].dirt||0}delete R0.furn[id]}
@@ -1130,6 +1146,7 @@ load();process();rebalance();
 if(st.cur>=curHouse().rooms.length)st.cur=0;
 resize();window.addEventListener('resize',resize);view();renderRooms();renderHud();
 loadBases().then(()=>{$('loading').remove();syncRoom();render();
+  if(st.pack)setTimeout(showPack,300);
   if(st.migrated){st.migrated=0;save();setTimeout(()=>toast('Game đã lên bản mới! Mèo và đồ đạc vẫn giữ nguyên. Thử mở Hộp mèo nhé',4200),700)}
   else if(!st.tut){st.tut=1;save();setTimeout(()=>{toast('Chào mừng về Nhà Mèo Méo! Nhà còn trống, mở Hộp mèo để đón những con mèo đầu tiên',4500)},700)}
   let sec=0;
