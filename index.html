@@ -230,6 +230,12 @@ body.editing .notice{display:none}
 .money .vals{display:flex;flex-direction:column;line-height:1}
 .money .rate{font-size:10px;font-weight:700;color:#3E8E4F;line-height:1.1;white-space:nowrap}
 .money .rate:empty{display:none}
+.lightbtn{position:fixed;z-index:10;right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:6px;font-weight:800;font-family:var(--display);font-size:14px;border:2.5px solid var(--ink);background:#3B4377;color:#fff;border-radius:999px;padding:4px 14px 4px 6px;cursor:pointer;box-shadow:0 3px 0 var(--ink);min-height:44px}
+.lightbtn svg{width:30px;height:30px}
+.lightbtn.on{background:var(--accent);color:var(--ink)}
+.lightbtn .tog{fill:#9AA0C8}.lightbtn.on .tog{fill:#FFD36B}
+.lightbtn .knob{transform:translateY(8px);transition:transform .2s}.lightbtn.on .knob{transform:none}
+.lightbtn:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
 @media (min-width:760px){.tray{left:auto;width:460px;top:calc(8px + env(safe-area-inset-top,0px));height:auto}.dock{left:auto;width:440px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -245,6 +251,7 @@ body.editing .notice{display:none}
 <div class="rooms hud" id="rooms"></div>
 <div class="notice" id="notice"></div>
 <button type="button" class="editbtn" id="editbtn">Sắp xếp đồ</button>
+<button type="button" class="lightbtn" id="lightbtn" hidden aria-pressed="true"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="3" width="18" height="26" rx="5" fill="#FFF6DE" stroke="#2A272C" stroke-width="2.2"/><rect class="tog" x="12" y="8" width="8" height="16" rx="3" fill="#FFD36B" stroke="#2A272C" stroke-width="2"/><rect class="knob" x="12" y="8" width="8" height="8" rx="3" fill="#2A272C"/></svg><span id="lighttxt">Tắt đèn</span></button>
 <div class="editbar" id="editbar" hidden><button type="button" id="storebtn" disabled>Cất vào kho</button><button type="button" id="invbtn">Kho đồ</button></div>
 <nav class="dock hud" aria-label="Menu">
   <button type="button" data-p="box"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12h22v14H5z" fill="#FFD36B" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M3 8h26v5H3z" fill="#F7A1B4" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M16 8v18" stroke="#2A272C" stroke-width="2"/><path d="M16 8c-3-6-9-4-6-1M16 8c3-6 9-4 6-1" fill="none" stroke="#2A272C" stroke-width="2" stroke-linecap="round"/></svg>Hộp mèo<span class="dot" id="dot-box"></span></button>
@@ -610,7 +617,7 @@ function process(){
   while(st.free<2&&st.freeAt&&T>=st.freeAt){st.free++;st.freeAt=st.free<2?st.freeAt+12*H:0}
   strays(T);
 }
-function morning(b){st.cats.forEach(c=>{c.mood=Math.max(0,c.mood-6-(c.sick?8:0))});
+function morning(b){const slept=!lightOn();st.cats.forEach(c=>{c.mood=Math.max(0,Math.min(100,c.mood-6-(c.sick?8:0)+(slept?5:0)))});
   st.houses.forEach(h=>{boxesOf(h).forEach(bx=>{if(bx.f.auto&&(bx.p.dirt||0)>5)cleanBox(h,bx,true)});
     const d=houseDirt(h),n=usersOf(h),over=n>capOf(h);let p=d>=90?.25:d>=70?.1:d>=55?.03:0;if(over&&n)p+=.08;
     st.cats.forEach(c=>{if(c.h!==h.id||c.sick||c.hosp)return;if(d>=70)c.mood=Math.max(0,c.mood-6);if(R()<p){c.sick=b;st.newSick=(st.newSick||0)+1}})})}
@@ -714,17 +721,21 @@ function skyLevels(h){// trả về [độ đêm 0-1, độ chiều vàng 0-1, �
   if(h<15.5)return[0,0,0];
   if(h<18)return[0,lerp(0,1,(h-15.5)/2.5),0];
   return[lerp(0,1,(h-18)/3),lerp(1,0,(h-18)/3),0]}
+// Công tắc đèn: tối bật đèn thì phòng sáng ấm, mèo còn thức; tắt đèn thì tối hẳn, mèo ngủ ngon (sáng hôm sau vui thêm)
+const lightOn=()=>st.light!==false;
+const darkNow=()=>skyLevels(hourOf(gnow()))[0]>.15;
 function skyTint(h,dp){const [n,g,d]=skyLevels(h);if(!n&&!g&&!d)return;ctx.save();ctx.setTransform(dp,0,0,dp,0,0);
   ctx.globalCompositeOperation='multiply';
   if(g){ctx.fillStyle=`rgba(255,176,110,${.45*g})`;ctx.fillRect(0,0,VW,VH)}
   if(d){ctx.fillStyle=`rgba(255,190,200,${.35*d})`;ctx.fillRect(0,0,VW,VH)}
-  if(n){ctx.fillStyle=`rgba(52,62,128,${.72*n})`;ctx.fillRect(0,0,VW,VH)}
+  const lit=lightOn()&&n>0;
+  if(n){ctx.fillStyle=lit?`rgba(150,130,120,${.55*n})`:`rgba(40,48,110,${.82*n})`;ctx.fillRect(0,0,VW,VH)}
   ctx.globalCompositeOperation='screen';
-  if(n>.3){const gr=ctx.createRadialGradient(VW*.5,VH*.62,10,VW*.5,VH*.62,VH*.55);gr.addColorStop(0,`rgba(255,196,120,${.28*n})`);gr.addColorStop(1,'rgba(255,196,120,0)');ctx.fillStyle=gr;ctx.fillRect(0,0,VW,VH)}
+  if(lit){const gr=ctx.createRadialGradient(VW*.5,VH*.45,10,VW*.5,VH*.45,VH*.75);gr.addColorStop(0,`rgba(255,205,130,${.32*n})`);gr.addColorStop(1,`rgba(255,180,110,${.08*n})`);ctx.fillStyle=gr;ctx.fillRect(0,0,VW,VH)}
   ctx.restore()}
 let lastT=performance.now();
 function tick(nowp){
-  const dt=Math.min(.05,(nowp-lastT)/1000);lastT=nowp;const T=nowp/1000;const night=isNight(gnow());
+  const dt=Math.min(.05,(nowp-lastT)/1000);lastT=nowp;const T=nowp/1000;const night=isNight(gnow())&&!lightOn();
   const dp=cv.width/room.clientWidth;ctx.setTransform(dp,0,0,dp,0,0);ctx.fillStyle='#FBF8F2';ctx.fillRect(0,0,VW,VH);ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);
   const bg=roomImg(curT());if(bg.complete&&bg.naturalWidth){ctx.imageSmoothingQuality='high';ctx.drawImage(bg,0,0,RW*S,RH*S)}
   {const nl=skyLevels(hourOf(gnow()))[0],sk=SKY[curT()];if(nl>0&&sk){ctx.save();ctx.globalAlpha=nl;ctx.imageSmoothingQuality='high';ctx.drawImage(sk,0,0,RW*S,RH*S);ctx.restore()}}
@@ -762,6 +773,8 @@ function openInv(){const ids=Object.keys(st.inv||{}).filter(id=>st.inv[id].lengt
     <button type="button" class="btn ghost" data-close>Đóng</button>`);
   bind($('sheet'),'[data-put]',el=>{const id=el.dataset.put;const o=(st.inv[id]||[]).pop();if(!o)return;placeOne(id,o);save();updEditBar();openInv()})}
 $('storebtn').onclick=storeSel;$('invbtn').onclick=openInv;
+$('lightbtn').onclick=()=>{st.light=!lightOn();save();updLight();toast(lightOn()?'Đã bật đèn. Mèo còn thức chơi':'Đã tắt đèn. Mèo đi ngủ, sáng mai vui hơn')};
+function updLight(){const b=$('lightbtn');b.hidden=!darkNow()||edit;b.classList.toggle('on',lightOn());b.setAttribute('aria-pressed',lightOn());$('lighttxt').textContent=lightOn()?'Tắt đèn':'Bật đèn'}
 editBtn.onclick=()=>setEdit(!edit);
 const toRoom=e=>{const rc=cv.getBoundingClientRect();return[(e.clientX-rc.left+OX)/S,(e.clientY-rc.top+OY)/S]};
 cv.addEventListener('pointerdown',e=>{if(!edit)return;const [px,py]=toRoom(e);const F=curRoom().furn;
@@ -814,7 +827,7 @@ function twoTap(btn,key,label,fn){// bấm hai lần để xác nhận việc m�
 function updateWallet(){$('fish').textContent=fmt(st.fish);$('xu').textContent=fmt(st.xu);const fr=passivePerHour(),xr=xuPerHour();$('fishrate').textContent=fr?'+'+fmt(fr)+'/giờ':'';$('xurate').textContent='+'+(xr<10?xr.toLocaleString('vi-VN',{maximumFractionDigits:1}):fmt(xr))+'/giờ'}
 function clockText(){const T=now(),d=new Date(G(T)),hm=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');const p=phase(G(T));
   const nWork=st.cats.filter(c=>away(c,T)).length;
-  const sub={night:'Đêm · mèo ngủ',morning:'Sáng · sắp đi làm',work:nWork?`${nWork} mèo đi làm`:'Giờ làm việc',evening:'Tối · cho ăn',weekend:'Ngày nghỉ'}[p];
+  const sub={night:lightOn()?'Đêm · đèn đang bật':'Đêm · mèo ngủ',morning:'Sáng · sắp đi làm',work:nWork?`${nWork} mèo đi làm`:'Giờ làm việc',evening:'Tối · cho ăn',weekend:'Ngày nghỉ'}[p];
   return `<b>${['CN','T2','T3','T4','T5','T6','T7'][d.getDay()]} ${hm}</b><small>${sub}</small>`}
 function notices(){const n=[];const sk=sickCats().length;if(sk)n.push(`${sk} mèo bị ốm, cần đưa đi bệnh viện`);const md=maxDirt();if(md>=55)n.push(md>=75?'Khay vệ sinh bẩn lắm rồi, dọn ngay kẻo mèo ốm':'Khay vệ sinh hơi bẩn, chạm vào khay để dọn');
   if(st.cats.length&&!st.houses.some(h=>boxesOf(h).length))n.push('Nhà chưa có khay vệ sinh');if(readyShards().length)n.unshift('Đủ lá ghép mèo rồi, vào Hộp mèo để ghép');else if(!st.cats.length)n.push('Nhà chưa có mèo. Mở Hộp mèo lấy lá, đủ lá thì ghép ra mèo');if(st.mail>0)n.push(`Hòm thư có ${fmt(st.mail)} cá lương`);
@@ -823,7 +836,7 @@ function notices(){const n=[];const sk=sickCats().length;if(sk)n.push(`${sk} mè
   if(pantryMeals()<st.cats.filter(c=>c.h>=0).length)n.push('Tủ đồ ăn sắp hết');
   if(ROOMT[curT()].out&&!curHouse().bowl)n.unshift('Chạm vào bát hồng để mời mèo hoang ghé');
   return n}
-function renderHud(){updateWallet();$('clock').innerHTML=clockText();
+function renderHud(){updateWallet();updLight();$('clock').innerHTML=clockText();
   const n=notices();$('notice').textContent=n[0]||'';
   $('dot-box').textContent=readyShards().length?'!':st.free>0?st.free:'';
   $('dot-care').textContent=(st.mail>0||st.gifts.length||sickCats().length||maxDirt()>=55)?'!':'';
