@@ -222,6 +222,10 @@ button.task.pick{width:100%;text-align:left;cursor:pointer;font:inherit;color:va
 button.task.pick[disabled]{opacity:.45;cursor:not-allowed}
 .stack{display:flex;flex-direction:column;gap:4px;align-items:stretch;flex:0 0 auto}
 .sitem .stack{width:100%}
+.editbar{position:fixed;z-index:10;left:calc(118px + env(safe-area-inset-left,0px));right:calc(10px + env(safe-area-inset-right,0px));bottom:calc(80px + env(safe-area-inset-bottom,0px));display:flex;gap:6px}
+.editbar button{flex:1;min-width:0;font-weight:700;font-size:12.5px;border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:4px 10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:32px}
+.editbar button[disabled]{border-color:var(--line);color:var(--muted);cursor:default}
+body.editing .notice{display:none}
 @media (min-width:760px){.tray{left:auto;width:460px;top:calc(8px + env(safe-area-inset-top,0px));height:auto}.dock{left:auto;width:440px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -237,6 +241,7 @@ button.task.pick[disabled]{opacity:.45;cursor:not-allowed}
 <div class="rooms hud" id="rooms"></div>
 <div class="notice" id="notice"></div>
 <button type="button" class="editbtn" id="editbtn">Sắp xếp đồ</button>
+<div class="editbar" id="editbar" hidden><button type="button" id="storebtn" disabled>Cất vào kho</button><button type="button" id="invbtn">Kho đồ</button></div>
 <nav class="dock hud" aria-label="Menu">
   <button type="button" data-p="box"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12h22v14H5z" fill="#FFD36B" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M3 8h26v5H3z" fill="#F7A1B4" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M16 8v18" stroke="#2A272C" stroke-width="2"/><path d="M16 8c-3-6-9-4-6-1M16 8c3-6 9-4 6-1" fill="none" stroke="#2A272C" stroke-width="2" stroke-linecap="round"/></svg>Hộp mèo<span class="dot" id="dot-box"></span></button>
   <button type="button" data-p="care"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 14h18c0 7-4 11-9 11s-9-4-9-11Z" fill="#CFE8F7" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M10 13c1-3 4-4 6-2 2-2 5-1 6 2" fill="#F2A541" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/></svg>Chăm mèo<span class="dot" id="dot-care"></span></button>
@@ -673,7 +678,7 @@ function drawFurn(id,p){const img=FIMG[baseId(id)];if(!img)return;const b=furnBo
       ctx.restore()}
     if(d>=55){ctx.save();const x=b.x1*S-4*S,y=b.y0*S;ctx.fillStyle=d>=75?'#F26B6B':'#FFD36B';ctx.strokeStyle='#2A272C';ctx.lineWidth=2;ctx.beginPath();ctx.arc(x,y,13*S,0,7);ctx.fill();ctx.stroke();
       ctx.fillStyle=d>=75?'#fff':'#2A272C';ctx.font=`800 ${Math.round(17*S)}px Baloo 2,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('!',x,y+1*S);ctx.restore()}}
-  if(edit){ctx.save();ctx.strokeStyle='rgba(40,37,42,.45)';ctx.setLineDash([6,5]);ctx.lineWidth=1.5;ctx.strokeRect(b.x0*S,b.y0*S,(b.x1-b.x0)*S,(b.y1-b.y0)*S);ctx.restore()}
+  if(edit){ctx.save();const on=id===editSel;ctx.strokeStyle=on?'#F2A541':'rgba(40,37,42,.45)';ctx.setLineDash(on?[]:[6,5]);ctx.lineWidth=on?3.5:1.5;ctx.strokeRect(b.x0*S,b.y0*S,(b.x1-b.x0)*S,(b.y1-b.y0)*S);ctx.restore()}
   if(edit&&drag&&drag.id===id)ctx.restore()}
 const BOWL={x:180};
 function bowlPos(){return{x:Math.max(VX0+90,Math.min(BOWL.x,VX1-90)),y:FEET[0]+30}}
@@ -707,15 +712,28 @@ function tick(nowp){
 // ---------- Sắp xếp đồ ----------
 let edit=false,drag=null;
 const editBtn=$('editbtn');
-function setEdit(on){edit=on;room.classList.toggle('editing',on);editBtn.classList.toggle('on',on);editBtn.textContent=on?'Xong':'Sắp xếp đồ';
-  let h=document.querySelector('.edithint');if(on&&!h){h=document.createElement('div');h.className='edithint';h.textContent='Kéo đồ để đổi chỗ';document.body.appendChild(h)}if(!on&&h)h.remove();if(!on)save()}
+let editSel=null;
+function setEdit(on){edit=on;editSel=null;room.classList.toggle('editing',on);document.body.classList.toggle('editing',on);editBtn.classList.toggle('on',on);editBtn.textContent=on?'Xong':'Sắp xếp đồ';
+  let h=document.querySelector('.edithint');if(on&&!h){h=document.createElement('div');h.className='edithint';document.body.appendChild(h)}if(!on&&h)h.remove();
+  $('editbar').hidden=!on;if(on){closeTray();updEditBar()}else save()}
+function updEditBar(){const h=document.querySelector('.edithint');const n=Object.values(st.inv||{}).reduce((a,l)=>a+l.length,0);
+  if(h)h.textContent=editSel?`Đã chọn ${fid(editSel).name}. Kéo để dời, hoặc cất vào kho`:'Kéo đồ để dời chỗ. Chạm một món để chọn';
+  $('invbtn').textContent=`Kho đồ (${n})`;$('storebtn').disabled=!editSel;$('storebtn').textContent=editSel?`Cất ${fid(editSel).name.toLowerCase()}`:'Cất vào kho'}
+function storeSel(){if(!editSel)return;const R0=curRoom(),k=editSel,f=fid(k);if(!R0.furn[k])return;const id=baseId(k);
+  (st.inv[id]=st.inv[id]||[]).push(f.toilet?{dirt:R0.furn[k].dirt||0}:{});delete R0.furn[k];editSel=null;save();updEditBar();toast(`Đã cất ${f.name} vào kho`)}
+function openInv(){const ids=Object.keys(st.inv||{}).filter(id=>st.inv[id].length);
+  sheet(`<div class="row"><h2>Kho đồ</h2><span class="hint">Đặt vào ${ROOMT[curT()].n}</span></div>
+    ${ids.length?`<div class="list">${ids.map(id=>{const f=FID[id];return `<div class="li"><div class="ic"><img src="${f.toilet?`care/${f.img}`:`furn/${id}`}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}</b><small>Trong kho: ${st.inv[id].length}</small></div><button type="button" class="btn small" data-put="${id}">Đặt</button></div>`}).join('')}</div>`:'<p class="hint">Kho đang trống. Chọn một món trong phòng rồi bấm Cất để cất vào đây.</p>'}
+    <button type="button" class="btn ghost" data-close>Đóng</button>`);
+  bind($('sheet'),'[data-put]',el=>{const id=el.dataset.put;const o=(st.inv[id]||[]).pop();if(!o)return;placeOne(id,o);save();updEditBar();openInv()})}
+$('storebtn').onclick=storeSel;$('invbtn').onclick=openInv;
 editBtn.onclick=()=>setEdit(!edit);
 const toRoom=e=>{const rc=cv.getBoundingClientRect();return[(e.clientX-rc.left+OX)/S,(e.clientY-rc.top+OY)/S]};
 cv.addEventListener('pointerdown',e=>{if(!edit)return;const [px,py]=toRoom(e);const F=curRoom().furn;
   const ids=Object.keys(F).sort((a,b)=>furnBox(b,F[b]).z-furnBox(a,F[a]).z);
   const id=ids.find(id=>{const b=furnBox(id,F[id]);return px>=b.x0&&px<=b.x1&&py>=b.y0&&py<=b.y1});
-  if(id){drag={id,dx:px-F[id].x,dy:py-F[id].y};cv.setPointerCapture(e.pointerId);e.preventDefault()}});
-cv.addEventListener('pointermove',e=>{if(!drag)return;const [px,py]=toRoom(e);const f=fid(drag.id),h=f.h||f.w,fl=ROOMT[curT()].fl;const p=curRoom().furn[drag.id];
+  if(id){drag={id,dx:px-F[id].x,dy:py-F[id].y,sx:e.clientX,sy:e.clientY,moved:false};editSel=id;updEditBar();cv.setPointerCapture(e.pointerId);e.preventDefault()}else{editSel=null;updEditBar()}});
+cv.addEventListener('pointermove',e=>{if(!drag)return;if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)<6)return;drag.moved=true;const [px,py]=toRoom(e);const f=fid(drag.id),h=f.h||f.w,fl=ROOMT[curT()].fl;const p=curRoom().furn[drag.id];
   p.x=Math.max(VX0+f.w/2-20,Math.min(VX1-f.w/2+20,px-drag.dx));
   p.y=f.wall?Math.max(VY0+70,Math.min(fl-h-6,py-drag.dy)):Math.max(fl+24,Math.min(FEET[1]+40,py-drag.dy))});
 const endDrag=()=>{if(drag){drag=null;save()}};
@@ -1150,16 +1168,17 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
         ${f.id!=='cake'?`<button type="button" class="btn small ghost" data-buy="${f.id}:20"${st.fish<p20||(meal&&room<20)?' disabled':''}>20: ${M(p20,'cá')}</button>`:''}</div>`}).join('')}</div>
       <div class="task"><div class="tx"><b>Tủ to hơn</b><small>+100 phần</small></div><button type="button" class="btn small ghost" id="cap"${st.xu<100*st.pantryCap/100?' disabled':''}>${M(100*st.pantryCap/100,'xu')}</button></div>`}
   else if(shopTab==='toilet'){const R0=curRoom();
-    html+=`<p class="hint">Mua bao nhiêu khay cũng được, mỗi khay cộng thêm chỗ cho mèo. Khay mua sẽ đặt vào ${ROOMT[curT()].n}.</p><div class="list">${TOILETS.map(f=>{const here=hereOf(f.id).length,inv=invOf(f.id),tot=totalOf(f.id);const have=f.cur==='xu'?st.xu:st.fish;
-      return `<div class="li${here?' on':''}"><div class="ic"><img src="care/${f.img}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}</b><small>Cho ${f.cap} mèo · ${f.desc}</small>${ownLine(f.id)}</div>
-        <div class="stack">${here?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất 1</button>`:''}${inv?`<button type="button" class="btn small ghost" data-a="place" data-id="${f.id}">Đặt 1</button>`:''}<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${have<f.price?' disabled':''}>${M(f.price,f.cur==='xu'?'xu':'cá')}</button></div></div>`}).join('')}</div>
+    html+=`<p class="hint">Mỗi khay cộng thêm chỗ cho mèo. Mua xong khay đặt vào ${ROOMT[curT()].n}.</p><div class="list">${TOILETS.map(f=>{const tot=totalOf(f.id);const have=f.cur==='xu'?st.xu:st.fish;
+      return `<div class="li"><div class="ic"><img src="care/${f.img}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}</b><small>Cho ${f.cap} mèo · ${f.desc}</small></div>
+        <button type="button" class="btn small" data-a="buy" data-id="${f.id}"${have<f.price?' disabled':''}>${M(f.price,f.cur==='xu'?'xu':'cá')}</button></div>`}).join('')}</div>
     <h3>Cát mèo</h3><div class="list">${LITTERS.map(l=>`<div class="li${st.litterUse===l.id?' on':''}"><div class="ic"><img src="care/${l.id}.webp?v=2" alt=""></div><div class="tx"><b>${l.n}</b><small>Có ${st.litter[l.id]} lần · ${l.desc}</small>
       <button type="button" class="link" data-lit="${l.id}">${st.litterUse===l.id?'Đang dùng khi dọn':'Dùng loại này khi dọn'}</button></div>
       <button type="button" class="btn small" data-lbuy="${l.id}:1"${st.fish<l.p?' disabled':''}>${M(l.p,'cá')}</button></div>`).join('')}</div><p class="hint">1 túi = 5 lần dọn, giá tính bằng cá.</p>`}
   else if(shopTab==='furn'){const R0=curRoom();
-    html+=`<p class="hint">Đồ cho ${ROOMT[curT()].n}, đang êm ${comfort(R0)} (cá +${comfort(R0)*10}%). Một món mua được nhiều cái, đặt ở phòng nào cũng được.</p><div class="shop">${FURN.filter(f=>!f.toilet).map(f=>{const here=hereOf(f.id).length,inv=invOf(f.id),tot=totalOf(f.id);const p=furnPrice(f);const placed=here>0;
-      const btn=`<div class="stack">${here?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất 1</button>`:''}${inv?`<button type="button" class="btn small ghost" data-a="place" data-id="${f.id}">Đặt 1</button>`:''}<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.fish<p?' disabled':''}>${tot?'Mua thêm ':''}${M(p,'cá')}</button></div>`;
-      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>+${f.c} êm mỗi cái</small>${ownLine(f.id)}</div>${btn}</div>`}).join('')}</div>`}
+    html+=`<p class="hint">Mua xong đồ đặt vào ${ROOMT[curT()].n} (đang êm ${comfort(R0)}, cá +${comfort(R0)*10}%).</p><div class="shop">${FURN.filter(f=>!f.toilet).map(f=>{const tot=totalOf(f.id);const p=furnPrice(f);const placed=false;
+      const btn=`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.fish<p?' disabled':''}>${M(p,'cá')}</button>`;
+      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}<small>+${f.c} êm</small></div>${btn}</div>`}).join('')}</div>
+    <p class="hint">Muốn dời, cất hoặc lấy đồ từ kho ra: đóng bảng này, bấm Sắp xếp đồ trong phòng.</p>`}
   else if(shopTab==='home')html+=homeHtml();
   else html+=marketHtml();
   P.innerHTML=html;
