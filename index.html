@@ -397,23 +397,23 @@ const FOOD_ICON={
 
 // ---------- Phòng, nhà, đất ----------
 const ROOMT=[
-  {n:'Phòng khách',xu:60,fl:745},{n:'Phòng ngủ',xu:60,fl:758},{n:'Phòng bếp',xu:80,fl:685},{n:'Ban công',xu:100,fl:800},
-  {n:'Phòng tắm',xu:100,fl:773},{n:'Thư viện',xu:150,fl:764},{n:'Phòng Nhật',xu:180,fl:612},{n:'Nhà kính',xu:180,fl:730},
-  {n:'Gác mái',xu:220,fl:727},{n:'Phòng vũ trụ',xu:280,fl:701},
+  {n:'Phòng khách',xu:50,fl:745},{n:'Phòng ngủ',xu:50,fl:758},{n:'Phòng bếp',xu:80,fl:685},{n:'Ban công',xu:100,fl:800},
+  {n:'Phòng tắm',xu:120,fl:773},{n:'Thư viện',xu:150,fl:764},{n:'Phòng Nhật',xu:200,fl:612},{n:'Nhà kính',xu:250,fl:730},
+  {n:'Gác mái',xu:350,fl:727},{n:'Phòng vũ trụ',xu:500,fl:701},
   {n:'Hiên nhà',out:1,fl:790,img:'o1'},{n:'Sân trước',out:1,fl:730,img:'o2'},{n:'Vườn sau',out:1,fl:700,img:'o3'}];
 const OUT_T={porch:10,yard:11,garden:12};
 const TPL=[
   {n:'Nhà ống',min:40,xu:500,rooms:2,out:['porch']},
-  {n:'Nhà phố',min:60,xu:2000,rooms:4,out:['porch','yard']},
-  {n:'Nhà vườn',min:100,xu:6000,rooms:6,out:['porch','yard','garden']},
-  {n:'Biệt thự',min:160,xu:18000,rooms:9,out:['porch','yard','garden']},
-  {n:'Dinh thự VIP',min:240,xu:50000,rooms:14,out:['porch','yard','garden']}];
+  {n:'Nhà phố',min:60,xu:1000,rooms:4,out:['porch','yard']},
+  {n:'Nhà vườn',min:100,xu:2000,rooms:6,out:['porch','yard','garden']},
+  {n:'Biệt thự',min:160,xu:3500,rooms:9,out:['porch','yard','garden']},
+  {n:'Dinh thự VIP',min:240,xu:5000,rooms:14,out:['porch','yard','garden']}];
 const ZONES=[
-  {n:'Ngõ Mèo',area:[40,60],price:[600,1200],rent:20,perk:'Khu đầu tiên, giá mềm',need:()=>null},
-  {n:'Phố Cá',area:[60,100],price:[2500,5000],rent:60,perk:'Cá tự ra +10%',fishB:.1,need:()=>st.cats.length>=15?null:'Cần 15 mèo'},
-  {n:'Ven Hồ',area:[100,160],price:[9000,16000],rent:150,perk:'Cá tự ra +20%, mèo hoang hiếm ghé nhiều hơn',fishB:.2,strayB:1,need:()=>st.cats.length>=30&&st.cats.some(c=>tierOf(c.g)>=3)?null:'Cần 30 mèo và 1 mèo Siêu hiếm'},
-  {n:'Đồi Hoa',area:[160,240],price:[25000,50000],rent:300,perk:'Cá tự ra +30%, cho thuê +50%',fishB:.3,strayB:1,need:()=>st.cats.length>=50&&st.houses.length>=3?null:'Cần 50 mèo và 3 nhà'},
-  {n:'Khu VIP',area:[240,400],price:[100000,160000],rent:500,perk:'Cá tự ra +50%, mèo hoang Huyền thoại có thể ghé',fishB:.5,strayB:2,need:()=>st.cats.length>=80&&st.cats.some(c=>tierOf(c.g)>=4)?null:'Cần 80 mèo và 1 mèo Huyền thoại'}];
+  {n:'Ngõ Mèo',area:[40,60],price:[5000,6000],rent:20,perk:'Khu đầu tiên, giá mềm',need:()=>null},
+  {n:'Phố Cá',area:[60,100],price:[10000,15000],rent:60,perk:'Cá tự ra +10%',fishB:.1,need:()=>st.cats.length>=15?null:'Cần 15 mèo'},
+  {n:'Ven Hồ',area:[100,160],price:[20000,30000],rent:150,perk:'Cá tự ra +20%, mèo hoang hiếm ghé nhiều hơn',fishB:.2,strayB:1,need:()=>st.cats.length>=30&&st.cats.some(c=>tierOf(c.g)>=3)?null:'Cần 30 mèo và 1 mèo Siêu hiếm'},
+  {n:'Đồi Hoa',area:[160,240],price:[35000,50000],rent:300,perk:'Cá tự ra +30%, cho thuê +50%',fishB:.3,strayB:1,need:()=>st.cats.length>=50&&st.houses.length>=3?null:'Cần 50 mèo và 3 nhà'},
+  {n:'Khu VIP',area:[240,400],price:[50000,80000],rent:500,perk:'Cá tự ra +50%, mèo hoang Huyền thoại có thể ghé',fishB:.5,strayB:2,need:()=>st.cats.length>=80&&st.cats.some(c=>tierOf(c.g)>=4)?null:'Cần 80 mèo và 1 mèo Huyền thoại'}];
 const TRAITS=[null,null,null,{n:'Lô góc',fishB:.05},{n:'Hướng hồ',fishB:.1},{n:'Gần công viên',stray:1}];
 function lotsOf(z){const r=rng(9001+z*77),Z=ZONES[z],n=z===4?20:10;const out=[];
   for(let i=0;i<n;i++){const a=Math.round(Z.area[0]+(Z.area[1]-Z.area[0])*r()),f=(a-Z.area[0])/(Z.area[1]-Z.area[0]);const tr=TRAITS[Math.floor(r()*TRAITS.length)];
@@ -1249,7 +1249,7 @@ const furnPrice=f=>Math.round(f.price*Math.pow(1.5,Math.min(2,(st.bought[f.id]||
 const SHOPTABS=[['cats','Lá mèo'],['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['home','Nhà đất'],['market','Chợ cá']];
 function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('details.more')].map(d=>d.open);
   let html=`<div class="sub">${SHOPTABS.map(([k,n])=>`<button type="button" data-t="${k}" class="${shopTab===k?'on':''}">${n}</button>`).join('')}</div>`;
-  if(['furn','toilet','home'].includes(shopTab))html+=`<p class="hint">Nội thất, phòng, nhà và đất trả bằng xu, từ rẻ đến đắt: đồ 5-50, phòng 60-280, nhà từ 500, đất từ 600. Đồ ăn, cát và lá mèo trả bằng cá.</p>`;
+  if(['furn','toilet','home'].includes(shopTab))html+=`<p class="hint">Nội thất, phòng, nhà và đất trả bằng xu, mỗi bậc đắt gấp 10: đồ 5-50, phòng 50-500, nhà 500-5.000, đất từ 5.000. Đồ ăn, cát và lá mèo trả bằng cá.</p>`;
   if(shopTab==='cats'){const ps=petShop();const T=now();const next=at(T-7*H+DAY,7);
     html+=`<p class="hint">Tiệm bán lá mèo. Gom đủ lá cùng loài rồi ghép ở Hộp mèo. Mỗi loài bán tối đa 3 lá một ngày, hàng mới sau ${dur(next-T)}.</p><div class="grid">${ps.slots.map((sl,i)=>{const sh=sl.s,t=TIER_OF[sh],P=CARD_PRICE[t];const have=P.c==='xu'?st.xu:st.fish;const n=shardsOf(sh),k=needOf(sh),left=3-(sl.n||0);
       return `<div class="ccard${left?'':' away'}">${known(sh)?'':'<span class="tag" style="position:absolute;top:4px;left:4px;background:#F26B6B;color:#fff;border-color:#F26B6B">Mới</span>'}${imgTag(plainG(sh))}<span class="nm">Lá ${esc(SPR[sh].name)}</span>${tierTag(t)}
