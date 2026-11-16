@@ -453,6 +453,7 @@ const FID=Object.fromEntries(FURN.map(f=>[f.id,f]));
 const baseId=k=>String(k).split('#')[0];
 const fid=k=>FID[baseId(k)];
 const FIMG={};FURN.forEach(f=>loadImg(f.toilet?`care/${f.img}.webp?v=2`:`furn/${f.id}.webp?v=2`).then(i=>{FIMG[f.id]=i;f.h=f.w*i.naturalHeight/i.naturalWidth;if(st)try{clampRoom()}catch(e){}}));
+const NIGHT=new Image();NIGHT.src='rooms/night.webp?v=1';NIGHT.onload=()=>{for(const t in RIMG){const im=RIMG[t];if(im.complete&&im.naturalWidth)try{SKY[t]=makeSky(im)}catch(e){}}};
 const RIMG={},SKY={};function roomImg(t){if(!RIMG[t]){const im=new Image();im.decoding='async';im.onload=()=>{try{SKY[t]=makeSky(im)}catch(e){}};im.src=`rooms/${ROOMT[t].img||'r'+(t+1)}.webp`;RIMG[t]=im}return RIMG[t]}
 // Tìm phần trời trong ảnh phòng (xanh da trời và mây kẹp giữa), vẽ sẵn bản trời đêm có sao để phủ lên khi tối
 function makeSky(im){const W=256,Hh=384,c=mk(W,Hh),x=c.getContext('2d');x.drawImage(im,0,0,W,Hh);const d=x.getImageData(0,0,W,Hh).data;
@@ -461,11 +462,13 @@ function makeSky(im){const W=256,Hh=384,c=mk(W,Hh),x=c.getContext('2d');x.drawIm
   const fill=(len,step,cnt,stride)=>{for(let l=0;l<cnt;l++){let last=-1;for(let k=0;k<len;k++){const i=l*stride+k*step;if(sky[i]){if(last>=0&&k-last>1&&k-last<70){let ok=true;for(let j=last+1;j<k;j++)if(!bright[l*stride+j*step]){ok=false;break}if(ok)for(let j=last+1;j<k;j++)sky[l*stride+j*step]=2}last=k}}}};
   fill(W,1,Hh,W);fill(Hh,W,W,1);
   let n=0;for(let i=0;i<W*Hh;i++)if(sky[i])n++;if(n<200)return null;
-  const o=mk(W,Hh),ox=o.getContext('2d'),od=ox.createImageData(W,Hh),q=od.data;const R0=rng(hash(im.src));
-  for(let y=0;y<Hh;y++)for(let x2=0;x2<W;x2++){const i=y*W+x2;if(!sky[i])continue;const t=y/Hh;q[i*4]=26+t*30;q[i*4+1]=32+t*34;q[i*4+2]=78+t*50;q[i*4+3]=255}
-  ox.putImageData(od,0,0);ox.globalCompositeOperation='source-atop';
-  for(let k=0;k<n/90;k++){const sx=R0()*W,sy=R0()*Hh,r=R0()<.15?1.1:.6;ox.fillStyle=`rgba(255,250,220,${.6+R0()*.4})`;ox.beginPath();ox.arc(sx,sy,r,0,7);ox.fill()}
-  return o}
+  const o=mk(W,Hh),ox=o.getContext('2d'),od=ox.createImageData(W,Hh),q=od.data;
+  for(let i=0;i<W*Hh;i++)if(sky[i]){q[i*4]=q[i*4+1]=q[i*4+2]=255;q[i*4+3]=255}
+  ox.putImageData(od,0,0);
+  // làm mịn mép mặt nạ, rồi dán ảnh trời đêm vào đúng phần trời
+  const big=mk(512,768),bx=big.getContext('2d');bx.filter='blur(1px)';bx.drawImage(o,0,0,512,768);bx.filter='none';
+  bx.globalCompositeOperation='source-in';if(NIGHT.complete&&NIGHT.naturalWidth)bx.drawImage(NIGHT,0,0,512,768);else{bx.fillStyle='#1E2A66';bx.fillRect(0,0,512,768)}
+  return big}
 const RW=1024,RH=1536,CS=0.8;
 
 // ---------- Ảnh mèo ----------
@@ -732,21 +735,23 @@ function skyLevels(h){// trả về [độ đêm 0-1, độ chiều vàng 0-1, �
 // Công tắc đèn: tối bật đèn thì phòng sáng ấm, mèo còn thức; tắt đèn thì tối hẳn, mèo ngủ ngon (sáng hôm sau vui thêm)
 const lightOn=()=>st.light!==false;
 const darkNow=()=>skyLevels(hourOf(gnow()))[0]>.15;
-function skyTint(h,dp){const [n,g,d]=skyLevels(h);if(!n&&!g&&!d)return;ctx.save();ctx.setTransform(dp,0,0,dp,0,0);
-  ctx.globalCompositeOperation='multiply';
-  if(g){ctx.fillStyle=`rgba(255,176,110,${.45*g})`;ctx.fillRect(0,0,VW,VH)}
-  if(d){ctx.fillStyle=`rgba(255,190,200,${.35*d})`;ctx.fillRect(0,0,VW,VH)}
-  const lit=lightOn()&&n>0;
-  if(n){ctx.fillStyle=lit?`rgba(150,130,120,${.55*n})`:`rgba(40,48,110,${.82*n})`;ctx.fillRect(0,0,VW,VH)}
-  ctx.globalCompositeOperation='screen';
-  if(lit){const gr=ctx.createRadialGradient(VW*.5,VH*.45,10,VW*.5,VH*.45,VH*.75);gr.addColorStop(0,`rgba(255,205,130,${.32*n})`);gr.addColorStop(1,`rgba(255,180,110,${.08*n})`);ctx.fillStyle=gr;ctx.fillRect(0,0,VW,VH)}
+// Bước 1, chỉ phủ nền phòng: chiều vàng, bình minh hồng. Ngoài trời ban đêm thì nền tối nhưng mèo vẫn rõ (như có đèn hiên)
+function bgTint(h,dp){const [n,g,d]=skyLevels(h);const out=!!ROOMT[curT()].out;if(!n&&!g&&!d)return;ctx.save();ctx.setTransform(dp,0,0,dp,0,0);ctx.globalCompositeOperation='multiply';
+  const k=out?1:.5;
+  if(g){ctx.fillStyle=`rgba(255,176,110,${.4*g*k})`;ctx.fillRect(0,0,VW,VH)}
+  if(d){ctx.fillStyle=`rgba(255,190,200,${.3*d*k})`;ctx.fillRect(0,0,VW,VH)}
+  if(out&&n){ctx.fillStyle=`rgba(60,70,130,${.6*n})`;ctx.fillRect(0,0,VW,VH)}
   ctx.restore()}
+// Bước 2, phủ cả phòng lẫn mèo: chỉ khi trong nhà và đã tắt đèn
+function darkTint(h,dp){const n=skyLevels(h)[0];if(!n||ROOMT[curT()].out||lightOn())return;ctx.save();ctx.setTransform(dp,0,0,dp,0,0);ctx.globalCompositeOperation='multiply';
+  ctx.fillStyle=`rgba(46,54,112,${.78*n})`;ctx.fillRect(0,0,VW,VH);ctx.restore()}
 let lastT=performance.now();
 function tick(nowp){
   const dt=Math.min(.05,(nowp-lastT)/1000);lastT=nowp;const T=nowp/1000;const night=isNight(gnow())&&!lightOn();
   const dp=cv.width/room.clientWidth;ctx.setTransform(dp,0,0,dp,0,0);ctx.fillStyle='#FBF8F2';ctx.fillRect(0,0,VW,VH);ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);
   const bg=roomImg(curT());if(bg.complete&&bg.naturalWidth){ctx.imageSmoothingQuality='high';ctx.drawImage(bg,0,0,RW*S,RH*S)}
   {const nl=skyLevels(hourOf(gnow()))[0],sk=SKY[curT()];if(nl>0&&sk){ctx.save();ctx.globalAlpha=nl;ctx.imageSmoothingQuality='high';ctx.drawImage(sk,0,0,RW*S,RH*S);ctx.restore()}}
+  bgTint(hourOf(gnow()),dp);ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);
   for(const a of actors.values()){const b=a.b,w=b.cw*CS/b.K;a.t-=dt;if(a.jump>0)a.jump=Math.max(0,a.jump-dt*2.2);if(a.exprT>0)a.exprT-=dt;
     a.blinkT-=dt;if(a.blinking>0)a.blinking-=dt;if(a.blinkT<=0){a.blinking=.16;a.blinkT=2.5+R()*4}
     if((night&&!a.stray)||a.c.sick||a.exprT>0){if(a.state==='walk'){a.state='idle';a.t=Math.max(a.t,a.exprT||2)}}
@@ -759,8 +764,7 @@ function tick(nowp){
   if(ROOMT[curT()].out)list.push({z:bowlPos().y,d:drawBowl});
   for(const a of actors.values())list.push({z:a.Y,d:()=>drawCat(a,T,night)});
   list.sort((p,q)=>p.z-q.z).forEach(o=>o.d());
-  const hr=hourOf(gnow());
-  skyTint(hr,dp);
+  darkTint(hourOf(gnow()),dp);
   requestAnimationFrame(tick)}
 
 // ---------- Sắp xếp đồ ----------
@@ -1213,12 +1217,20 @@ function openStray(s){sheet(`<div class="hero">${imgTag(s.g,11)}<div><span class
   $('adopt').onclick=()=>{const c=mkCat({...s.g});see(c.g);home(c);st.cats.push(c);st.strays=st.strays.filter(x=>x!==s);actors.delete(s.id);save();closeSheet();syncRoom(c.id);renderRooms();toast('Mèo mới dọn vào nhà')}}
 
 // ---------- Cửa hàng ----------
-let shopTab='food';
+let shopTab='cats';
+// Tiệm mèo: 4 bé mỗi ngày, đổi hàng lúc 7 giờ sáng ngoài đời
+const PET_PRICE=[{p:400,c:'cá'},{p:900,c:'cá'},{p:150,c:'xu'},{p:600,c:'xu'},{p:3000,c:'xu'}];
+function petShop(){const dk=dayKey(now());if(!st.pet||st.pet.day!==dk){const tiers=[0,R()<.5?0:1,R()<.6?1:2,R()<.25?3:2];
+  st.pet={day:dk,slots:tiers.map(t=>({g:rollFur(pickOne(BY_TIER[t]))}))};save()}return st.pet}
 const furnPrice=f=>Math.round(f.price*Math.pow(1.5,Math.min(2,(st.bought[f.id]||0))));
-const SHOPTABS=[['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['home','Nhà đất'],['market','Chợ cá']];
+const SHOPTABS=[['cats','Mèo'],['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['home','Nhà đất'],['market','Chợ cá']];
 function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('details.more')].map(d=>d.open);
   let html=`<div class="sub">${SHOPTABS.map(([k,n])=>`<button type="button" data-t="${k}" class="${shopTab===k?'on':''}">${n}</button>`).join('')}</div>`;
-  if(shopTab==='food'){const room=st.pantryCap-pantryMeals();
+  if(shopTab==='cats'){const ps=petShop();const T=now();const next=at(T-7*H+DAY,7);
+    html+=`<p class="hint">Mỗi ngày tiệm có 4 bé mèo, mỗi bé một con. Hàng mới lúc 7 giờ sáng, còn ${dur(next-T)}.</p><div class="grid">${ps.slots.map((sl,i)=>{const t=tierOf(sl.g),P=PET_PRICE[t];const have=P.c==='xu'?st.xu:st.fish;const isNew=!st.species.includes(sl.g.shape);
+      return `<div class="ccard${sl.sold?' locked':''}">${isNew&&!sl.sold?'<span class="tag" style="position:absolute;top:4px;left:4px;background:#F26B6B;color:#fff;border-color:#F26B6B">Mới</span>':''}${imgTag(sl.g)}<span class="nm">${esc(shortName(sl.g))}</span>${tierTag(t)}
+        ${sl.sold?'<em>Đã về nhà bạn</em>':`<button type="button" class="btn small" data-pet="${i}"${have<P.p||waiting().length>=10?' disabled':''}>${M(P.p,P.c)}</button>`}</div>`}).join('')}</div>`}
+  else if(shopTab==='food'){const room=st.pantryCap-pantryMeals();
     html+=`<p class="hint">Tủ đồ ăn ${pantryMeals()}/${st.pantryCap} phần. Mua 20 rẻ hơn 15%.</p><div class="list">${FOODS.map(f=>{const p20=Math.round(f.p*20*.85);const meal=MEALS.includes(f.id);
       return `<div class="li"><div class="ic">${FOOD_ICON[f.id]}</div><div class="tx"><b>${f.n}</b><small>+${f.mood} vui${f.fb?` · lương +${f.fb*100}%`:''} · có ${st.pantry[f.id]}</small></div>
         <button type="button" class="btn small" data-buy="${f.id}:1"${st.fish<f.p||(meal&&room<1)?' disabled':''}>${M(f.p,'cá')}</button>
@@ -1243,6 +1255,8 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
   bind(P,'[data-t]',el=>{shopTab=el.dataset.t;render();$('panels').scrollTop=0});
   bindHome(P);
   bind(P,'[data-lit]',el=>{st.litterUse=el.dataset.lit;save();render()});
+  bind(P,'[data-pet]',el=>{const i=+el.dataset.pet,sl=petShop().slots[i];if(sl.sold)return;const P=PET_PRICE[tierOf(sl.g)];if((P.c==='xu'?st.xu:st.fish)<P.p)return;
+    twoTap(el,'pet'+i,`Mua ${fmt(P.p)} ${P.c}?`,()=>{if(P.c==='xu')st.xu-=P.p;else st.fish-=P.p;sl.sold=1;const isNew=see(sl.g);const c=mkCat({...sl.g});home(c);st.cats.push(c);save();showPack2(c,isNew)})});
   bind(P,'[data-lbuy]',el=>{const [id,n]=el.dataset.lbuy.split(':');const l=LT[id];const cost=l.p*+n;if(st.fish<cost)return;st.fish-=cost;st.litter[id]+=l.uses*+n;save();toast(`+${l.uses*+n} lần dọn ${l.n.toLowerCase()}`);render()});
   bind(P,'[data-buy]',el=>{const [id,n]=el.dataset.buy.split(':');const f=FD[id];const cost=n==='20'?Math.round(f.p*20*.85):f.p;if(st.fish<cost)return;st.fish-=cost;st.pantry[id]+=+n;save();toast(`+${n} ${f.n}`);render()});
   if($('cap'))$('cap').onclick=e=>{const c=100*st.pantryCap/100;twoTap(e.currentTarget,'cap',`Trả ${fmt(c)} xu?`,()=>{st.xu-=c;st.pantryCap+=100;save();render()})};
