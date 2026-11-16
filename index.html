@@ -449,7 +449,8 @@ function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY)||'null')}c
   if(s&&s.v===2&&Array.isArray(s.cats)){st=s;st.cats=st.cats.filter(c=>SPR[c.g.shape]);return}
   let o=null;try{o=JSON.parse(localStorage.getItem(OLD)||'null')}catch(e){}
   if(o&&Array.isArray(o.cats)&&o.cats.length){migrate(o);st.migrated=1}else fresh()}
-function save(){st.last=now();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
+let resetting=false;
+function save(){if(resetting)return;st.last=now();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 function see(g){const k=keyOf(g);let isNew=false;if(!st.seen.includes(k)){st.seen.push(k);isNew=true}if(!st.species.includes(g.shape)){st.species.push(g.shape);isNew='species'}return isNew}
 
 // ---------- Truy vấn ----------
@@ -1025,7 +1026,9 @@ function renderBook(){const P=$('p-book');const sp=st.species.length;
       return `<div class="ccard${own?'':' locked'}">${own?imgTag(g):silTag(g)}<span class="nm">${own?esc(SPR[w].name):'???'}</span><em>${own?SPR[w].rec.map(x=>SPR[x].name).join(' + '):esc(SPR[w].hint||'')}</em></div>`}).join('')}</div>`;
   if(bookTab==='photos')html+=`<p class="hint">Chạm vào mèo hoang ghé hiên nhà để chụp ảnh. Đổ đồ ăn vào bát ngoài hiên để mời mèo ghé.</p><div class="grid">${ALLSH.map(s=>{const has=st.photos.includes(s);const g={shape:s,pattern:'plain',color:'white'};
       return has?`<div class="ccard">${imgTag(g,10)}<span class="nm">${esc(SPR[s].name)}</span></div>`:''}).join('')||'<p class="hint">Chưa có ảnh nào.</p>'}</div>`;
+  html+=`<div class="box" style="margin-top:12px"><h3>Chơi lại từ đầu</h3><p class="hint">Xóa hết mèo, nhà, cá và xu trên máy này, bắt đầu lại với nhà trống. Không lấy lại được.</p><button type="button" class="btn small ghost" id="reset">Chơi lại từ đầu</button></div>`;
   P.innerHTML=html;
+  $('reset').onclick=e=>twoTap(e.currentTarget,'reset','Bấm lần nữa để xóa hết',()=>{resetting=true;try{localStorage.removeItem(KEY);localStorage.removeItem(OLD);localStorage.removeItem('meo-dbg')}catch(x){}location.reload()});
   bind(P,'[data-t]',el=>{bookTab=el.dataset.t;render()});
   bind(P,'[data-claim]',el=>{const i=+el.dataset.claim;if(st.claimed.includes(i))return;st.claimed.push(i);st.xu+=TIERS[i].book;save();toast(`+${fmt(TIERS[i].book)} xu`);render()})}
 
