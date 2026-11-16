@@ -220,6 +220,8 @@ details.more[open]>summary{margin-bottom:8px}
 .tierhead:first-of-type{margin-top:6px}
 button.task.pick{width:100%;text-align:left;cursor:pointer;font:inherit;color:var(--ink)}
 button.task.pick[disabled]{opacity:.45;cursor:not-allowed}
+.stack{display:flex;flex-direction:column;gap:4px;align-items:stretch;flex:0 0 auto}
+.sitem .stack{width:100%}
 @media (min-width:760px){.tray{left:auto;width:460px;top:calc(8px + env(safe-area-inset-top,0px));height:auto}.dock{left:auto;width:440px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -424,6 +426,8 @@ const LT=Object.fromEntries(LITTERS.map(l=>[l.id,l]));
 const HOSP=[40,70,150,300,600];
 TOILETS.forEach(t=>FURN.push({...t,toilet:1,c:t.id==='t_wood'?1:0}));
 const FID=Object.fromEntries(FURN.map(f=>[f.id,f]));
+const baseId=k=>String(k).split('#')[0];
+const fid=k=>FID[baseId(k)];
 const FIMG={};FURN.forEach(f=>loadImg(f.toilet?`care/${f.img}.webp?v=2`:`furn/${f.id}.webp?v=2`).then(i=>{FIMG[f.id]=i;f.h=f.w*i.naturalHeight/i.naturalWidth}));
 const RIMG={};function roomImg(t){if(!RIMG[t]){const im=new Image();im.decoding='async';im.src=`rooms/${ROOMT[t].img||'r'+(t+1)}.webp`;RIMG[t]=im}return RIMG[t]}
 const RW=1024,RH=1536,CS=0.8;
@@ -489,7 +493,7 @@ function fresh(){
     mail:0,mailN:0,eggs:[],nests:1,heater:0,market:{day:'',xu:0},strays:[],gifts:[],strayNext:0,claimed:[],lots:[],bought:{},
     t:now(),last:now(),day:dayKey(now()),tut:0};
   const h=newHouse({z:0,i:-1,area:40,gift:1},0);st.houses.push(h);
-  ensureToilet();
+  ensureToilet();ensureInv();
 }
 function migrate(o){// bản demo cũ: giữ cá, mèo, phòng đã mở và đồ đạc
   fresh();st.cats=[];st.fish=Math.round(o.fish||0);st.xu=400;
@@ -499,12 +503,15 @@ function migrate(o){// bản demo cũ: giữ cá, mèo, phòng đã mở và đ�
   (o.cats||[]).forEach(oc=>{if(!SPR[oc.g.shape])return;const c=mkCat({...oc.g});const ri=h.rooms.findIndex(r=>r.t===oc.room);c.h=h.id;c.r=ri>=0?ri:0;st.cats.push(c);see(c.g)});
   rebalance();
 }
+// Kho đồ chung: món đã mua mà chưa đặt trong phòng nào
+function ensureInv(){if(st.inv)return;st.inv={};const put=(id,o)=>{(st.inv[id]=st.inv[id]||[]).push(o||{})};
+  st.houses.forEach(h=>h.rooms.forEach(r=>{(r.owned||[]).forEach(id=>{if(!r.furn[id])put(id,id.startsWith('t_')?{dirt:(r.tstash||{})[id]||0}:{})})}))}
 function ensureToilet(){if(!st.litter)st.litter={clay:10,tofu:0,crystal:0};if(!st.litterUse)st.litterUse='clay';
   if(!st.toiletInit){st.toiletInit=1;const h=st.houses[0];if(h&&!boxesOf(h).length){const r=h.rooms[0];r.furn.t_tray={x:300,y:ROOMT[r.t].fl+150,dirt:0,lit:'clay'};r.owned.push('t_tray')}}}
 function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
-  if(s&&s.v===2&&Array.isArray(s.cats)){st=s;st.cats=st.cats.filter(c=>SPR[c.g.shape]);ensureToilet();return}
+  if(s&&s.v===2&&Array.isArray(s.cats)){st=s;st.cats=st.cats.filter(c=>SPR[c.g.shape]);ensureToilet();ensureInv();return}
   let o=null;try{o=JSON.parse(localStorage.getItem(OLD)||'null')}catch(e){}
-  if(o&&Array.isArray(o.cats)&&o.cats.length){migrate(o);st.migrated=1;ensureToilet()}else fresh()}
+  if(o&&Array.isArray(o.cats)&&o.cats.length){migrate(o);st.migrated=1;ensureToilet();ensureInv()}else fresh()}
 let resetting=false;
 function save(){if(resetting)return;st.last=now();try{localStorage.setItem(KEY,JSON.stringify(st))}catch(e){}}
 function see(g){const k=keyOf(g);let isNew=false;if(!st.seen.includes(k)){st.seen.push(k);isNew=true}if(!st.species.includes(g.shape)){st.species.push(g.shape);isNew='species'}return isNew}
@@ -517,7 +524,7 @@ const catsIn=(h,ri)=>st.cats.filter(c=>c.h===h.id&&c.r===ri);
 const waiting=()=>st.cats.filter(c=>c.h<0);
 const hasRoomType=t=>st.houses.some(h=>h.rooms.some(r=>r.t===t));
 const furnCount=()=>st.houses.reduce((a,h)=>a+h.rooms.reduce((b,r)=>b+Object.keys(r.furn).length,0),0);
-const comfort=r=>Object.keys(r.furn).reduce((a,id)=>a+(FID[id]?FID[id].c:0),0);
+const comfort=r=>Object.keys(r.furn).reduce((a,id)=>a+(fid(id)?fid(id).c:0),0);
 function freeSpot(prefH){const hs=[prefH,...st.houses.filter(h=>h!==prefH)].filter(h=>h&&!h.rent);
   for(const h of hs)for(let i=0;i<h.rooms.length;i++)if(catsIn(h,i).length<CAP)return[h,i];return null}
 function place(c,hIdx,ri){const h=st.houses[hIdx];c.h=h.id;c.r=ri}
@@ -537,7 +544,7 @@ function away(c,t=now()){const g=G(t);return !!c.job&&c.h>=0&&!c.sick&&!(c.hosp>
 const inHosp=(c,t=now())=>c.hosp>G(t);
 const present=(c,t=now())=>!away(c,t)&&!inHosp(c,t);
 // khay vệ sinh của một nhà
-function boxesOf(h){const out=[];h.rooms.forEach((r,ri)=>{for(const id in r.furn)if(FID[id]&&FID[id].toilet)out.push({f:FID[id],p:r.furn[id],ri})});return out}
+function boxesOf(h){const out=[];h.rooms.forEach((r,ri)=>{for(const id in r.furn)if(fid(id)&&fid(id).toilet)out.push({f:fid(id),p:r.furn[id],ri})});return out}
 function usersOf(h){return st.cats.filter(c=>c.h===h.id&&!c.hosp).length}
 function capOf(h){return boxesOf(h).reduce((a,b)=>a+b.f.cap,0)}
 function houseDirt(h){const bx=boxesOf(h),n=usersOf(h);if(!n)return 0;if(!bx.length)return 100;const cap=capOf(h);return bx.reduce((a,b)=>a+(b.p.dirt||0)*b.f.cap,0)/cap}
@@ -655,11 +662,11 @@ function drawCat(a,T,night){
     ctx.fillStyle='#2A272C';ctx.font=`700 ${Math.round(11*S*k)}px Be Vietnam Pro,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('khách',0,y+th/2);ctx.textAlign='start';ctx.textBaseline='alphabetic'}
   ctx.restore();
 }
-function furnBox(id,p){const f=FID[id];const h=f.h||f.w;return f.wall?{x0:p.x-f.w/2,y0:p.y,x1:p.x+f.w/2,y1:p.y+h,z:-1}:{x0:p.x-f.w/2,y0:p.y-h,x1:p.x+f.w/2,y1:p.y,z:p.y-Math.min(h*.45,70)}}
-function drawFurn(id,p){const img=FIMG[id];if(!img)return;const b=furnBox(id,p);
+function furnBox(id,p){const f=fid(id);const h=f.h||f.w;return f.wall?{x0:p.x-f.w/2,y0:p.y,x1:p.x+f.w/2,y1:p.y+h,z:-1}:{x0:p.x-f.w/2,y0:p.y-h,x1:p.x+f.w/2,y1:p.y,z:p.y-Math.min(h*.45,70)}}
+function drawFurn(id,p){const img=FIMG[baseId(id)];if(!img)return;const b=furnBox(id,p);
   if(edit&&drag&&drag.id===id){ctx.save();ctx.globalAlpha=.85}
   ctx.drawImage(img,b.x0*S,b.y0*S,(b.x1-b.x0)*S,(b.y1-b.y0)*S);
-  if(FID[id].toilet){const d=p.dirt||0,T=performance.now()/1000;
+  if(fid(id).toilet){const d=p.dirt||0,T=performance.now()/1000;
     if(d>=35){const n=d>=75?3:d>=55?2:1;ctx.save();ctx.strokeStyle=d>=75?'rgba(110,140,60,.85)':'rgba(130,150,90,.6)';ctx.lineWidth=3*S;ctx.lineCap='round';
       for(let i=0;i<n;i++){const cx=(b.x0+(b.x1-b.x0)*(.3+.2*i))*S,y0=b.y0*S-6*S;ctx.beginPath();for(let j=0;j<=12;j++){const yy=y0-j*4*S-((T*14)%8)*S;ctx.lineTo(cx+Math.sin(j*.8+T*2+i)*6*S,yy)}ctx.stroke()}
       if(d>=75)for(let i=0;i<3;i++){const fx=(b.x0+b.x1)/2*S+Math.cos(T*3+i*2)*40*S,fy=b.y0*S-40*S+Math.sin(T*4+i)*14*S;ctx.fillStyle='#2A272C';ctx.beginPath();ctx.arc(fx,fy,2.6*S,0,7);ctx.fill()}
@@ -708,20 +715,20 @@ cv.addEventListener('pointerdown',e=>{if(!edit)return;const [px,py]=toRoom(e);co
   const ids=Object.keys(F).sort((a,b)=>furnBox(b,F[b]).z-furnBox(a,F[a]).z);
   const id=ids.find(id=>{const b=furnBox(id,F[id]);return px>=b.x0&&px<=b.x1&&py>=b.y0&&py<=b.y1});
   if(id){drag={id,dx:px-F[id].x,dy:py-F[id].y};cv.setPointerCapture(e.pointerId);e.preventDefault()}});
-cv.addEventListener('pointermove',e=>{if(!drag)return;const [px,py]=toRoom(e);const f=FID[drag.id],h=f.h||f.w,fl=ROOMT[curT()].fl;const p=curRoom().furn[drag.id];
+cv.addEventListener('pointermove',e=>{if(!drag)return;const [px,py]=toRoom(e);const f=fid(drag.id),h=f.h||f.w,fl=ROOMT[curT()].fl;const p=curRoom().furn[drag.id];
   p.x=Math.max(VX0+f.w/2-20,Math.min(VX1-f.w/2+20,px-drag.dx));
   p.y=f.wall?Math.max(VY0+70,Math.min(fl-h-6,py-drag.dy)):Math.max(fl+24,Math.min(FEET[1]+40,py-drag.dy))});
 const endDrag=()=>{if(drag){drag=null;save()}};
 cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',endDrag);
-function clampFurn(id,p){const f=FID[id],h=f.h||f.w*1.2,fl=ROOMT[curT()].fl;p.x=Math.max(VX0+f.w/2,Math.min(VX1-f.w/2,p.x));p.y=f.wall?Math.max(VY0+70,Math.min(fl-h-6,p.y)):Math.max(fl+24,Math.min(FEET[1]+40,p.y))}
+function clampFurn(id,p){const f=fid(id),h=f.h||f.w*1.2,fl=ROOMT[curT()].fl;p.x=Math.max(VX0+f.w/2,Math.min(VX1-f.w/2,p.x));p.y=f.wall?Math.max(VY0+70,Math.min(fl-h-6,p.y)):Math.max(fl+24,Math.min(FEET[1]+40,p.y))}
 const floorY=f=>ROOMT[curT()].fl+f.y;
 
 // ---------- Chạm mèo: vuốt ve ----------
 cv.addEventListener('click',e=>{if(edit)return;const [px,py]=toRoom(e);
   if(ROOMT[curT()].out){const b=bowlPos();if(Math.abs(px-b.x)<75&&py>b.y-70&&py<b.y+18){openBowl();return}}
-  {const F=curRoom().furn;const tid=Object.keys(F).find(id=>{if(!FID[id]||!FID[id].toilet)return false;const b=furnBox(id,F[id]);return px>=b.x0&&px<=b.x1&&py>=b.y0-30&&py<=b.y1});
-    if(tid){const h=curHouse(),bx=boxesOf(h).find(b=>b.p===F[tid]);if((F[tid].dirt||0)<3){toast(`${FID[tid].name} đang sạch. Dùng được cho ${FID[tid].cap} mèo`);return}
-      if(cleanBox(h,bx)){save();toast(`Đã dọn ${FID[tid].name.toLowerCase()}, dùng 1 lần ${LT[F[tid].lit].n.toLowerCase()}`);renderHud();if(trayP)render()}return}}
+  {const F=curRoom().furn;const tid=Object.keys(F).find(id=>{if(!fid(id)||!fid(id).toilet)return false;const b=furnBox(id,F[id]);return px>=b.x0&&px<=b.x1&&py>=b.y0-30&&py<=b.y1});
+    if(tid){const h=curHouse(),bx=boxesOf(h).find(b=>b.p===F[tid]);if((F[tid].dirt||0)<3){toast(`${fid(tid).name} đang sạch. Dùng được cho ${fid(tid).cap} mèo`);return}
+      if(cleanBox(h,bx)){save();toast(`Đã dọn ${fid(tid).name.toLowerCase()}, dùng 1 lần ${LT[F[tid].lit].n.toLowerCase()}`);renderHud();if(trayP)render()}return}}
   const hit=[...actors.values()].sort((p,q)=>q.Y-p.Y).find(a=>{const b=a.b,k=depth(a),bb=b.fr[8].bb,s=k*CS/b.K,lift=b.fly?36*CS:0;
     const x0=a.X+(bb[0]-b.cw/2)*s,x1=a.X+(bb[2]-b.cw/2)*s,y0=a.Y-lift+(bb[1]-b.foot)*s-8,y1=a.Y-lift+8;return px>x0&&px<x1&&py>y0&&py<y1});
   if(hit)hit.stray?tapStray(hit):tapCat(hit)});
@@ -1143,16 +1150,16 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
         ${f.id!=='cake'?`<button type="button" class="btn small ghost" data-buy="${f.id}:20"${st.fish<p20||(meal&&room<20)?' disabled':''}>20: ${M(p20,'cá')}</button>`:''}</div>`}).join('')}</div>
       <div class="task"><div class="tx"><b>Tủ to hơn</b><small>+100 phần</small></div><button type="button" class="btn small ghost" id="cap"${st.xu<100*st.pantryCap/100?' disabled':''}>${M(100*st.pantryCap/100,'xu')}</button></div>`}
   else if(shopTab==='toilet'){const R0=curRoom();
-    html+=`<p class="hint">Khay đặt vào ${ROOMT[curT()].n}. Khay xịn cho nhiều mèo hơn, bẩn chậm hơn.</p><div class="list">${TOILETS.map(f=>{const placed=!!R0.furn[f.id],owned=R0.owned.includes(f.id);const cur=f.cur==='xu'?'xu':'cá';const have=f.cur==='xu'?st.xu:st.fish;
-      const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${have<f.price?' disabled':''}>${M(f.price,f.cur==='xu'?'xu':'cá')}</button>`;
-      return `<div class="li${placed?' on':''}"><div class="ic"><img src="care/${f.img}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}</b><small>Cho ${f.cap} mèo · ${f.desc}</small></div>${btn}</div>`}).join('')}</div>
+    html+=`<p class="hint">Mua bao nhiêu khay cũng được, mỗi khay cộng thêm chỗ cho mèo. Khay mua sẽ đặt vào ${ROOMT[curT()].n}.</p><div class="list">${TOILETS.map(f=>{const here=hereOf(f.id).length,inv=invOf(f.id),tot=totalOf(f.id);const have=f.cur==='xu'?st.xu:st.fish;
+      return `<div class="li${here?' on':''}"><div class="ic"><img src="care/${f.img}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}</b><small>Cho ${f.cap} mèo · ${f.desc}</small>${ownLine(f.id)}</div>
+        <div class="stack">${here?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất 1</button>`:''}${inv?`<button type="button" class="btn small ghost" data-a="place" data-id="${f.id}">Đặt 1</button>`:''}<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${have<f.price?' disabled':''}>${M(f.price,f.cur==='xu'?'xu':'cá')}</button></div></div>`}).join('')}</div>
     <h3>Cát mèo</h3><div class="list">${LITTERS.map(l=>`<div class="li${st.litterUse===l.id?' on':''}"><div class="ic"><img src="care/${l.id}.webp?v=2" alt=""></div><div class="tx"><b>${l.n}</b><small>Có ${st.litter[l.id]} lần · ${l.desc}</small>
       <button type="button" class="link" data-lit="${l.id}">${st.litterUse===l.id?'Đang dùng khi dọn':'Dùng loại này khi dọn'}</button></div>
       <button type="button" class="btn small" data-lbuy="${l.id}:1"${st.fish<l.p?' disabled':''}>${M(l.p,'cá')}</button></div>`).join('')}</div><p class="hint">1 túi = 5 lần dọn, giá tính bằng cá.</p>`}
-  else if(shopTab==='furn'){const R0=curRoom(),own=R0.owned;
-    html+=`<p class="hint">Đồ cho ${ROOMT[curT()].n}, đang êm ${comfort(R0)} (cá +${comfort(R0)*10}%).</p><div class="shop">${FURN.filter(f=>!f.toilet).map(f=>{const placed=!!R0.furn[f.id],owned=own.includes(f.id);const p=furnPrice(f);
-      const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.fish<p?' disabled':''}>${M(p,'cá')}</button>`;
-      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>+${f.c} êm</small></div>${btn}</div>`}).join('')}</div>`}
+  else if(shopTab==='furn'){const R0=curRoom();
+    html+=`<p class="hint">Đồ cho ${ROOMT[curT()].n}, đang êm ${comfort(R0)} (cá +${comfort(R0)*10}%). Một món mua được nhiều cái, đặt ở phòng nào cũng được.</p><div class="shop">${FURN.filter(f=>!f.toilet).map(f=>{const here=hereOf(f.id).length,inv=invOf(f.id),tot=totalOf(f.id);const p=furnPrice(f);const placed=here>0;
+      const btn=`<div class="stack">${here?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất 1</button>`:''}${inv?`<button type="button" class="btn small ghost" data-a="place" data-id="${f.id}">Đặt 1</button>`:''}<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.fish<p?' disabled':''}>${tot?'Mua thêm ':''}${M(p,'cá')}</button></div>`;
+      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>+${f.c} êm mỗi cái</small>${ownLine(f.id)}</div>${btn}</div>`}).join('')}</div>`}
   else if(shopTab==='home')html+=homeHtml();
   else html+=marketHtml();
   P.innerHTML=html;
@@ -1163,12 +1170,21 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
   bind(P,'[data-lbuy]',el=>{const [id,n]=el.dataset.lbuy.split(':');const l=LT[id];const cost=l.p*+n;if(st.fish<cost)return;st.fish-=cost;st.litter[id]+=l.uses*+n;save();toast(`+${l.uses*+n} lần dọn ${l.n.toLowerCase()}`);render()});
   bind(P,'[data-buy]',el=>{const [id,n]=el.dataset.buy.split(':');const f=FD[id];const cost=n==='20'?Math.round(f.p*20*.85):f.p;if(st.fish<cost)return;st.fish-=cost;st.pantry[id]+=+n;save();toast(`+${n} ${f.n}`);render()});
   if($('cap'))$('cap').onclick=e=>{const c=100*st.pantryCap/100;twoTap(e.currentTarget,'cap',`Trả ${fmt(c)} xu?`,()=>{st.xu-=c;st.pantryCap+=100;save();render()})};
-  bind(P,'[data-a]',el=>{const id=el.dataset.id,f=FID[id],R0=curRoom();
-    if(el.dataset.a==='buy'&&f.toilet){const xu=f.cur==='xu';if((xu?st.xu:st.fish)<f.price)return;if(xu)st.xu-=f.price;else st.fish-=f.price;R0.owned.push(id);R0.furn[id]={x:f.x,y:floorY(f),dirt:0,lit:st.litterUse};clampFurn(id,R0.furn[id]);toast(`Đã đặt ${f.name}`)}
-    else if(el.dataset.a==='buy'){const p=furnPrice(f);if(st.fish<p)return;st.fish-=p;st.bought[id]=(st.bought[id]||0)+1;R0.owned.push(id);R0.furn[id]={x:f.x,y:f.wall?f.y:floorY(f)};clampFurn(id,R0.furn[id]);toast(`Đã đặt ${f.name}`)}
-    else if(el.dataset.a==='place'){R0.furn[id]={x:f.x,y:f.wall?f.y:floorY(f),...(f.toilet?{dirt:(R0.tstash||{})[id]||0,lit:st.litterUse}:{})};clampFurn(id,R0.furn[id])}
-    else{if(f.toilet){R0.tstash=R0.tstash||{};R0.tstash[id]=R0.furn[id].dirt||0}delete R0.furn[id]}
+  bind(P,'[data-a]',el=>{const id=el.dataset.id,f=fid(id),a=el.dataset.a;
+    if(a==='buy'){if(f.toilet){const xu=f.cur==='xu';if((xu?st.xu:st.fish)<f.price)return;if(xu)st.xu-=f.price;else st.fish-=f.price}
+      else{const p=furnPrice(f);if(st.fish<p)return;st.fish-=p;st.bought[id]=(st.bought[id]||0)+1}
+      placeOne(id,{});toast(`Đã đặt ${f.name} vào ${ROOMT[curT()].n}`)}
+    else if(a==='place'){const o=(st.inv[id]||[]).pop();if(!o)return;placeOne(id,o)}
+    else{const ks=hereOf(id);const k=ks[ks.length-1];if(!k)return;const R0=curRoom();(st.inv[id]=st.inv[id]||[]).push(f.toilet?{dirt:R0.furn[k].dirt||0}:{});delete R0.furn[k]}
     save();render()})}
+const hereOf=id=>Object.keys(curRoom().furn).filter(k=>baseId(k)===id);
+const invOf=id=>((st.inv||{})[id]||[]).length;
+function placedAll(id){let n=0;st.houses.forEach(h=>h.rooms.forEach(r=>{for(const k in r.furn)if(baseId(k)===id)n++}));return n}
+const totalOf=id=>placedAll(id)+invOf(id);
+function ownLine(id){const t=totalOf(id);if(!t)return '';const here=hereOf(id).length,inv=invOf(id),other=t-here-inv;
+  return `<small>${[here&&`${here} ở phòng này`,other&&`${other} ở phòng khác`,inv&&`${inv} trong kho`].filter(Boolean).join(' · ')}</small>`}
+function placeOne(id,o){const f=fid(id),R0=curRoom();let k=id,n=1;while(R0.furn[k]){n++;k=id+'#'+n}
+  const off=Math.ceil((n-1)/2)*f.w*.95*(n%2?1:-1);R0.furn[k]={x:f.x+off,y:f.wall?f.y:floorY(f),...(f.toilet?{dirt:o.dirt||0,lit:st.litterUse}:{})};clampFurn(k,R0.furn[k])}
 
 // ---------- Sổ mèo ----------
 function openFurs(sh){const W=isW(sh);const all=W?[{shape:sh,pattern:'plain',color:'white'},{shape:sh,pattern:'plain',color:'white',shiny:1}]:[].concat(...PATTERNS.map(pt=>ALLC.map(co=>({shape:sh,pattern:pt,color:co}))));
