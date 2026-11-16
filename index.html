@@ -386,7 +386,7 @@ const LT=Object.fromEntries(LITTERS.map(l=>[l.id,l]));
 const HOSP=[40,70,150,300,600];
 TOILETS.forEach(t=>FURN.push({...t,toilet:1,c:t.id==='t_wood'?1:0}));
 const FID=Object.fromEntries(FURN.map(f=>[f.id,f]));
-const FIMG={};FURN.forEach(f=>loadImg(f.toilet?`care/${f.img}.webp`:`furn/${f.id}.webp`).then(i=>{FIMG[f.id]=i;f.h=f.w*i.naturalHeight/i.naturalWidth}));
+const FIMG={};FURN.forEach(f=>loadImg(f.toilet?`care/${f.img}.webp?v=2`:`furn/${f.id}.webp?v=2`).then(i=>{FIMG[f.id]=i;f.h=f.w*i.naturalHeight/i.naturalWidth}));
 const RIMG={};function roomImg(t){if(!RIMG[t]){const im=new Image();im.decoding='async';im.src=`rooms/${ROOMT[t].img||'r'+(t+1)}.webp`;RIMG[t]=im}return RIMG[t]}
 const RW=1024,RH=1536,CS=0.8;
 
@@ -1082,13 +1082,13 @@ function renderShop(){const P=$('p-shop');
     html+=`<p class="hint">Khay đặt vào ${ROOMT[curT()].n}, mỗi loại một cái mỗi phòng. Khay xịn chứa được nhiều mèo hơn và bẩn chậm hơn. Cát xịn bẩn chậm hơn và làm mèo vui.</p>
     <h3>Khay vệ sinh</h3><div class="shop">${TOILETS.map(f=>{const placed=!!R0.furn[f.id],owned=R0.owned.includes(f.id);const cur=f.cur==='xu'?'xu':'cá';const have=f.cur==='xu'?st.xu:st.fish;
       const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất đi</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${have<f.price?' disabled':''}>${fmt(f.price)} ${cur}</button>`;
-      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="care/${f.img}.webp" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>Cho ${f.cap} mèo · ${f.desc}</small></div>${btn}</div>`}).join('')}</div>
-    <h3>Cát mèo</h3><div class="shop">${LITTERS.map(l=>`<div class="sitem"><div class="th"><img src="care/${l.id}.webp" alt="${l.n}" loading="lazy"></div><div class="nm">${l.n}<small>1 túi = ${l.uses} lần dọn · ${l.desc}</small><small>Đang có: ${st.litter[l.id]} lần</small></div>
+      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="care/${f.img}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>Cho ${f.cap} mèo · ${f.desc}</small></div>${btn}</div>`}).join('')}</div>
+    <h3>Cát mèo</h3><div class="shop">${LITTERS.map(l=>`<div class="sitem"><div class="th"><img src="care/${l.id}.webp?v=2" alt="${l.n}" loading="lazy"></div><div class="nm">${l.n}<small>1 túi = ${l.uses} lần dọn · ${l.desc}</small><small>Đang có: ${st.litter[l.id]} lần</small></div>
       <button type="button" class="btn small" data-lbuy="${l.id}:1"${st.fish<l.p?' disabled':''}>1 túi · ${fmt(l.p)} cá</button><button type="button" class="btn small ghost" data-lbuy="${l.id}:4"${st.fish<Math.round(l.p*4*.85)?' disabled':''}>4 túi · ${fmt(Math.round(l.p*4*.85))} cá</button></div>`).join('')}</div>`}
   else{const R0=curRoom(),own=R0.owned;
     html+=`<p class="hint">Đồ mua cho ${ROOMT[curT()].n}. Phòng này đang êm ${comfort(R0)}: mèo ở đây làm ra thêm ${comfort(R0)*10}% cá khi ở nhà. Mua món giống nhau lần nữa thì đắt hơn.</p><div class="shop">${FURN.filter(f=>!f.toilet).map(f=>{const placed=!!R0.furn[f.id],owned=own.includes(f.id);const p=furnPrice(f);
       const btn=placed?`<button type="button" class="btn small ghost" data-a="store" data-id="${f.id}">Cất đi</button>`:owned?`<button type="button" class="btn small" data-a="place" data-id="${f.id}">Đặt lại</button>`:`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.fish<p?' disabled':''}>${fmt(p)} cá</button>`;
-      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>+${f.c} êm${f.wall?' · treo tường':''}</small></div>${btn}</div>`}).join('')}</div>`}
+      return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}<small>+${f.c} êm${f.wall?' · treo tường':''}</small></div>${btn}</div>`}).join('')}</div>`}
   P.innerHTML=html;
   bind(P,'[data-t]',el=>{shopTab=el.dataset.t;render()});
   bind(P,'[data-lbuy]',el=>{const [id,n]=el.dataset.lbuy.split(':');const l=LT[id];const cost=n==='4'?Math.round(l.p*4*.85):l.p;if(st.fish<cost)return;st.fish-=cost;st.litter[id]+=l.uses*+n;save();toast(`+${l.uses*+n} lần dọn ${l.n.toLowerCase()}`);render()});
