@@ -1225,17 +1225,19 @@ function openStray(s){sheet(`<div class="hero">${imgTag(s.g,11)}<div><span class
 // ---------- Cửa hàng ----------
 let shopTab='cats';
 // Tiệm mèo: 4 bé mỗi ngày, đổi hàng lúc 7 giờ sáng ngoài đời
-const PET_PRICE=[{p:400,c:'cá'},{p:900,c:'cá'},{p:150,c:'xu'},{p:600,c:'xu'},{p:3000,c:'xu'}];
-function petShop(){const dk=dayKey(now());if(!st.pet||st.pet.day!==dk){const tiers=[0,R()<.5?0:1,R()<.6?1:2,R()<.25?3:2];
-  st.pet={day:dk,slots:tiers.map(t=>({g:rollFur(pickOne(BY_TIER[t]))}))};save()}return st.pet}
+const CARD_PRICE=[{p:150,c:'cá'},{p:300,c:'cá'},{p:60,c:'xu'},{p:200,c:'xu'},{p:1000,c:'xu'}];
+function petShop(){const dk=dayKey(now());if(!st.pet||st.pet.day!==dk||!st.pet.cards){const tiers=[0,R()<.5?0:1,R()<.6?1:2,R()<.25?3:2];const used=new Set();
+  st.pet={day:dk,cards:1,slots:tiers.map(t=>{let sh;do{sh=pickOne(BY_TIER[t])}while(used.has(sh));used.add(sh);return{s:sh,n:0}})};save()}return st.pet}
 const furnPrice=f=>Math.round(f.price*Math.pow(1.5,Math.min(2,(st.bought[f.id]||0))));
-const SHOPTABS=[['cats','Mèo'],['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['home','Nhà đất'],['market','Chợ cá']];
+const SHOPTABS=[['cats','Lá mèo'],['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['home','Nhà đất'],['market','Chợ cá']];
 function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('details.more')].map(d=>d.open);
   let html=`<div class="sub">${SHOPTABS.map(([k,n])=>`<button type="button" data-t="${k}" class="${shopTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(shopTab==='cats'){const ps=petShop();const T=now();const next=at(T-7*H+DAY,7);
-    html+=`<p class="hint">Mỗi ngày tiệm có 4 bé mèo, mỗi bé một con. Hàng mới lúc 7 giờ sáng, còn ${dur(next-T)}.</p><div class="grid">${ps.slots.map((sl,i)=>{const t=tierOf(sl.g),P=PET_PRICE[t];const have=P.c==='xu'?st.xu:st.fish;const isNew=!st.species.includes(sl.g.shape);
-      return `<div class="ccard${sl.sold?' locked':''}">${isNew&&!sl.sold?'<span class="tag" style="position:absolute;top:4px;left:4px;background:#F26B6B;color:#fff;border-color:#F26B6B">Mới</span>':''}${imgTag(sl.g)}<span class="nm">${esc(shortName(sl.g))}</span>${tierTag(t)}
-        ${sl.sold?'<em>Đã về nhà bạn</em>':`<button type="button" class="btn small" data-pet="${i}"${have<P.p||waiting().length>=10?' disabled':''}>${M(P.p,P.c)}</button>`}</div>`}).join('')}</div>`}
+    html+=`<p class="hint">Tiệm bán lá mèo. Gom đủ lá cùng loài rồi ghép ở Hộp mèo. Mỗi loài bán tối đa 3 lá một ngày, hàng mới sau ${dur(next-T)}.</p><div class="grid">${ps.slots.map((sl,i)=>{const sh=sl.s,t=TIER_OF[sh],P=CARD_PRICE[t];const have=P.c==='xu'?st.xu:st.fish;const n=shardsOf(sh),k=needOf(sh),left=3-(sl.n||0);
+      return `<div class="ccard${left?'':' away'}">${known(sh)?'':'<span class="tag" style="position:absolute;top:4px;left:4px;background:#F26B6B;color:#fff;border-color:#F26B6B">Mới</span>'}${imgTag(plainG(sh))}<span class="nm">Lá ${esc(SPR[sh].name)}</span>${tierTag(t)}
+        <span class="bar"><i style="width:${Math.min(100,n/k*100)}%"></i></span><em>${n>=k?'Đủ lá ghép!':`Có ${n}/${k} lá`}${left?` · tiệm còn ${left}`:''}</em>
+        ${left?`<button type="button" class="btn small" data-pet="${i}"${have<P.p?' disabled':''}>${M(P.p,P.c)}</button>`:'<em>Hết hàng hôm nay</em>'}</div>`}).join('')}</div>
+      ${readyShards().length?'<button type="button" class="btn wide" id="gomerge2">Đủ lá rồi, sang Hộp mèo ghép</button>':''}`}
   else if(shopTab==='food'){const room=st.pantryCap-pantryMeals();
     html+=`<p class="hint">Tủ đồ ăn ${pantryMeals()}/${st.pantryCap} phần. Mua 20 rẻ hơn 15%.</p><div class="list">${FOODS.map(f=>{const p20=Math.round(f.p*20*.85);const meal=MEALS.includes(f.id);
       return `<div class="li"><div class="ic">${FOOD_ICON[f.id]}</div><div class="tx"><b>${f.n}</b><small>+${f.mood} vui${f.fb?` · lương +${f.fb*100}%`:''} · có ${st.pantry[f.id]}</small></div>
@@ -1261,8 +1263,10 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
   bind(P,'[data-t]',el=>{shopTab=el.dataset.t;render();$('panels').scrollTop=0});
   bindHome(P);
   bind(P,'[data-lit]',el=>{st.litterUse=el.dataset.lit;save();render()});
-  bind(P,'[data-pet]',el=>{const i=+el.dataset.pet,sl=petShop().slots[i];if(sl.sold)return;const P=PET_PRICE[tierOf(sl.g)];if((P.c==='xu'?st.xu:st.fish)<P.p)return;
-    twoTap(el,'pet'+i,`Mua ${fmt(P.p)} ${P.c}?`,()=>{if(P.c==='xu')st.xu-=P.p;else st.fish-=P.p;sl.sold=1;const isNew=see(sl.g);const c=mkCat({...sl.g});home(c);st.cats.push(c);save();showPack2(c,isNew)})});
+  bind(P,'[data-pet]',el=>{const i=+el.dataset.pet,sl=petShop().slots[i];if((sl.n||0)>=3)return;const P=CARD_PRICE[TIER_OF[sl.s]];if((P.c==='xu'?st.xu:st.fish)<P.p)return;
+    if(P.c==='xu')st.xu-=P.p;else st.fish-=P.p;sl.n=(sl.n||0)+1;st.shards=st.shards||{};st.shards[sl.s]=shardsOf(sl.s)+1;st.shardSeen=st.shardSeen||[];if(!st.shardSeen.includes(sl.s))st.shardSeen.push(sl.s);save();
+    toast(shardsOf(sl.s)>=needOf(sl.s)?`Đủ lá ghép ${SPR[sl.s].name}!`:`+1 lá ${SPR[sl.s].name}`);render()});
+  if($('gomerge2'))$('gomerge2').onclick=()=>openTray('box');
   bind(P,'[data-lbuy]',el=>{const [id,n]=el.dataset.lbuy.split(':');const l=LT[id];const cost=l.p*+n;if(st.fish<cost)return;st.fish-=cost;st.litter[id]+=l.uses*+n;save();toast(`+${l.uses*+n} lần dọn ${l.n.toLowerCase()}`);render()});
   bind(P,'[data-buy]',el=>{const [id,n]=el.dataset.buy.split(':');const f=FD[id];const cost=n==='20'?Math.round(f.p*20*.85):f.p;if(st.fish<cost)return;st.fish-=cost;st.pantry[id]+=+n;save();toast(`+${n} ${f.n}`);render()});
   if($('cap'))$('cap').onclick=e=>{const c=100*st.pantryCap/100;twoTap(e.currentTarget,'cap',`Trả ${fmt(c)} xu?`,()=>{st.xu-=c;st.pantryCap+=100;save();render()})};
