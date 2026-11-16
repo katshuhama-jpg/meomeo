@@ -47,12 +47,13 @@ h3{font-family:var(--display);font-weight:800;font-size:16px;margin:0;line-heigh
 .hud{position:fixed;z-index:10;display:flex;align-items:center;gap:6px}
 .top{top:calc(8px + env(safe-area-inset-top,0px));left:calc(10px + env(safe-area-inset-left,0px));right:calc(10px + env(safe-area-inset-right,0px));justify-content:space-between;pointer-events:none}
 .top>*{pointer-events:auto}
-.pill{background:rgba(255,255,255,.94);border:2px solid var(--ink);border-radius:999px;padding:3px 12px;display:flex;align-items:center;gap:10px;white-space:nowrap}
+.pill{background:rgba(255,255,255,.94);border:2px solid var(--ink);border-radius:18px;padding:4px 12px;display:flex;align-items:center;gap:12px;white-space:nowrap;min-height:42px}
 .money{display:flex;align-items:center;gap:4px;font-variant-numeric:tabular-nums}
 .money b{font-family:var(--display);font-weight:800;font-size:18px;line-height:1}
 .money svg{width:20px;height:20px;flex:0 0 auto}
-.clock{font-size:12.5px;font-weight:700;line-height:1.15;text-align:right;flex-direction:column;align-items:flex-end;gap:0;padding:3px 12px;border-radius:16px}
-.clock small{font-weight:600;color:var(--muted);font-size:11.5px}
+.clock{font-size:13px;line-height:1.15;text-align:right;flex-direction:column;align-items:flex-end;gap:0;padding:3px 12px;border-radius:16px;flex:0 0 auto}
+.clock b{font-family:var(--display);font-weight:800;font-size:15px;line-height:1.1}
+.clock small{font-weight:600;color:var(--muted);font-size:11px;white-space:nowrap}
 .rooms{top:calc(52px + env(safe-area-inset-top,0px));left:calc(10px + env(safe-area-inset-left,0px));right:calc(10px + env(safe-area-inset-right,0px));overflow-x:auto;padding:2px;scrollbar-width:none}
 .rooms::-webkit-scrollbar{display:none}
 .rchip{flex:0 0 auto;border:2px solid var(--line);background:rgba(255,255,255,.92);border-radius:12px;padding:3px 10px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:0;line-height:1.2;min-width:0}
@@ -226,7 +227,9 @@ button.task.pick[disabled]{opacity:.45;cursor:not-allowed}
 .editbar button{flex:1;min-width:0;font-weight:700;font-size:12.5px;border:2px solid var(--ink);background:var(--card);border-radius:999px;padding:4px 10px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:32px}
 .editbar button[disabled]{border-color:var(--line);color:var(--muted);cursor:default}
 body.editing .notice{display:none}
-.money .rate{font-size:10.5px;font-weight:700;color:#3E8E4F;line-height:1;align-self:flex-end;margin-bottom:1px}
+.money .vals{display:flex;flex-direction:column;line-height:1}
+.money .rate{font-size:10px;font-weight:700;color:#3E8E4F;line-height:1.1;white-space:nowrap}
+.money .rate:empty{display:none}
 @media (min-width:760px){.tray{left:auto;width:460px;top:calc(8px + env(safe-area-inset-top,0px));height:auto}.dock{left:auto;width:440px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -234,8 +237,8 @@ body.editing .notice{display:none}
 <div class="room" id="room"><div class="loading" id="loading">Đang gọi mèo về…</div><canvas id="cv"></canvas></div>
 <div class="hud top">
   <div class="pill" aria-live="polite">
-    <span class="money"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-5 9-6 13-3l4-3v12l-4-3c-4 3-10 2-13-3Z" fill="#9FD3F5" stroke="#2A272C" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8" cy="11" r="1.2" fill="#2A272C"/></svg><b id="fish">0</b><small class="rate" id="fishrate"></small></span>
-    <span class="money"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD36B" stroke="#2A272C" stroke-width="1.8"/><path d="M9 9.5c0-1 1.3-1.8 3-1.8s3 .8 3 1.8-1.3 1.6-3 2-3 1-3 2.1 1.3 1.9 3 1.9 3-.8 3-1.8M12 6v12" fill="none" stroke="#2A272C" stroke-width="1.6" stroke-linecap="round"/></svg><b id="xu">0</b><small class="rate" id="xurate"></small></span>
+    <span class="money"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-5 9-6 13-3l4-3v12l-4-3c-4 3-10 2-13-3Z" fill="#9FD3F5" stroke="#2A272C" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8" cy="11" r="1.2" fill="#2A272C"/></svg><span class="vals"><b id="fish">0</b><small class="rate" id="fishrate"></small></span></span>
+    <span class="money"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD36B" stroke="#2A272C" stroke-width="1.8"/><path d="M9 9.5c0-1 1.3-1.8 3-1.8s3 .8 3 1.8-1.3 1.6-3 2-3 1-3 2.1 1.3 1.9 3 1.9 3-.8 3-1.8M12 6v12" fill="none" stroke="#2A272C" stroke-width="1.6" stroke-linecap="round"/></svg><span class="vals"><b id="xu">0</b><small class="rate" id="xurate"></small></span></span>
   </div>
   <div class="pill clock" id="clock"></div>
 </div>
@@ -434,8 +437,20 @@ TOILETS.forEach(t=>FURN.push({...t,toilet:1,c:t.id==='t_wood'?1:0}));
 const FID=Object.fromEntries(FURN.map(f=>[f.id,f]));
 const baseId=k=>String(k).split('#')[0];
 const fid=k=>FID[baseId(k)];
-const FIMG={};FURN.forEach(f=>loadImg(f.toilet?`care/${f.img}.webp?v=2`:`furn/${f.id}.webp?v=2`).then(i=>{FIMG[f.id]=i;f.h=f.w*i.naturalHeight/i.naturalWidth}));
-const RIMG={};function roomImg(t){if(!RIMG[t]){const im=new Image();im.decoding='async';im.src=`rooms/${ROOMT[t].img||'r'+(t+1)}.webp`;RIMG[t]=im}return RIMG[t]}
+const FIMG={};FURN.forEach(f=>loadImg(f.toilet?`care/${f.img}.webp?v=2`:`furn/${f.id}.webp?v=2`).then(i=>{FIMG[f.id]=i;f.h=f.w*i.naturalHeight/i.naturalWidth;if(st)try{clampRoom()}catch(e){}}));
+const RIMG={},SKY={};function roomImg(t){if(!RIMG[t]){const im=new Image();im.decoding='async';im.onload=()=>{try{SKY[t]=makeSky(im)}catch(e){}};im.src=`rooms/${ROOMT[t].img||'r'+(t+1)}.webp`;RIMG[t]=im}return RIMG[t]}
+// Tìm phần trời trong ảnh phòng (xanh da trời và mây kẹp giữa), vẽ sẵn bản trời đêm có sao để phủ lên khi tối
+function makeSky(im){const W=256,Hh=384,c=mk(W,Hh),x=c.getContext('2d');x.drawImage(im,0,0,W,Hh);const d=x.getImageData(0,0,W,Hh).data;
+  const sky=new Uint8Array(W*Hh),bright=new Uint8Array(W*Hh);
+  for(let i=0;i<W*Hh;i++){const r=d[i*4],g=d[i*4+1],b=d[i*4+2];if(b>150&&b-r>28&&b>=g-6)sky[i]=1;if(r>205&&g>205&&b>205)bright[i]=1}
+  const fill=(len,step,cnt,stride)=>{for(let l=0;l<cnt;l++){let last=-1;for(let k=0;k<len;k++){const i=l*stride+k*step;if(sky[i]){if(last>=0&&k-last>1&&k-last<70){let ok=true;for(let j=last+1;j<k;j++)if(!bright[l*stride+j*step]){ok=false;break}if(ok)for(let j=last+1;j<k;j++)sky[l*stride+j*step]=2}last=k}}}};
+  fill(W,1,Hh,W);fill(Hh,W,W,1);
+  let n=0;for(let i=0;i<W*Hh;i++)if(sky[i])n++;if(n<200)return null;
+  const o=mk(W,Hh),ox=o.getContext('2d'),od=ox.createImageData(W,Hh),q=od.data;const R0=rng(hash(im.src));
+  for(let y=0;y<Hh;y++)for(let x2=0;x2<W;x2++){const i=y*W+x2;if(!sky[i])continue;const t=y/Hh;q[i*4]=26+t*30;q[i*4+1]=32+t*34;q[i*4+2]=78+t*50;q[i*4+3]=255}
+  ox.putImageData(od,0,0);ox.globalCompositeOperation='source-atop';
+  for(let k=0;k<n/90;k++){const sx=R0()*W,sy=R0()*Hh,r=R0()<.15?1.1:.6;ox.fillStyle=`rgba(255,250,220,${.6+R0()*.4})`;ox.beginPath();ox.arc(sx,sy,r,0,7);ox.fill()}
+  return o}
 const RW=1024,RH=1536,CS=0.8;
 
 // ---------- Ảnh mèo ----------
@@ -691,11 +706,28 @@ function drawBowl(){const h=curHouse();const p=bowlPos(),x=p.x*S,y=p.y*S,w=120*S
   ctx.fillStyle='#F7A1B4';ctx.beginPath();ctx.moveTo(x-w/2,y-hh);ctx.lineTo(x+w/2,y-hh);ctx.lineTo(x+w*.36,y);ctx.lineTo(x-w*.36,y);ctx.closePath();ctx.fill();ctx.stroke();
   if(h.bowl){ctx.fillStyle={kibble:'#C98A4B',good:'#9FC9E6',pate:'#F5B0BF',salmon:'#FF9E73'}[h.bowl.food];ctx.beginPath();ctx.ellipse(x,y-hh,w*.42,hh*.38,0,Math.PI,0);ctx.fill();ctx.stroke()}
   ctx.restore()}
+// Lớp màu trời: multiply để tối thật, kèm quầng đèn ấm khi về đêm
+const lerp=(a,b,t)=>a+(b-a)*Math.max(0,Math.min(1,t));
+function skyLevels(h){// trả về [độ đêm 0-1, độ chiều vàng 0-1, độ bình minh 0-1]
+  if(h>=21||h<4.5)return[1,0,0];
+  if(h<6.5)return[lerp(1,0,(h-4.5)/2),0,lerp(0,1,(h-4.5)/1)*lerp(1,0,(h-5.5)/1)];
+  if(h<15.5)return[0,0,0];
+  if(h<18)return[0,lerp(0,1,(h-15.5)/2.5),0];
+  return[lerp(0,1,(h-18)/3),lerp(1,0,(h-18)/3),0]}
+function skyTint(h,dp){const [n,g,d]=skyLevels(h);if(!n&&!g&&!d)return;ctx.save();ctx.setTransform(dp,0,0,dp,0,0);
+  ctx.globalCompositeOperation='multiply';
+  if(g){ctx.fillStyle=`rgba(255,176,110,${.45*g})`;ctx.fillRect(0,0,VW,VH)}
+  if(d){ctx.fillStyle=`rgba(255,190,200,${.35*d})`;ctx.fillRect(0,0,VW,VH)}
+  if(n){ctx.fillStyle=`rgba(52,62,128,${.72*n})`;ctx.fillRect(0,0,VW,VH)}
+  ctx.globalCompositeOperation='screen';
+  if(n>.3){const gr=ctx.createRadialGradient(VW*.5,VH*.62,10,VW*.5,VH*.62,VH*.55);gr.addColorStop(0,`rgba(255,196,120,${.28*n})`);gr.addColorStop(1,'rgba(255,196,120,0)');ctx.fillStyle=gr;ctx.fillRect(0,0,VW,VH)}
+  ctx.restore()}
 let lastT=performance.now();
 function tick(nowp){
   const dt=Math.min(.05,(nowp-lastT)/1000);lastT=nowp;const T=nowp/1000;const night=isNight(gnow());
   const dp=cv.width/room.clientWidth;ctx.setTransform(dp,0,0,dp,0,0);ctx.fillStyle='#FBF8F2';ctx.fillRect(0,0,VW,VH);ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);
   const bg=roomImg(curT());if(bg.complete&&bg.naturalWidth){ctx.imageSmoothingQuality='high';ctx.drawImage(bg,0,0,RW*S,RH*S)}
+  {const nl=skyLevels(hourOf(gnow()))[0],sk=SKY[curT()];if(nl>0&&sk){ctx.save();ctx.globalAlpha=nl;ctx.imageSmoothingQuality='high';ctx.drawImage(sk,0,0,RW*S,RH*S);ctx.restore()}}
   for(const a of actors.values()){const b=a.b,w=b.cw*CS/b.K;a.t-=dt;if(a.jump>0)a.jump=Math.max(0,a.jump-dt*2.2);if(a.exprT>0)a.exprT-=dt;
     a.blinkT-=dt;if(a.blinking>0)a.blinking-=dt;if(a.blinkT<=0){a.blinking=.16;a.blinkT=2.5+R()*4}
     if((night&&!a.stray)||a.c.sick||a.exprT>0){if(a.state==='walk'){a.state='idle';a.t=Math.max(a.t,a.exprT||2)}}
@@ -709,8 +741,7 @@ function tick(nowp){
   for(const a of actors.values())list.push({z:a.Y,d:()=>drawCat(a,T,night)});
   list.sort((p,q)=>p.z-q.z).forEach(o=>o.d());
   const hr=hourOf(gnow());
-  if(night){ctx.setTransform(dp,0,0,dp,0,0);ctx.fillStyle='rgba(38,40,90,.30)';ctx.fillRect(0,0,VW,VH)}
-  else if(hr>=17){ctx.setTransform(dp,0,0,dp,0,0);ctx.fillStyle=`rgba(255,140,60,${hr>=19?.13:.08})`;ctx.fillRect(0,0,VW,VH)}
+  skyTint(hr,dp);
   requestAnimationFrame(tick)}
 
 // ---------- Sắp xếp đồ ----------
@@ -742,6 +773,7 @@ cv.addEventListener('pointermove',e=>{if(!drag)return;if(!drag.moved&&Math.hypot
   p.y=f.wall?Math.max(VY0+70,Math.min(fl-h-6,py-drag.dy)):Math.max(fl+24,Math.min(FEET[1]+40,py-drag.dy))});
 const endDrag=()=>{if(drag){drag=null;save()}};
 cv.addEventListener('pointerup',endDrag);cv.addEventListener('pointercancel',endDrag);
+function clampRoom(){const F=curRoom().furn;for(const k in F)if(fid(k))clampFurn(k,F[k])}
 function clampFurn(id,p){const f=fid(id),h=f.h||f.w*1.2,fl=ROOMT[curT()].fl;p.x=Math.max(VX0+f.w/2,Math.min(VX1-f.w/2,p.x));p.y=f.wall?Math.max(VY0+70,Math.min(fl-h-6,p.y)):Math.max(fl+24,Math.min(FEET[1]+40,p.y))}
 const floorY=f=>ROOMT[curT()].fl+f.y;
 
@@ -782,8 +814,8 @@ function twoTap(btn,key,label,fn){// bấm hai lần để xác nhận việc m�
 function updateWallet(){$('fish').textContent=fmt(st.fish);$('xu').textContent=fmt(st.xu);const fr=passivePerHour(),xr=xuPerHour();$('fishrate').textContent=fr?'+'+fmt(fr)+'/giờ':'';$('xurate').textContent='+'+(xr<10?xr.toLocaleString('vi-VN',{maximumFractionDigits:1}):fmt(xr))+'/giờ'}
 function clockText(){const T=now(),d=new Date(G(T)),hm=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');const p=phase(G(T));
   const nWork=st.cats.filter(c=>away(c,T)).length;
-  const sub={night:'Mèo đang ngủ',morning:'Sắp đi làm lúc 8:00',work:nWork?`${nWork} mèo đi làm, về lúc 17:00`:'Giờ làm việc',evening:'Mèo về rồi: cho ăn, vuốt ve',weekend:'Ngày nghỉ: đưa mèo đi spa'}[p];
-  return `${DOW[d.getDay()]} ${hm}<small>${sub}</small>`}
+  const sub={night:'Đêm · mèo ngủ',morning:'Sáng · sắp đi làm',work:nWork?`${nWork} mèo đi làm`:'Giờ làm việc',evening:'Tối · cho ăn',weekend:'Ngày nghỉ'}[p];
+  return `<b>${['CN','T2','T3','T4','T5','T6','T7'][d.getDay()]} ${hm}</b><small>${sub}</small>`}
 function notices(){const n=[];const sk=sickCats().length;if(sk)n.push(`${sk} mèo bị ốm, cần đưa đi bệnh viện`);const md=maxDirt();if(md>=55)n.push(md>=75?'Khay vệ sinh bẩn lắm rồi, dọn ngay kẻo mèo ốm':'Khay vệ sinh hơi bẩn, chạm vào khay để dọn');
   if(st.cats.length&&!st.houses.some(h=>boxesOf(h).length))n.push('Nhà chưa có khay vệ sinh');if(readyShards().length)n.unshift('Đủ lá ghép mèo rồi, vào Hộp mèo để ghép');else if(!st.cats.length)n.push('Nhà chưa có mèo. Mở Hộp mèo lấy lá, đủ lá thì ghép ra mèo');if(st.mail>0)n.push(`Hòm thư có ${fmt(st.mail)} cá lương`);
   const ready=st.eggs.filter(e=>now()>=e.end).length;if(ready)n.push(`${ready} trứng đã nở`);
@@ -1247,7 +1279,7 @@ function renderBook(){const P=$('p-book');const sp=st.species.length;
 // =====================================================================
 load();process();rebalance();
 if(st.cur>=curHouse().rooms.length)st.cur=0;
-resize();window.addEventListener('resize',resize);view();renderRooms();renderHud();
+resize();window.addEventListener('resize',()=>{resize();clampRoom()});view();clampRoom();renderRooms();renderHud();
 loadBases().then(()=>{$('loading').remove();syncRoom();render();
   if(st.pack)setTimeout(showPack,300);
   if(st.migrated){st.migrated=0;save();setTimeout(()=>toast('Game đã lên bản mới! Mèo và đồ đạc vẫn giữ nguyên. Thử mở Hộp mèo nhé',4200),700)}
