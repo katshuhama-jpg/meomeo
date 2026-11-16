@@ -913,7 +913,7 @@ function catCard(c,extra=''){const T=now();const t=tierOf(c.g);
 // ---------- Hộp mèo ----------
 const buyPrice=()=>[200,400,800][st.buyN]||0;
 // Mở ra chỉ là lá. Gom đủ lá cùng loài mới ghép ra mèo.
-const NEED=[3,4,6,8,10];// càng hiếm càng cần nhiều lá
+const NEED=[3,5,8,16,32];// càng hiếm càng cần nhiều lá
 const needOf=sh=>NEED[TIER_OF[sh]];
 const shardsOf=sh=>(st.shards||{})[sh]||0;
 const known=sh=>shardsOf(sh)>0||(st.species||[]).includes(sh)||(st.shardSeen||[]).includes(sh);
