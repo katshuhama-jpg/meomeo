@@ -214,6 +214,8 @@ details.more[open]>summary{margin-bottom:8px}
 .card .nw.miss{background:var(--muted)}
 .card .lk{position:absolute;top:6px;right:6px;font-size:10px;font-weight:800;background:#F7A1B4;color:#2A272C;border:1.5px solid var(--ink);border-radius:99px;padding:0 6px}
 .ci{width:15px;height:15px;vertical-align:-2px;margin-left:2px;display:inline-block}
+.swatch{display:flex;gap:3px;flex-wrap:wrap;justify-content:center;font-size:10px;color:var(--muted);align-items:center}
+.swatch i{width:10px;height:10px;border-radius:50%;border:1.5px solid var(--ink);display:inline-block}
 @media (min-width:760px){.tray{left:auto;width:460px;top:calc(8px + env(safe-area-inset-top,0px));height:auto}.dock{left:auto;width:440px}}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
@@ -783,7 +785,12 @@ function openTray(p){trayP=p;tray.classList.add('open');setEdit(false);$('trayti
 function closeTray(){trayP=null;tray.classList.remove('open');document.querySelectorAll('.dock button').forEach(x=>x.classList.remove('on'))}
 document.querySelectorAll('.dock button').forEach(b=>b.onclick=()=>{trayP===b.dataset.p?closeTray():openTray(b.dataset.p)});
 $('trayclose').onclick=closeTray;
-function render(){renderHud();if(!trayP)return;({box:renderBox,care:renderCare,egg:renderEgg,shop:renderShop,book:renderBook})[trayP]()}
+const detState={};
+const detKey=d=>{const sm=d.querySelector('summary');return trayP+':'+(sm?sm.textContent.replace(/\(.*?\)/g,'').replace(/\d+/g,'').trim():'')};
+function render(){renderHud();if(!trayP)return;const box=$('panels'),y=box.scrollTop;
+  ({box:renderBox,care:renderCare,egg:renderEgg,shop:renderShop,book:renderBook})[trayP]();
+  $('p-'+trayP).querySelectorAll('details').forEach(d=>{const k=detKey(d);if(k in detState)d.open=detState[k];d.addEventListener('toggle',()=>{detState[k]=d.open})});
+  box.scrollTop=y}
 function bind(root,sel,fn){root.querySelectorAll(sel).forEach(el=>el.onclick=e=>fn(el,e))}
 const tierTag=t=>`<span class="tag ${TIERS[t].c}">${TIERS[t].n}</span>`;
 const stars=n=>n?'★'.repeat(n):'';
@@ -796,12 +803,13 @@ const buyPrice=()=>[200,400,800][st.buyN]||0;
 const NEED=[3,3,2,2,2];
 const needOf=sh=>NEED[TIER_OF[sh]];
 const shardsOf=sh=>(st.shards||{})[sh]||0;
+const known=sh=>shardsOf(sh)>0||(st.species||[]).includes(sh)||(st.shardSeen||[]).includes(sh);
 const readyShards=()=>ALLSH.filter(sh=>shardsOf(sh)>=needOf(sh));
-const plainG=sh=>({shape:sh,pattern:'plain',color:'white'});
+const plainG=sh=>isW(sh)?{shape:sh,pattern:'plain',color:'white'}:{shape:sh,pattern:['plain','plain','spots','stripes','calico'][hash(sh+'p')%5],color:['ginger','grey','white','black','ginger'][hash(sh)%5]};
 function renderBox(){const P=$('p-box'),T=now();if(st.buyDay!==dayKey(T)){st.buyDay=dayKey(T);st.buyN=0}
   if(!st.shards)st.shards={};
   const waitFull=waiting().length>=10;const p=buyPrice();const ready=readyShards();
-  const owned=ALLSH.filter(sh=>shardsOf(sh)>0||st.species.includes(sh)).sort((a,b)=>(shardsOf(b)/needOf(b))-(shardsOf(a)/needOf(a))||TIER_OF[b]-TIER_OF[a]);
+  const owned=ALLSH.slice().sort((a,b)=>(shardsOf(b)/needOf(b))-(shardsOf(a)/needOf(a))||TIER_OF[b]-TIER_OF[a]);
   P.innerHTML=`
   ${ready.length?`<div class="box hl"><div class="row"><h3>Ghép được ${ready.length} mèo</h3>${ready.length>1?`<button type="button" class="btn small" id="mergeall"${waitFull?' disabled':''}>Ghép hết</button>`:''}</div>
     <div class="list">${ready.map(sh=>`<div class="li"><div class="ic">${imgTag(plainG(sh))}</div><div class="tx"><b>${esc(SPR[sh].name)}</b><small>${tierTag(TIER_OF[sh])} ${shardsOf(sh)}/${needOf(sh)} lá</small></div><button type="button" class="btn small" data-merge="${sh}"${waitFull?' disabled':''}>Ghép</button></div>`).join('')}</div>
@@ -814,8 +822,10 @@ function renderBox(){const P=$('p-box'),T=now();if(st.buyDay!==dayKey(T)){st.buy
   </div>
   <div class="task"><div class="tx"><b>Mua thêm lượt</b><small>Hôm nay ${st.buyN}/3 lượt</small></div><button type="button" class="btn small" id="buybox"${!p||st.fish<p?' disabled':''}>${p?M(p,'cá'):'Hết lượt'}</button></div>
   <div class="task"><div class="tx"><b>Điểm Hộp: ${fmt(st.pts)}</b><small>Mỗi lượt +5. Đổi thẳng ra mèo từ 100 điểm</small></div><button type="button" class="btn small ghost" id="exch">Đổi</button></div>
-  <details class="more"${owned.length?' open':''}><summary>Lá mèo đang gom (${owned.filter(sh=>shardsOf(sh)>0).length} loài)</summary>
-    <div class="grid">${owned.map(sh=>{const n=shardsOf(sh),k=needOf(sh);return `<div class="ccard${n>=k?' sel':''}">${imgTag(plainG(sh))}<span class="nm">${esc(SPR[sh].name)}</span><span class="bar"><i style="width:${Math.min(100,n/k*100)}%"></i></span><em>${n}/${k} lá</em></div>`}).join('')||'<p class="hint">Chưa có lá nào.</p>'}</div></details>
+  <details class="more" open><summary>Lá mèo (${ALLSH.filter(sh=>known(sh)).length}/${ALLSH.length} loài đã thấy)</summary>
+    <p class="hint">Loài chưa gặp chỉ hiện bóng. Có lá đầu tiên là hiện ra.</p>
+    ${TIERS.map((t,ti)=>`<div class="row" style="margin-top:6px"><span>${tierTag(ti)}</span><span class="hint">${NEED[ti]} lá ghép 1 con</span></div><div class="grid">${BY_TIER[ti].slice().sort((a,b)=>(shardsOf(b)/needOf(b))-(shardsOf(a)/needOf(a))||known(b)-known(a)).map(sh=>{const n=shardsOf(sh),k=needOf(sh),kn=known(sh);
+      return `<div class="ccard${n>=k?' sel':''}${kn?'':' locked'}">${kn?imgTag(plainG(sh)):silTag(plainG(sh))}<span class="nm">${kn?esc(SPR[sh].name):'???'}</span><span class="bar"><i style="width:${Math.min(100,n/k*100)}%"></i></span><em>${n}/${k} lá</em></div>`}).join('')}</div>`).join('')}</details>
   <details class="more"><summary>Tỉ lệ ra lá</summary>
     <table class="odds"><thead><tr><th>Bậc</th><th>Lá thường</th><th>Lá may mắn</th><th>Cần</th></tr></thead><tbody>
     ${TIERS.map((t,i)=>`<tr><td>${tierTag(i)} ${BY_TIER[i].length} con</td><td>${ODDS[0][i]}%</td><td>${ODDS[1][i]}%</td><td>${NEED[i]} lá</td></tr>`).join('')}</tbody></table>
@@ -851,7 +861,7 @@ function showPack(){const pk=st.pack;if(!pk)return;pk.cards.forEach(c=>{if(!c.s&
     ${done?`<div class="acts" style="justify-content:center">${ready.length?'<button type="button" class="btn" id="gomerge">Đi ghép mèo</button>':''}<button type="button" class="btn${ready.length?' ghost':''}" id="packdone">Xong</button></div>`:''}`;
   if(!done)S2.querySelectorAll('.card:not(.up)').forEach(cd=>cd.onclick=()=>{const i=+cd.dataset.i;if(pk.picked.includes(i)||pk.picked.length>=2)return;
     if(pk.first){const L=pk.cards.findIndex(c=>c.lucky);if(pk.picked.length===0&&pk.cards[i].lucky){const o=pk.cards.findIndex((c,j)=>!c.lucky&&j!==i);const tmp=pk.cards[i];pk.cards[i]=pk.cards[o];pk.cards[o]=tmp}}
-    const c=pk.cards[i];st.shards[c.s]=shardsOf(c.s)+1;pk.picked.push(i);save();
+    const c=pk.cards[i];st.shards[c.s]=shardsOf(c.s)+1;st.shardSeen=st.shardSeen||[];if(!st.shardSeen.includes(c.s))st.shardSeen.push(c.s);pk.picked.push(i);save();
     cd.innerHTML=face(c,i);requestAnimationFrame(()=>cd.classList.add('up'));const t=TIER_OF[c.s];
     $('packhint').textContent=t>=4?'Lá Huyền thoại! Hiếm lắm đó':t>=3?'Lá Siêu hiếm!':shardsOf(c.s)>=needOf(c.s)?`Đủ lá ghép ${SPR[c.s].name}!`:pk.picked.length<2?'Chọn thêm 1 lá':'';
     if(pk.picked.length>=2)setTimeout(showPack,1100)});
@@ -1144,6 +1154,14 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
     save();render()})}
 
 // ---------- Sổ mèo ----------
+function openFurs(sh){const W=isW(sh);const all=W?[{shape:sh,pattern:'plain',color:'white'},{shape:sh,pattern:'plain',color:'white',shiny:1}]:[].concat(...PATTERNS.map(pt=>ALLC.map(co=>({shape:sh,pattern:pt,color:co}))));
+  const seen=new Set(st.seen);const n=all.filter(g=>seen.has(keyOf(g))).length;
+  sheet(`<div class="row"><h2>${esc(SPR[sh].name)}</h2><span class="hint">${n}/${all.length} màu lông</span></div>
+    <p class="hint">${W?'Mèo kỳ cục có bản thường và bản lấp lánh.':'4 màu trắng, kem, xám, mun; 2 màu lấp lánh hồng đào, bạc hà; mỗi màu có trơn, đốm, mướp, tam thể. Màu quay ngẫu nhiên lúc ghép lá, nở trứng hoặc mèo hoang xin ở lại.'}</p>
+    <div class="grid">${all.map(g=>{const k=seen.has(keyOf(g));return `<div class="ccard${k?'':' locked'}">${k?imgTag(g):silTag(g)}<em>${k?esc(furLabel(g)):'???'}</em></div>`}).join('')}</div>
+    <button type="button" class="btn ghost" data-close>Đóng</button>`)}
+const furLabel=g=>isW(g.shape)?(g.shiny?'Lấp lánh':'Thường'):[NAME[g.pattern]||'trơn',NAME[g.color]].join(' ');
+
 const TOTAL=SHAPES.length*PATTERNS.length*ALLC.length+WEIRD.length*2;
 function claimable(){return TIERS.map((t,i)=>i).filter(i=>!st.claimed.includes(i)&&BY_TIER[i].every(s=>st.species.includes(s)))}
 let bookTab='species';
@@ -1153,8 +1171,10 @@ function renderBook(){const P=$('p-book');const sp=st.species.length;
     <div class="sub">${[['species','Theo loài'],['recipes','Công thức trứng'],['photos','Ảnh mèo hoang']].map(([k,n])=>`<button type="button" data-t="${k}" class="${bookTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(bookTab==='species')html+=TIERS.map((t,i)=>{const have=BY_TIER[i].filter(s=>st.species.includes(s)).length;
     return `<div class="row"><h3>${tierTag(i)} ${t.n}</h3><span class="hint">${have}/${BY_TIER[i].length}${st.claimed.includes(i)?' · đã nhận thưởng':` · đủ trang +${fmt(t.book)} xu`}</span></div>
-    <div class="grid">${BY_TIER[i].map(s=>{const own=st.species.includes(s);const g={shape:s,pattern:'plain',color:'white'};const vars=st.seen.filter(k=>k.split('|')[0]===s).length;
-      return `<div class="ccard${own?'':' locked'}">${own?imgTag(g):silTag(g)}<span class="nm">${own?esc(SPR[s].name):'???'}</span><em>${own?`${vars} kiểu lông${st.favKnown.includes(s)?' · thích '+FD[favOf(s)].n.toLowerCase():''}`:(i===4?'Chỉ có trong Hộp mèo':'Hộp mèo, trứng hoặc mèo hoang')}</em></div>`}).join('')}</div>`}).join('');
+    <div class="grid">${BY_TIER[i].map(s=>{const own=st.species.includes(s);const vs=st.seen.filter(k=>k.split('|')[0]===s);const last=vs.length?vs[vs.length-1].split('|'):null;
+      const g=last&&!isW(s)?{shape:s,pattern:last[1],color:last[2]}:last&&last[1]==='shiny'?{shape:s,pattern:'plain',color:'white',shiny:1}:plainG(s);
+      const dots=isW(s)?'':`<span class="swatch">${vs.slice(0,8).map(k=>{const [,pt,co]=k.split('|');const c=COL[co];return `<i title="${NAME[pt]} ${NAME[co]}" style="background:rgb(${c})${pt!=='plain'?';box-shadow:inset 0 0 0 2px rgb('+PAT1[co]+')':''}"></i>`}).join('')}${vs.length>8?'+'+(vs.length-8):''}</span>`;
+      return `<button type="button" class="ccard${own?'':' locked'}" ${own?`data-sp="${s}"`:''}>${own?imgTag(g):silTag(g)}<span class="nm">${own?esc(SPR[s].name):'???'}</span>${own?dots:''}<em>${own?`${vs.length}/${isW(s)?2:24} màu lông`:(i===4?'Chỉ có trong Hộp mèo':'Lá, trứng hoặc mèo hoang')}</em></button>`}).join('')}</div>`}).join('');
   if(bookTab==='recipes')html+=`<p class="hint">Ghép đúng cặp bố mẹ khi ấp trứng thì 25% nở ra mèo kỳ cục. Gợi ý dạng câu đố, có rồi mới hiện công thức.</p><div class="grid">${WEIRD.filter(w=>TIER_OF[w]<4).map(w=>{const own=st.species.includes(w);const g={shape:w,pattern:'plain',color:'white'};
       return `<div class="ccard${own?'':' locked'}">${own?imgTag(g):silTag(g)}<span class="nm">${own?esc(SPR[w].name):'???'}</span><em>${own?SPR[w].rec.map(x=>SPR[x].name).join(' + '):esc(SPR[w].hint||'')}</em></div>`}).join('')}</div>`;
   if(bookTab==='photos')html+=`<p class="hint">Chạm vào mèo hoang ghé hiên nhà để chụp ảnh. Đổ đồ ăn vào bát ngoài hiên để mời mèo ghé.</p><div class="grid">${ALLSH.map(s=>{const has=st.photos.includes(s);const g={shape:s,pattern:'plain',color:'white'};
@@ -1163,6 +1183,7 @@ function renderBook(){const P=$('p-book');const sp=st.species.length;
   P.innerHTML=html;
   $('reset').onclick=e=>twoTap(e.currentTarget,'reset','Bấm lần nữa để xóa hết',()=>{resetting=true;try{localStorage.removeItem(KEY);localStorage.removeItem(OLD);localStorage.removeItem('meo-dbg')}catch(x){}location.reload()});
   bind(P,'[data-t]',el=>{bookTab=el.dataset.t;render()});
+  bind(P,'[data-sp]',el=>openFurs(el.dataset.sp));
   bind(P,'[data-claim]',el=>{const i=+el.dataset.claim;if(st.claimed.includes(i))return;st.claimed.push(i);st.xu+=TIERS[i].book;save();toast(`+${fmt(TIERS[i].book)} xu`);render()})}
 
 // =====================================================================
