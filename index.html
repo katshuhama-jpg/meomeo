@@ -617,7 +617,7 @@ function drawCat(a,T,night){
     ctx.fillStyle='#2A272C';ctx.font=`700 ${Math.round(11*S*k)}px Be Vietnam Pro,sans-serif`;ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText('khách',0,y+th/2);ctx.textAlign='start';ctx.textBaseline='alphabetic'}
   ctx.restore();
 }
-function furnBox(id,p){const f=FID[id];const h=f.h||f.w;return f.wall?{x0:p.x-f.w/2,y0:p.y,x1:p.x+f.w/2,y1:p.y+h,z:-1}:{x0:p.x-f.w/2,y0:p.y-h,x1:p.x+f.w/2,y1:p.y,z:p.y}}
+function furnBox(id,p){const f=FID[id];const h=f.h||f.w;return f.wall?{x0:p.x-f.w/2,y0:p.y,x1:p.x+f.w/2,y1:p.y+h,z:-1}:{x0:p.x-f.w/2,y0:p.y-h,x1:p.x+f.w/2,y1:p.y,z:p.y-Math.min(h*.45,70)}}
 function drawFurn(id,p){const img=FIMG[id];if(!img)return;const b=furnBox(id,p);
   if(edit&&drag&&drag.id===id){ctx.save();ctx.globalAlpha=.85}
   ctx.drawImage(img,b.x0*S,b.y0*S,(b.x1-b.x0)*S,(b.y1-b.y0)*S);
