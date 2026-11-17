@@ -4,6 +4,21 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#FBF8F2">
+<meta name="description" content="Nuôi mèo, ghép lá ra mèo mới, trang trí nhà và ghé nhà bạn bè. Game nuôi mèo dễ thương chơi ngay trên điện thoại.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Nhà Mèo Méo">
+<meta property="og:title" content="Nhà Mèo Méo">
+<meta property="og:description" content="Nuôi mèo, ghép lá ra mèo mới, trang trí nhà và ghé nhà bạn bè. Chơi ngay trên điện thoại.">
+<meta property="og:url" content="https://meoking.vercel.app/">
+<meta property="og:image" content="https://meoking.vercel.app/share/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="vi_VN">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://meoking.vercel.app/share/og.jpg">
+<link rel="icon" type="image/png" href="/share/favicon.png">
+<link rel="apple-touch-icon" href="/share/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-title" content="Nhà Mèo Méo">
 <style>[hidden]{display:none!important}body{margin:0}:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}</style>
 </head>
 <body>
@@ -301,7 +316,7 @@ body.visiting .bell{display:none}
 <div class="notice" id="notice"></div>
 <button type="button" class="editbtn" id="editbtn">Sắp xếp đồ</button>
 <button type="button" class="lightbtn" id="lightbtn" hidden aria-pressed="true"><svg viewBox="0 0 32 32" aria-hidden="true"><rect x="7" y="3" width="18" height="26" rx="5" fill="#FFF6DE" stroke="#2A272C" stroke-width="2.2"/><rect class="tog" x="12" y="8" width="8" height="16" rx="3" fill="#FFD36B" stroke="#2A272C" stroke-width="2"/><rect class="knob" x="12" y="8" width="8" height="8" rx="3" fill="#2A272C"/></svg><span id="lighttxt">Tắt đèn</span></button>
-<div class="editbar" id="editbar" hidden><button type="button" id="storebtn" disabled>Cất vào kho</button><button type="button" id="invbtn">Kho đồ</button></div>
+<div class="editbar" id="editbar" hidden><button type="button" id="storebtn" disabled>Cất vào kho</button><button type="button" id="sellbtn" disabled>Bán</button><button type="button" id="invbtn">Kho đồ</button></div>
 <nav class="dock hud" aria-label="Menu">
   <button type="button" data-p="box"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 12h22v14H5z" fill="#FFD36B" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M3 8h26v5H3z" fill="#F7A1B4" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M16 8v18" stroke="#2A272C" stroke-width="2"/><path d="M16 8c-3-6-9-4-6-1M16 8c3-6 9-4 6-1" fill="none" stroke="#2A272C" stroke-width="2" stroke-linecap="round"/></svg>Hộp mèo<span class="dot" id="dot-box"></span></button>
   <button type="button" data-p="care"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M7 14h18c0 7-4 11-9 11s-9-4-9-11Z" fill="#CFE8F7" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/><path d="M10 13c1-3 4-4 6-2 2-2 5-1 6 2" fill="#F2A541" stroke="#2A272C" stroke-width="2" stroke-linejoin="round"/></svg>Chăm mèo<span class="dot" id="dot-care"></span></button>
@@ -952,16 +967,22 @@ function setEdit(on){edit=on;editSel=null;room.classList.toggle('editing',on);do
   let h=document.querySelector('.edithint');if(on&&!h){h=document.createElement('div');h.className='edithint';document.body.appendChild(h)}if(!on&&h)h.remove();
   $('editbar').hidden=!on;if(on){closeTray();updEditBar()}else save()}
 function updEditBar(){const h=document.querySelector('.edithint');const n=Object.values(st.inv||{}).reduce((a,l)=>a+l.length,0);
-  if(h)h.textContent=editSel?`Đã chọn ${fid(editSel).name}. Kéo để dời, hoặc cất vào kho`:'Kéo đồ để dời chỗ. Chạm một món để chọn';
-  $('invbtn').textContent=`Kho đồ (${n})`;$('storebtn').disabled=!editSel;$('storebtn').textContent=editSel?`Cất ${fid(editSel).name.toLowerCase()}`:'Cất vào kho'}
+  if(h)h.textContent=editSel?`Đã chọn ${fid(editSel).name}. Kéo để dời, cất vào kho hoặc bán lại 1/3 giá`:'Kéo đồ để dời chỗ. Chạm một món để chọn';
+  $('invbtn').textContent=`Kho đồ (${n})`;$('sellbtn').disabled=!editSel;$('sellbtn').textContent=editSel?`Bán ${furnSell(fid(editSel))} xu`:'Bán';$('storebtn').disabled=!editSel;$('storebtn').textContent=editSel?`Cất ${fid(editSel).name.toLowerCase()}`:'Cất vào kho'}
+// Bán lại đồ đã mua: được 1/3 giá gốc, trả bằng xu
+const furnSell=f=>Math.max(1,Math.floor(f.price/3));
+function sellSel(){if(!editSel)return;const R0=curRoom(),k=editSel,f=fid(k);if(!R0.furn[k])return;const v=furnSell(f);
+  twoTap($('sellbtn'),'sell'+k,`Bán được ${v} xu? Bấm lần nữa`,()=>{delete R0.furn[k];R0.owned=(R0.owned||[]).filter(x=>x!==k);st.xu+=v;editSel=null;save();updEditBar();renderHud();toast(`Đã bán ${f.name}, +${v} xu`)})}
 function storeSel(){if(!editSel)return;const R0=curRoom(),k=editSel,f=fid(k);if(!R0.furn[k])return;const id=baseId(k);
   (st.inv[id]=st.inv[id]||[]).push(f.toilet?{dirt:R0.furn[k].dirt||0}:{});delete R0.furn[k];editSel=null;save();updEditBar();toast(`Đã cất ${f.name} vào kho`)}
 function openInv(){const ids=Object.keys(st.inv||{}).filter(id=>st.inv[id].length);
   sheet(`<div class="row"><h2>Kho đồ</h2><span class="hint">Đặt vào ${ROOMT[curT()].n}</span></div>
-    ${ids.length?`<div class="list">${ids.map(id=>{const f=FID[id];return `<div class="li"><div class="ic"><img src="${f.toilet?`care/${f.img}`:`furn/${id}`}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}</b><small>Trong kho: ${st.inv[id].length}</small></div><button type="button" class="btn small" data-put="${id}">Đặt</button></div>`}).join('')}</div>`:'<p class="hint">Kho đang trống. Chọn một món trong phòng rồi bấm Cất để cất vào đây.</p>'}
+    ${ids.length?`<div class="list">${ids.map(id=>{const f=FID[id];return `<div class="li"><div class="ic"><img src="${f.toilet?`care/${f.img}`:`furn/${id}`}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}</b><small>Trong kho: ${st.inv[id].length}</small></div><button type="button" class="btn small" data-put="${id}">Đặt</button><button type="button" class="btn small ghost" data-sell="${id}">Bán ${M(furnSell(f),'xu')}</button></div>`}).join('')}</div>`:'<p class="hint">Kho đang trống. Chọn một món trong phòng rồi bấm Cất để cất vào đây.</p>'}
+    <p class="hint">Bán lại được 1/3 giá mua, trả bằng xu.</p>
     <button type="button" class="btn ghost" data-close>Đóng</button>`);
+  bind($('sheet'),'[data-sell]',el=>twoTap(el,'isell'+el.dataset.sell,'Bấm lần nữa để bán',()=>{const id=el.dataset.sell,f=FID[id];if(!(st.inv[id]||[]).length)return;st.inv[id].pop();st.xu+=furnSell(f);save();updEditBar();renderHud();toast(`Đã bán ${f.name}, +${furnSell(f)} xu`);openInv()}));
   bind($('sheet'),'[data-put]',el=>{const id=el.dataset.put;const o=(st.inv[id]||[]).pop();if(!o)return;placeOne(id,o);save();updEditBar();openInv()})}
-$('storebtn').onclick=storeSel;$('invbtn').onclick=openInv;
+$('storebtn').onclick=storeSel;$('invbtn').onclick=openInv;$('sellbtn').onclick=sellSel;
 $('bellbtn').onclick=openNotif;
 $('lightbtn').onclick=()=>{st.light=!lightOn();save();updLight();toast(lightOn()?'Đã bật đèn. Mèo còn thức chơi':'Đã tắt đèn. Mèo đi ngủ, sáng mai vui hơn')};
 function updLight(){const b=$('lightbtn');b.hidden=!darkNow()||edit;b.classList.toggle('on',lightOn());b.setAttribute('aria-pressed',lightOn());$('lighttxt').textContent=lightOn()?'Tắt đèn':'Bật đèn'}
