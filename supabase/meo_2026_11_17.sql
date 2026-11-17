@@ -1,0 +1,8 @@
+-- Nhà Mèo Méo, 17/11: các migration đã áp lên Supabase (dự án Vạn Kiếp):
+--   meo_friends_visits_2026_11_17   bạn bè, ghé thăm (xem supabase/meo_friends.sql)
+--   meo_visit_help_2026_11_17       khách cho ăn hộ / dọn khay hộ: cột fed, cleaned, applied, claimed_xu; meo_visit(p_help), meo_help_take
+--   meo_guests_claim_fix*           nhận xu khách để lại đúng phần chưa nhận
+--   meo_perf_2026_11_17             tối ưu: cột meo_saves.cats, meo_social dùng index (không quét cả bảng),
+--                                   meo_inbox gộp khách + việc làm hộ thành 1 lần gọi và dọn lượt ghé cũ hơn 30 ngày,
+--                                   meo_session_new giữ tối đa 10 phiên mỗi tài khoản, xóa phiên hết hạn khi đăng nhập
+-- Mã đầy đủ của từng hàm xem trong Supabase (Database > Functions) hoặc lịch sử migration.

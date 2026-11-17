@@ -266,7 +266,7 @@ body.editing .notice{display:none}
 .visitbar{position:fixed;z-index:30;left:calc(8px + env(safe-area-inset-left,0px));right:calc(8px + env(safe-area-inset-right,0px));bottom:calc(8px + env(safe-area-inset-bottom,0px));background:rgba(255,255,255,.96);border:2.5px solid var(--ink,#2A272C);border-radius:18px;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
 .visitbar .vt{display:flex;flex-direction:column}.visitbar .vt b{font-family:var(--display);font-size:17px}.visitbar .vt small{color:var(--mute,#7a7276)}
 .visitbar .va{display:flex;gap:8px;flex-wrap:wrap}.visitbar .va .btn{flex:1;min-height:44px}
-body.visiting .lightbtn{bottom:calc(140px + env(safe-area-inset-bottom,0px))}
+body.visiting .lightbtn{bottom:calc(200px + env(safe-area-inset-bottom,0px))}
 body.visiting .dock,body.visiting .notice,body.visiting #editbtn,body.visiting .hud.top .pill:first-child,body.visiting .rchip.add[data-add]{display:none!important}
 .li.fr .av{width:40px;height:40px;border-radius:50%;background:#FFE3C2;border:2px solid var(--ink,#2A272C);display:grid;place-items:center;font-weight:800;font-family:var(--display);flex:none}
 .li.fr .tx{flex:1;min-width:0}.li.fr .tx b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -278,6 +278,14 @@ body.visiting .dock,body.visiting .notice,body.visiting #editbtn,body.visiting .
 .tagrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
 .hcard .ic img{width:44px;height:auto}.hcard .tx{flex:1;min-width:0}
 .rmini{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}.rmini i{font-style:normal;font-size:12px;background:var(--paper,#F6F1E8);border-radius:99px;padding:1px 8px}
+.topr{display:flex;gap:6px;align-items:flex-start}
+.pill.bell{position:relative;width:48px;min-height:48px;display:grid;place-items:center;padding:0;cursor:pointer;font:inherit}
+.pill.bell svg{width:26px;height:26px}
+.bdot{position:absolute;top:-6px;right:-6px;min-width:22px;height:22px;border-radius:11px;background:#F26B6B;color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center;border:2px solid var(--ink,#2A272C);padding:0 4px}
+.li.on{border-color:#F2A541;background:#FFF8EA}
+.warnbox{border-color:#F26B6B!important;background:#FFF0F0!important}
+body.visiting .bell{display:none}
+.warnt{color:#D6453D}
 </style>
 
 <div class="room" id="room"><div class="loading" id="loading">Đang gọi mèo về…</div><canvas id="cv"></canvas></div>
@@ -286,7 +294,8 @@ body.visiting .dock,body.visiting .notice,body.visiting #editbtn,body.visiting .
     <span class="money"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-5 9-6 13-3l4-3v12l-4-3c-4 3-10 2-13-3Z" fill="#9FD3F5" stroke="#2A272C" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8" cy="11" r="1.2" fill="#2A272C"/></svg><span class="vals"><b id="fish">0</b><small class="rate" id="fishrate"></small></span></span>
     <span class="money"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD36B" stroke="#2A272C" stroke-width="1.8"/><path d="M9 9.5c0-1 1.3-1.8 3-1.8s3 .8 3 1.8-1.3 1.6-3 2-3 1-3 2.1 1.3 1.9 3 1.9 3-.8 3-1.8M12 6v12" fill="none" stroke="#2A272C" stroke-width="1.6" stroke-linecap="round"/></svg><span class="vals"><b id="xu">0</b><small class="rate" id="xurate"></small></span></span>
   </div>
-  <div class="pill clock" id="clock"></div>
+  <div class="topr"><button type="button" class="pill bell" id="bellbtn" aria-label="Thông báo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4Z" fill="#FFD36B" stroke="#2A272C" stroke-width="1.9" stroke-linejoin="round"/><path d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="#2A272C" stroke-width="1.9"/></svg><span class="bdot" id="bellN" hidden></span></button>
+  <div class="pill clock" id="clock"></div></div>
 </div>
 <div class="rooms hud" id="rooms"></div>
 <div class="notice" id="notice"></div>
@@ -412,22 +421,32 @@ const JID=Object.fromEntries(JOBS.map(j=>[j.id,j]));
 
 // ---------- Đồ ăn ----------
 const FOODS=[
-  {id:'kibble',n:'Hạt thường',p:5,mood:15,tier:'Thường'},
-  {id:'good',n:'Hạt ngon',p:12,mood:25,tier:'Thường'},
-  {id:'pate',n:'Pate hộp',p:30,mood:35,fb:.05,tier:'Xịn'},
-  {id:'salmon',n:'Cá hồi tươi',p:80,mood:45,fb:.10,tier:'Xịn'},
-  {id:'stick',n:'Súp que',p:15,mood:10,tier:'Món vặt'},
-  {id:'cake',n:'Bánh sinh nhật',p:300,mood:100,tier:'Đặc biệt'}];
+  // Bữa chính: mỗi con một phần mỗi tối
+  {id:'kibble',n:'Hạt thường',p:5,full:4,mood:15,k:'meal'},
+  {id:'organic',n:'Hạt hữu cơ',p:8,full:5,mood:18,k:'meal'},
+  {id:'good',n:'Hạt ngon',p:12,full:6,mood:25,k:'meal'},
+  {id:'anchovy',n:'Cơm cá cơm',p:14,full:6,mood:22,k:'meal'},
+  {id:'pumpkin',n:'Súp bí đỏ',p:18,full:7,mood:28,k:'meal'},
+  {id:'chickpate',n:'Pate gà',p:22,full:8,mood:32,k:'meal'},
+  {id:'pate',n:'Pate hộp',p:30,full:9,mood:35,fb:.05,k:'meal'},
+  {id:'tuna',n:'Cá ngừ hộp',p:40,full:10,mood:38,fb:.05,k:'meal'},
+  {id:'shrimp',n:'Tôm hấp',p:55,full:11,mood:42,fb:.08,k:'meal'},
+  {id:'salmon',n:'Cá hồi tươi',p:80,full:12,mood:45,fb:.10,k:'meal'},
+  {id:'sashimi',n:'Sashimi cá ngừ',p:120,full:14,mood:55,fb:.12,k:'meal'},
+  {id:'wagyu',n:'Bò Kobe',p:180,full:18,mood:65,fb:.15,k:'meal'},
+  {id:'crab',n:'Cua hoàng đế',p:250,full:24,mood:75,fb:.20,k:'meal'},
+  // Ăn vặt: mỗi con một món mỗi ngày, cho trong thẻ mèo
+  {id:'biscuit',n:'Bánh quy cá',p:8,full:1,mood:8,k:'treat'},
+  {id:'stick',n:'Súp que',p:15,full:1,mood:10,k:'treat'},
+  {id:'liver',n:'Gan gà xiên',p:25,full:2,mood:15,k:'treat'},
+  {id:'icecream',n:'Kem cá',p:35,full:2,mood:18,k:'treat'},
+  {id:'catnip',n:'Cỏ mèo',p:45,full:0,mood:25,k:'treat',say:'Mèo phê cỏ, chạy vòng vòng khắp nhà'},
+  {id:'sushi',n:'Sushi mini',p:70,full:3,mood:30,fb:.05,k:'treat'},
+  {id:'cake',n:'Bánh sinh nhật',p:300,full:6,mood:100,k:'special'}];
 const FD=Object.fromEntries(FOODS.map(f=>[f.id,f]));
-const MEALS=['kibble','good','pate','salmon'];
+const MEALS=FOODS.filter(f=>f.k==='meal').map(f=>f.id),TREATS=FOODS.filter(f=>f.k==='treat').map(f=>f.id),BOWLF=['kibble','good','pate','salmon'];
 function favOf(shape){const t=TIER_OF[shape],h=hash(shape)%2;return [['kibble','good'],['good','pate'],['pate','good'],['pate','salmon'],['salmon','salmon']][t][h]}
-const FOOD_ICON={
-  kibble:'<svg viewBox="0 0 48 48"><path d="M10 14h28l-2 28H12Z" fill="#F7D9A8" stroke="#2A272C" stroke-width="2.2" stroke-linejoin="round"/><path d="M10 14l3-6h22l3 6" fill="#F2A541" stroke="#2A272C" stroke-width="2.2" stroke-linejoin="round"/><circle cx="20" cy="28" r="2.5" fill="#B9773B"/><circle cx="27" cy="31" r="2.5" fill="#B9773B"/><circle cx="24" cy="24" r="2.5" fill="#B9773B"/></svg>',
-  good:'<svg viewBox="0 0 48 48"><path d="M10 14h28l-2 28H12Z" fill="#CFE8F7" stroke="#2A272C" stroke-width="2.2" stroke-linejoin="round"/><path d="M10 14l3-6h22l3 6" fill="#7FB8E0" stroke="#2A272C" stroke-width="2.2" stroke-linejoin="round"/><path d="M17 29c3-4 9-4 12 0l3-2v6l-3-2c-3 4-9 4-12 0Z" fill="#fff" stroke="#2A272C" stroke-width="1.8"/></svg>',
-  pate:'<svg viewBox="0 0 48 48"><ellipse cx="24" cy="18" rx="15" ry="5" fill="#F7A1B4" stroke="#2A272C" stroke-width="2.2"/><path d="M9 18v16c0 3 7 6 15 6s15-3 15-6V18" fill="#FFD6DD" stroke="#2A272C" stroke-width="2.2"/><path d="M15 29c3-3 7-3 9 0l2-1v4l-2-1c-2 3-6 3-9 0Z" fill="#fff" stroke="#2A272C" stroke-width="1.5"/></svg>',
-  salmon:'<svg viewBox="0 0 48 48"><path d="M5 25c6-9 20-11 30-3l8-6v18l-8-6c-10 8-24 6-30-3Z" fill="#FFA07A" stroke="#2A272C" stroke-width="2.2" stroke-linejoin="round"/><path d="M18 19l-2 12M24 18l-2 14M30 20l-2 10" stroke="#fff" stroke-width="2" stroke-linecap="round"/><circle cx="11" cy="23" r="1.6" fill="#2A272C"/></svg>',
-  stick:'<svg viewBox="0 0 48 48"><path d="M17 6h14l-3 30h-8Z" fill="#FFE59A" stroke="#2A272C" stroke-width="2.2" stroke-linejoin="round"/><path d="M20 36h8l-1 6h-6Z" fill="#F7A1B4" stroke="#2A272C" stroke-width="2"/><path d="M19 14h10" stroke="#2A272C" stroke-width="1.6"/></svg>',
-  cake:'<svg viewBox="0 0 48 48"><path d="M8 26h32v14H8Z" fill="#FFD6DD" stroke="#2A272C" stroke-width="2.2" stroke-linejoin="round"/><path d="M8 26c3 3 6 3 8 0 2 3 6 3 8 0 2 3 6 3 8 0 2 3 6 3 8 0" fill="#fff" stroke="#2A272C" stroke-width="2"/><path d="M24 12v12" stroke="#2A272C" stroke-width="2.2"/><path d="M24 5c3 3 2 6 0 6s-3-3 0-6Z" fill="#FFD36B" stroke="#2A272C" stroke-width="1.6"/></svg>'};
+const FOOD_ICON=Object.fromEntries(FOODS.map(f=>[f.id,`<img src="food/${f.id}.webp?v=1" alt="" loading="lazy">`]));
 
 // ---------- Phòng, nhà, đất ----------
 const ROOMT=[
@@ -477,23 +496,75 @@ const FURN=[
   {id:'fishtank',name:'Bể cá',price:80,c:4,w:180,x:620,y:99},
   {id:'kotatsu',name:'Bàn sưởi kotatsu',price:90,c:5,w:300,x:380,y:432},
   {id:'cattree',name:'Trụ cào',price:100,c:5,w:220,x:900,y:144}];
+// Đồ độc lạ
+FURN.push(
+  {id:'f_box',name:'Thùng carton',price:10,c:1,w:150,x:300,y:330},
+  {id:'f_sushibed',name:'Ổ sushi cá hồi',price:18,c:2,w:190,x:560,y:340},
+  {id:'f_lava',name:'Đèn dung nham',price:20,c:1,w:70,x:980,y:120},
+  {id:'f_avocado',name:'Ổ quả bơ',price:22,c:2,w:170,x:420,y:330},
+  {id:'f_neon',name:'Đèn neon xương cá',price:26,c:1,w:170,x:520,y:470,wall:1},
+  {id:'f_tent',name:'Lều cắm trại',price:28,c:2,w:170,x:150,y:150},
+  {id:'f_cloud',name:'Kệ mây',price:30,c:2,w:170,x:300,y:500,wall:1},
+  {id:'f_window',name:'Võng cửa sổ',price:32,c:3,w:190,x:260,y:520,wall:1},
+  {id:'f_castle',name:'Lâu đài thùng giấy',price:35,c:3,w:190,x:780,y:150},
+  {id:'f_bubble',name:'Máy thổi bong bóng',price:35,c:2,w:110,x:700,y:320},
+  {id:'f_jelly',name:'Đèn sứa',price:40,c:2,w:110,x:80,y:130},
+  {id:'f_wheel',name:'Bánh xe chạy bộ',price:45,c:3,w:210,x:880,y:150},
+  {id:'f_ballpit',name:'Bể bóng',price:50,c:3,w:230,x:520,y:360},
+  {id:'f_fishsofa',name:'Sofa hình cá',price:55,c:4,w:300,x:520,y:110},
+  {id:'f_telescope',name:'Kính thiên văn',price:60,c:3,w:150,x:960,y:130},
+  {id:'f_piano',name:'Đàn piano mini',price:65,c:3,w:210,x:180,y:100},
+  {id:'f_dj',name:'Bàn DJ mèo',price:75,c:4,w:230,x:760,y:100},
+  {id:'f_arcade',name:'Máy game thùng',price:80,c:4,w:150,x:120,y:90},
+  {id:'f_capsule',name:'Giường phi thuyền',price:85,c:5,w:190,x:640,y:150},
+  {id:'f_massage',name:'Ghế massage',price:90,c:5,w:190,x:330,y:110});
+// Máy cho ăn tự động: mèo đói là tự lấy đồ trong tủ cho ăn, mỗi ngày (ngoài đời) có giới hạn số bữa
+FURN.push(
+  {id:'f_timer',name:'Máy cho ăn hẹn giờ',price:40,c:0,w:110,x:180,y:250,feeder:6,desc:'Mèo đói là tự cho ăn món đang chọn, tối đa 6 bữa mỗi ngày'},
+  {id:'f_smart',name:'Máy cho ăn thông minh',price:70,c:0,w:115,x:240,y:250,feeder:12,fav:1,desc:'Mèo đói là tự cho ăn đúng món khoái khẩu, tối đa 12 bữa mỗi ngày'},
+  {id:'f_ai',name:'Robot cho ăn AI',price:100,c:1,w:130,x:300,y:250,feeder:24,fav:1,bonus:5,desc:'Tối đa 24 bữa mỗi ngày, đúng món khoái khẩu, trò chuyện với mèo thêm +5 vui'});
+// Máy móc vệ sinh: mỗi loại có tác dụng cho cả nhà (đặt ở phòng nào cũng được, trùng loại không cộng dồn)
+FURN.push(
+  {id:'g_fountain',name:'Đài nước uống',price:40,c:0,w:120,x:420,y:250,gad:{mood:3},desc:'Mèo uống nước sạch, cả nhà +3 tâm trạng mỗi sáng'},
+  {id:'g_bath',name:'Bồn tắm bong bóng',price:45,c:1,w:170,x:700,y:240,gad:{mood:2,grace:6},desc:'+2 tâm trạng mỗi sáng. Khay bẩn quá thêm 1 giờ mèo mới ốm'},
+  {id:'g_groom',name:'Cổng chải lông',price:50,c:0,w:130,x:600,y:250,gad:{mood:3},desc:'Mèo tự gãi lưng, cả nhà +3 tâm trạng mỗi sáng'},
+  {id:'g_dryer',name:'Máy sấy lông',price:55,c:0,w:150,x:820,y:250,gad:{mood:2,grace:6},desc:'Lông khô mượt, +2 tâm trạng mỗi sáng. Khay bẩn quá thêm 1 giờ mèo mới ốm'},
+  {id:'g_vacuum',name:'Robot hút bụi',price:60,c:0,w:150,x:480,y:300,gad:{dirt:.85},desc:'Hút cát văng: khay nhựa đủ mèo 12 giờ mới phải dọn (thường 10 giờ)'},
+  {id:'g_purifier',name:'Máy lọc không khí',price:70,c:0,w:90,x:60,y:140,gad:{grace:22,clean:1},desc:'Khay bẩn quá thêm 4 giờ mèo mới ốm, khay bẩn không làm mèo buồn'},
+  {id:'g_robot',name:'Robot dọn vệ sinh',price:100,c:0,w:140,x:360,y:250,gad:{robot:1},desc:'7 giờ sáng và 7 giờ tối trong game (cứ khoảng 2 giờ thật) tự dọn mọi khay bẩn trong nhà, dùng cát trong tủ'});
+// Đồ chơi: mèo không ai chơi cùng 6 giờ là chán; mỗi món khác loại trong phòng giữ mèo không chán thêm 1-4 giờ (tối đa +18)
+[['y_yarn','Cuộn len',5,1],['y_pingpong','Bóng bàn',5,1],['y_bag','Túi giấy sột soạt',5,1],['y_spring','Lò xo nhảy',6,1],['y_bell','Bóng chuông',6,1],
+ ['y_mouse','Chuột bông',8,1],['y_carrot','Cà rốt bông',8,1],['y_banana','Chuối cỏ mèo',8,1],['y_feather','Cần câu lông vũ',10,1],['y_bird','Cần câu chim',10,1],
+ ['y_fish','Cá bông để đạp',12,2],['y_ribbon','Gậy ruy băng',12,2],['y_octo','Bạch tuộc bông',14,2],['y_avocado','Quả bơ bông',14,2],['y_scratch','Bàn cào sóng',15,2],
+ ['y_tumbler','Lật đật chuông',16,2],['y_laser','Bút laser',18,2],['y_tunnel','Đường hầm',20,2],['y_hide','Hộp trốn tìm',22,2],['y_cactus','Cột cào xương rồng',24,2],
+ ['y_puzzle','Bảng đố mèo',25,2],['y_rocket','Tên lửa bông',25,2],['y_bubbles','Bong bóng cỏ mèo',28,2],['y_ufo','Đĩa bay xoay',30,2],
+ ['y_track','Tháp bóng lăn',35,3],['y_butterfly','Bướm xoay tự động',40,3],['y_snake','Rắn điện',42,3],['y_flop','Cá điện quẫy',45,3],['y_robomouse','Chuột robot',50,3],['y_laserbot','Robot laser',60,3]]
+ .forEach(([id,name,price,fun],i)=>FURN.push({id,name,price,c:0,fun,hrs:[0,1,2,4][fun],toy:1,w:[0,95,120,140][fun]+(i%3)*10,x:120+(i*137)%800,y:250+(i*53)%140}));
 // ---------- Vệ sinh: khay và cát ----------
 const TOILETS=[
-  {id:'t_tray',img:'tray',name:'Khay nhựa',price:20,cur:'xu',cap:3,rate:1,w:150,x:150,y:60,desc:'Bình dân, bẩn nhanh'},
-  {id:'t_covered',img:'covered',name:'Khay có nắp',price:50,cur:'xu',cap:4,rate:.8,w:140,x:880,y:60,desc:'Đỡ mùi, bẩn chậm hơn 20%'},
-  {id:'t_wood',img:'wood',name:'Tủ vệ sinh gỗ',price:80,cur:'xu',cap:5,rate:.65,w:150,x:110,y:50,desc:'Đẹp như đồ nội thất, bẩn chậm hơn 35%'},
-  {id:'t_auto',img:'auto',name:'Khay tự dọn',price:100,cur:'xu',cap:6,rate:.6,w:150,x:900,y:50,auto:1,desc:'Tự dọn mỗi sáng nếu tủ còn cát'}];
+  {id:'t_tray',img:'tray',name:'Khay nhựa',price:20,cur:'xu',cap:3,rate:1,w:150,x:150,y:60,desc:'Bình dân'},
+  {id:'t_corner',img:'corner',name:'Khay góc tam giác',price:25,cur:'xu',cap:3,rate:.9,w:140,x:90,y:70,desc:'Nhét vừa góc phòng'},
+  {id:'t_covered',img:'covered',name:'Khay có nắp',price:50,cur:'xu',cap:4,rate:.8,w:140,x:880,y:60,desc:'Đỡ mùi'},
+  {id:'t_top',img:'top',name:'Khay cửa trên',price:60,cur:'xu',cap:4,rate:.75,w:135,x:820,y:70,desc:'Mèo chui từ nắp, cát không văng'},
+  {id:'t_wood',img:'wood',name:'Tủ vệ sinh gỗ',price:80,cur:'xu',cap:5,rate:.65,w:150,x:110,y:50,desc:'Đẹp như đồ nội thất'},
+  {id:'t_double',img:'double',name:'Khay đôi cỡ lớn',price:90,cur:'xu',cap:8,rate:.8,w:200,x:250,y:60,desc:'Hai ngăn, nhiều chỗ'},
+  {id:'t_auto',img:'auto',name:'Khay tự dọn',price:100,cur:'xu',cap:6,rate:.6,w:150,x:900,y:50,auto:1,desc:'Tự dọn mỗi sáng trong game nếu tủ còn cát'}];
 const LITTERS=[
   {id:'clay',n:'Cát đất sét',p:30,uses:5,rate:1,mood:0,desc:'Bình dân'},
-  {id:'tofu',n:'Cát đậu nành',p:80,uses:5,rate:.8,mood:3,desc:'Bẩn chậm hơn 20%, mèo +3 tâm trạng mỗi lần dọn'},
-  {id:'crystal',n:'Cát tinh thể',p:180,uses:5,rate:.6,mood:6,desc:'Bẩn chậm hơn 40%, mèo +6 tâm trạng mỗi lần dọn'}];
+  {id:'pine',n:'Cát gỗ thông',p:50,uses:5,rate:.9,mood:1,desc:'Thơm mùi gỗ'},
+  {id:'tofu',n:'Cát đậu nành',p:80,uses:5,rate:.8,mood:3,desc:''},
+  {id:'charcoal',n:'Cát than hoạt tính',p:120,uses:5,rate:.7,mood:4,grace:11,desc:'Khử mùi, khay bẩn quá thêm 2 giờ mèo mới ốm'},
+  {id:'crystal',n:'Cát tinh thể',p:180,uses:5,rate:.6,mood:6,desc:''},
+  {id:'rainbow',n:'Cát cầu vồng',p:260,uses:5,rate:.55,mood:10,desc:'Lấp lánh 7 màu'}];
 const LT=Object.fromEntries(LITTERS.map(l=>[l.id,l]));
 const HOSP=[40,70,150,300,600];
 TOILETS.forEach(t=>FURN.push({...t,toilet:1,c:t.id==='t_wood'?1:0}));
 const FID=Object.fromEntries(FURN.map(f=>[f.id,f]));
 const baseId=k=>String(k).split('#')[0];
 const fid=k=>FID[baseId(k)];
-const FIMG={};FURN.forEach(f=>loadImg(f.toilet?`care/${f.img}.webp?v=2`:`furn/${f.id}.webp?v=2`).then(i=>{FIMG[f.id]=i;f.h=f.w*i.naturalHeight/i.naturalWidth;if(st)try{clampRoom()}catch(e){}}));
+const FIMG={},FLOAD={};const furnSrc=f=>f.toilet?`care/${f.img}.webp?v=2`:`furn/${f.id}.webp?v=2`;
+function getFImg(id){if(FIMG[id])return FIMG[id];const f=FID[id];if(!f||FLOAD[id])return null;FLOAD[id]=1;loadImg(furnSrc(f)).then(i=>{FIMG[id]=i;f.h=f.w*i.naturalHeight/i.naturalWidth;if(st)try{clampRoom()}catch(e){}});return null}
+FURN.slice(0,24).forEach(f=>getFImg(f.id));
 const NIGHT=new Image();NIGHT.src='rooms/night.webp?v=1';NIGHT.onload=()=>{for(const t in RIMG){const im=RIMG[t];if(im.complete&&im.naturalWidth)try{SKY[t]=makeSky(im)}catch(e){}}};
 const RIMG={},SKY={};function roomImg(t){if(!RIMG[t]){const im=new Image();im.decoding='async';im.onload=()=>{try{SKY[t]=makeSky(im)}catch(e){}};im.src=`rooms/${ROOMT[t].img||'r'+(t+1)}.webp`;RIMG[t]=im}return RIMG[t]}
 // Tìm phần trời trong ảnh phòng (xanh da trời và mây kẹp giữa), vẽ sẵn bản trời đêm có sao để phủ lên khi tối
@@ -573,7 +644,7 @@ function newRoom(t){return{t,furn:{},owned:[]}}
 function newHouse(lot,tpl){const h={id:st?st.nextHouse++:1,lot,tpl,rooms:[newRoom(0)],bowl:null,rent:false};syncOutdoor(h);return h}
 function syncOutdoor(h){TPL[h.tpl].out.forEach(o=>{const t=OUT_T[o];if(!h.rooms.some(r=>r.t===t))h.rooms.push(newRoom(t))});
   h.rooms.sort((a,b)=>(ROOMT[a.t].out?1:0)-(ROOMT[b.t].out?1:0))}
-function mkCat(g,extra){return{id:st.nextId++,g,star:0,mood:70,job:null,jobSince:0,h:-1,r:0,born:now(),lastEgg:0,fed:'',pets:0,petDay:'',stick:'',fb:0,spa:0,cake:0,...(extra||{})}}
+function mkCat(g,extra){return{id:st.nextId++,g,star:0,mood:70,job:null,jobSince:0,h:-1,r:0,born:now(),lastEgg:0,fed:'',pets:0,petDay:'',stick:'',fb:0,spa:0,cake:0,full:now()+6*H,joy:now(),...(extra||{})}}
 let st=null;
 function fresh(){
   st={v:2,fish:300,xu:120,pts:0,cats:[],nextId:1,nextHouse:1,houses:[],ch:0,cur:0,seen:[],species:[],favKnown:[],photos:[],
@@ -596,7 +667,7 @@ function migrate(o){// bản demo cũ: giữ cá, mèo, phòng đã mở và đ�
 // Kho đồ chung: món đã mua mà chưa đặt trong phòng nào
 function ensureInv(){if(st.inv)return;st.inv={};const put=(id,o)=>{(st.inv[id]=st.inv[id]||[]).push(o||{})};
   st.houses.forEach(h=>h.rooms.forEach(r=>{(r.owned||[]).forEach(id=>{if(!r.furn[id])put(id,id.startsWith('t_')?{dirt:(r.tstash||{})[id]||0}:{})})}))}
-function ensureToilet(){if(!st.litter)st.litter={clay:10,tofu:0,crystal:0};if(!st.litterUse)st.litterUse='clay';
+function ensureToilet(){if(!st.litter)st.litter={clay:10,tofu:0,crystal:0};if(!st.litterUse)st.litterUse='clay';LITTERS.forEach(l=>{if(st.litter[l.id]==null)st.litter[l.id]=0});if(!st.timeInit){st.timeInit=1;st.cats.forEach(c=>{c.full=now()+6*H;c.joy=now()})}if(st.pantry)FOODS.forEach(f=>{if(st.pantry[f.id]==null)st.pantry[f.id]=0});
   if(!st.toiletInit){st.toiletInit=1;const h=st.houses[0];if(h&&!boxesOf(h).length){const r=h.rooms[0];r.furn.t_tray={x:300,y:ROOMT[r.t].fl+150,dirt:0,lit:'clay'};r.owned.push('t_tray')}}}
 function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
   if(s&&s.v===2&&Array.isArray(s.cats)){st=s;st.cats=st.cats.filter(c=>SPR[c.g.shape]);ensureToilet();ensureInv();return}
@@ -636,10 +707,24 @@ const present=(c,t=now())=>!away(c,t)&&!inHosp(c,t);
 // khay vệ sinh của một nhà
 function boxesOf(h){const out=[];h.rooms.forEach((r,ri)=>{for(const id in r.furn)if(fid(id)&&fid(id).toilet)out.push({f:fid(id),p:r.furn[id],ri})});return out}
 function usersOf(h){return st.cats.filter(c=>c.h===h.id&&!c.hosp).length}
+// Thời gian thật (giờ): khay đầy mèo bẩn 5,5 điểm mỗi giờ, tới 55 là phải dọn
+const DIRT_H=5.5,cleanH=r=>Math.round(55/(DIRT_H*r)),BORED_H=6;
+const hrsLeft=t=>Math.max(0,(t-now())/H);
+const hungry=c=>!((c.full||0)>now());
+const canEat=c=>(c.full||0)-now()<H;
+function eat(c,f){c.full=Math.min(now()+30*H,Math.max(now(),c.full||0)+(FD[f].full||0)*H);c.fed=dayKey(gnow())}
+function toyHours(h,ri){const seen=new Set();let x=0;for(const k in h.rooms[ri].furn){const f=fid(k);if(f&&f.toy&&!seen.has(f.id)){seen.add(f.id);x+=f.hrs}}return Math.min(18,x)}
+const boredAfter=c=>{const h=houseById(c.h);return BORED_H+(h?toyHours(h,c.r):0)};
+const bored=c=>now()-(c.joy||0)>boredAfter(c)*H;
+function gadOf(h){const g={mood:0,grace:0,dirt:1,clean:0,robot:0},seen=new Set();
+  h.rooms.forEach((r,ri)=>{for(const k in r.furn){const f=fid(k);if(!f||seen.has(f.id))continue;
+    if(f.gad){seen.add(f.id);const e=f.gad;g.mood+=e.mood||0;g.grace+=e.grace||0;g.dirt*=e.dirt||1;g.clean|=e.clean||0;g.robot|=e.robot||0}}});
+  return g}
+function feedersOf(h){const out=[];h.rooms.forEach(r=>{for(const k in r.furn){const f=fid(k);if(f&&f.feeder)out.push(f)}});return out}
 function capOf(h){return boxesOf(h).reduce((a,b)=>a+b.f.cap,0)}
 function houseDirt(h){const bx=boxesOf(h),n=usersOf(h);if(!n)return 0;if(!bx.length)return 100;const cap=capOf(h);return bx.reduce((a,b)=>a+(b.p.dirt||0)*b.f.cap,0)/cap}
 function accrue(hours){if(hours<=0)return;st.houses.forEach(h=>{const n=usersOf(h),bx=boxesOf(h);if(!n||!bx.length)return;const load=n/capOf(h);
-  bx.forEach(b=>{b.p.dirt=Math.min(100,(b.p.dirt||0)+hours/24*22*load*b.f.rate*(LT[b.p.lit||'clay']||LT.clay).rate)})})}
+  const gm=gadOf(h).dirt;bx.forEach(b=>{b.p.dirt=Math.min(100,(b.p.dirt||0)+hours/24*22*load*b.f.rate*gm*(LT[b.p.lit||'clay']||LT.clay).rate)})})}
 function takeLitter(){if(st.litter[st.litterUse]>0)return st.litterUse;return LITTERS.map(l=>l.id).find(k=>st.litter[k]>0)||null}
 function cleanBox(h,b,quiet){const k=takeLitter();if(!k){if(!quiet)toast('Hết cát mèo rồi. Mua ở Mua sắm, mục Vệ sinh');return false}
   st.litter[k]--;b.p.dirt=0;b.p.lit=k;const m=LT[k].mood;if(m)st.cats.forEach(c=>{if(c.h===h.id)c.mood=Math.min(100,c.mood+m)});return true}
@@ -662,7 +747,7 @@ function xuPerHour(){return st.houses.filter(h=>!h.rent).reduce((a,h)=>a+10+.5*h
 function passivePerHour(t=now()){return st.cats.reduce((a,c)=>a+(c.h>=0&&present(c,t)&&!c.sick?homeRate(c):0),0)}
 
 // ---------- Xử lý thời gian ----------
-function nextBoundary(t){const c=[at(t,7),at(t,17),at(t+DAY,7)].filter(b=>b>t);return Math.min(...c)}
+function nextBoundary(t){const c=[at(t,7),at(t,17),at(t,19),at(t+DAY,7)].filter(b=>b>t);return Math.min(...c)}
 function process(){
   const T=now();let t=st.t||T;if(T-t>30*DAY)t=T-30*DAY;
   // cá tự ra lúc tắt game: 40%, tối đa 12 giờ
@@ -671,18 +756,41 @@ function process(){
   for(let b=nextBoundary(G(t));b<=gT;b=nextBoundary(b)){
     if(b>gp){accrue((b-gp)/H);gp=b}
     const hh=new Date(b).getHours();
-    if(hh===7)morning(b);else if(hh===17&&isWeekday(b))payday(b)}
+    if(hh===7)morning(b);else if(hh===17&&isWeekday(b))payday(b);else if(hh===19)robotClean()}
   if(gT>gp)accrue((gT-gp)/H);st.gt=gT;
   st.cats.forEach(c=>{if(c.hosp&&gT>=c.hosp){c.hosp=0;c.sick=0;c.mood=Math.max(c.mood,60);st.healed=(st.healed||0)+1}});
   const rd=dayKey(T);if(st.rday!==rd){if(st.rday)payRent();st.rday=rd}
-  st.t=T;
+  st.t=T;feederTick();
   while(st.free<2&&st.freeAt&&T>=st.freeAt){st.free++;st.freeAt=st.free<2?st.freeAt+12*H:0}
   strays(T);
 }
 function morning(b){const slept=!lightOn();st.cats.forEach(c=>{c.mood=Math.max(0,Math.min(100,c.mood-6-(c.sick?8:0)+(slept?5:0)))});
-  st.houses.forEach(h=>{boxesOf(h).forEach(bx=>{if(bx.f.auto&&(bx.p.dirt||0)>5)cleanBox(h,bx,true)});
-    const d=houseDirt(h),n=usersOf(h),over=n>capOf(h);let p=d>=90?.25:d>=70?.1:d>=55?.03:0;if(over&&n)p+=.08;
-    st.cats.forEach(c=>{if(c.h!==h.id||c.sick||c.hosp)return;if(d>=70)c.mood=Math.max(0,c.mood-6);if(R()<p){c.sick=b;st.newSick=(st.newSick||0)+1}})})}
+  st.houses.forEach(h=>{const g=gadOf(h);boxesOf(h).forEach(bx=>{if((bx.f.auto&&(bx.p.dirt||0)>5)||(g.robot&&(bx.p.dirt||0)>=20))cleanBox(h,bx,true)});
+    const d=houseDirt(h),n=usersOf(h),over=n>capOf(h);const lg=boxesOf(h).reduce((a,x)=>Math.max(a,(LT[x.p.lit||'clay']||LT.clay).grace||0),0),ds=d-g.grace-lg;let p=ds>=90?.25:ds>=70?.1:ds>=55?.03:0;if(over&&n)p+=.08;
+    
+    st.cats.forEach(c=>{if(c.h!==h.id||c.sick||c.hosp)return;if(d>=70&&!g.clean)c.mood=Math.max(0,c.mood-6);
+      if(g.mood)c.mood=Math.min(100,c.mood+g.mood);const rt=realOf(b);if(!((c.full||0)>rt))c.mood=Math.max(0,c.mood-8);if(rt-(c.joy||0)>boredAfter(c)*H)c.mood=Math.max(0,c.mood-6);
+      if(R()<p){c.sick=b;st.newSick=(st.newSick||0)+1}})});
+  neglect(b)}
+// Mèo bị bỏ bê lâu (đói, buồn, khay bẩn) thì bỏ nhà đi. Mỗi sáng xét một lần, mỗi sáng tối đa 1 con đi.
+function logEv(txt){(st.events=st.events||[]).unshift({t:Date.now(),txt});if(st.events.length>40)st.events.length=40}
+const RUN_DAYS=8,WARN_DAYS=4;// ngày trong game: 6 ngày game = 1 ngày thật, nên bỏ bê khoảng 1,5 ngày thật mới đi
+const realOf=b=>GE+(b-GE)/SPEED;
+function neglectWhy(c,b){const h=houseById(c.h),why=[],rt=realOf(b);if(!h)return why;
+  if(!((c.full||0)>rt))why.push('đói');if(rt-(c.joy||0)>boredAfter(c)*H)why.push('chán');if(c.mood<25)why.push('buồn');if(houseDirt(h)>=80)why.push('khay bẩn');return why}
+function neglect(b){
+  st.cats.forEach(c=>{if(c.h<0||c.hosp)return;const why=neglectWhy(c,b),h=houseById(c.h);const bad=c.mood<25||(h&&houseDirt(h)>=90);c.neg=bad?(c.neg||0)+1:Math.max(0,(c.neg||0)-2);c.why=why.length?why:['buồn']})
+  const cand=st.cats.filter(c=>c.h>=0&&!c.hosp&&(c.neg||0)>=RUN_DAYS).sort((a,b2)=>b2.neg-a.neg)[0];
+  if(cand){st.cats=st.cats.filter(c=>c!==cand);actors.delete(cand.id);(st.ranAway=st.ranAway||[]).push({n:nameOf(cand.g),g:cand.g,why:cand.why.join(', '),at:b});if(st.ranAway.length>20)st.ranAway.shift();logEv(`${nameOf(cand.g)} bỏ nhà đi vì ${cand.why.join(', ')}`)}}
+const atRisk=()=>st.cats.filter(c=>c.h>=0&&(c.neg||0)>=WARN_DAYS);
+function feederTick(){const dk=dayKey(now());if(!st.feedDay||st.feedDay.d!==dk)st.feedDay={d:dk,u:{}};let fedNow=0;
+  st.houses.forEach(h=>{const fs=feedersOf(h);if(!fs.length)return;const cap=fs.reduce((a,f)=>a+f.feeder,0),fav=fs.some(f=>f.fav),bonus=Math.max(0,...fs.map(f=>f.bonus||0));
+    st.cats.filter(c=>c.h===h.id&&!c.hosp&&hungry(c)).sort((a,b)=>(a.full||0)-(b.full||0)).forEach(c=>{if((st.feedDay.u[h.id]||0)>=cap)return;
+      const want=fav?favOf(c.g.shape):null;const f=want&&st.pantry[want]>0?want:takeFood(c);if(!f)return;
+      st.pantry[f]--;st.feedDay.u[h.id]=(st.feedDay.u[h.id]||0)+1;let m=FD[f].mood+bonus;if(f===favOf(c.g.shape)){m+=10;if(!st.favKnown.includes(c.g.shape))st.favKnown.push(c.g.shape)}
+      c.mood=Math.min(100,c.mood+m);eat(c,f);c.fb=FD[f].fb||0;st.autoFed=(st.autoFed||0)+1;fedNow++})});
+  if(fedNow)logEv(`Máy cho ăn tự cho ${fedNow} mèo ăn`)}
+function robotClean(){st.houses.forEach(h=>{if(!gadOf(h).robot)return;boxesOf(h).forEach(bx=>{if((bx.p.dirt||0)>=20)cleanBox(h,bx,true)})})}
 function payRent(){st.houses.forEach(h=>{if(h.rent){const xu=rentOf(h);st.xu+=xu;st.rentLog=(st.rentLog||0)+xu}})}
 function payday(b){let sum=0,n=0;
   st.cats.forEach(c=>{if(!c.job||c.h<0||c.sick||c.hosp||c.jobSince>at(b,8))return;const j=JID[c.job];if(!j)return;sum+=wageOf(c,j);n++;c.fb=0});
@@ -756,7 +864,7 @@ function drawCat(a,T,night){
   ctx.restore();
 }
 function furnBox(id,p){const f=fid(id);const h=f.h||f.w;return f.wall?{x0:p.x-f.w/2,y0:p.y,x1:p.x+f.w/2,y1:p.y+h,z:-1}:{x0:p.x-f.w/2,y0:p.y-h,x1:p.x+f.w/2,y1:p.y,z:p.y-Math.min(h*.45,70)}}
-function drawFurn(id,p){const img=FIMG[baseId(id)];if(!img)return;const b=furnBox(id,p);
+function drawFurn(id,p){const img=getFImg(baseId(id));if(!img)return;const b=furnBox(id,p);
   if(edit&&drag&&drag.id===id){ctx.save();ctx.globalAlpha=.85}
   ctx.drawImage(img,b.x0*S,b.y0*S,(b.x1-b.x0)*S,(b.y1-b.y0)*S);
   if(fid(id).toilet){const d=p.dirt||0,T=performance.now()/1000;
@@ -842,6 +950,7 @@ function openInv(){const ids=Object.keys(st.inv||{}).filter(id=>st.inv[id].lengt
     <button type="button" class="btn ghost" data-close>Đóng</button>`);
   bind($('sheet'),'[data-put]',el=>{const id=el.dataset.put;const o=(st.inv[id]||[]).pop();if(!o)return;placeOne(id,o);save();updEditBar();openInv()})}
 $('storebtn').onclick=storeSel;$('invbtn').onclick=openInv;
+$('bellbtn').onclick=openNotif;
 $('lightbtn').onclick=()=>{st.light=!lightOn();save();updLight();toast(lightOn()?'Đã bật đèn. Mèo còn thức chơi':'Đã tắt đèn. Mèo đi ngủ, sáng mai vui hơn')};
 function updLight(){const b=$('lightbtn');b.hidden=!darkNow()||edit;b.classList.toggle('on',lightOn());b.setAttribute('aria-pressed',lightOn());$('lighttxt').textContent=lightOn()?'Tắt đèn':'Bật đèn'}
 editBtn.onclick=()=>setEdit(!edit);
@@ -876,7 +985,7 @@ function say(a,html,ms=1800){const b=a.b,k=depth(a);const cx=a.X*S-OX,top=(a.Y-(
 function heart(cx,top){const ht=document.createElement('div');ht.className='heart';ht.style.left=(cx-11)+'px';ht.style.top=top+'px';
   ht.innerHTML='<svg viewBox="0 0 24 22"><path d="M12 20C4 14 1 10 1 6a5 5 0 0 1 11-2 5 5 0 0 1 11 2c0 4-3 8-11 14Z" fill="#F7849A" stroke="#2A272C" stroke-width="2"/></svg>';
   room.appendChild(ht);setTimeout(()=>ht.remove(),1000)}
-function tapCat(a){const c=a.c,dk=dayKey(gnow());if(c.petDay!==dk){c.petDay=dk;c.pets=0}
+function tapCat(a){const c=a.c,dk=dayKey(gnow());c.joy=now();if(c.petDay!==dk){c.petDay=dk;c.pets=0}
   a.jump=1;a.state='idle';a.t=1.6;
   if(c.pets<3){c.pets++;c.mood=Math.min(100,c.mood+10);a.expr=11;a.exprT=1.3;const [x,y]=say(a,`<b>${esc(shortName(c.g))}</b> · tâm trạng ${c.mood}`);heart(x,y);save();
     if(c.pets===3)setTimeout(()=>openCat(c.id),700)}
@@ -904,12 +1013,13 @@ function notices(){const n=[];const sk=sickCats().length;if(sk)n.push(`${sk} mè
   const ready=st.eggs.filter(e=>now()>=e.end).length;if(ready)n.push(`${ready} trứng đã nở`);
   if(st.gifts.length)n.push(`${st.gifts.length} món quà mèo hoang để lại`);
   if(pantryMeals()<st.cats.filter(c=>c.h>=0).length)n.push('Tủ đồ ăn sắp hết');
+  const rk=atRisk();if(rk.length)n.unshift(`${rk.length} mèo sắp bỏ nhà đi vì bị bỏ bê`);
   if(ROOMT[curT()].out&&!curHouse().bowl)n.unshift('Chạm vào bát hồng để mời mèo hoang ghé');
   return n}
-function renderHud(){updateWallet();updLight();$('clock').innerHTML=clockText();
+function renderHud(){updateWallet();updLight();$('clock').innerHTML=clockText();{const n=unseenN();$('bellN').textContent=n>9?'9+':n||'';$('bellN').hidden=!n}
   const n=notices();$('notice').textContent=n[0]||'';
   $('dot-box').textContent=readyShards().length?'!':st.free>0?st.free:'';
-  $('dot-care').textContent=(st.mail>0||(guests&&guests.xu>0)||st.gifts.length||sickCats().length||maxDirt()>=55)?'!':'';
+  $('dot-care').textContent=(st.mail>0||atRisk().length||(st.ranAway&&st.ranAway.some(r=>!r.seen))||(guests&&guests.xu>0)||st.gifts.length||sickCats().length||maxDirt()>=55)?'!':'';
   $('dot-egg').textContent=st.eggs.filter(e=>now()>=e.end).length||'';
   $('dot-book').textContent=claimable().length||'';
   $('dot-shop').textContent=waiting().length?waiting().length:''}
@@ -1047,10 +1157,12 @@ function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;if(pickFor!
     <h2>${esc(nameOf(c.g))}</h2><p class="hint">${esc(where)}</p></div></div>
     ${inHosp(c,T)?`<div class="box hl"><h3>Đang nằm viện</h3><p class="hint">Về nhà sau ${dur((c.hosp-G(T))/SPEED)} nữa, khỏe lại và vui hơn.</p></div>`:c.sick?`<div class="box hl"><h3>Mèo đang ốm</h3><p class="hint">Khay vệ sinh bẩn quá nên mèo bị ốm. Mèo ốm không đi làm được và buồn dần. Đưa đi bệnh viện 1 tiếng ngoài đời là khỏe.</p><button type="button" class="btn" data-a="hosp"${st.fish<HOSP[t]?' disabled':''}>Đi bệnh viện · ${HOSP[t]} cá</button></div>`:''}
     <div class="row"><span class="hint" style="width:90px">Tâm trạng ${c.mood}</span><span class="bar mood" style="flex:1"><i style="width:${c.mood}%"></i></span></div>
+    ${(c.neg||0)>=WARN_DAYS?`<div class="box hl warnbox"><h3>Mèo sắp bỏ nhà đi</h3><p class="hint">${esc(shortName(c.g))} đã ${c.neg} ngày ${esc((c.why||[]).join(', '))}. Thêm ${Math.max(1,RUN_DAYS-c.neg)} ngày trong game nữa là bỏ đi. Cho ăn, dọn khay, vuốt ve ngay nhé.</p></div>`:''}
+    <p class="hint">${hungry(c)?'<b class="warnt">Đang đói</b>':`No còn ${Math.floor(hrsLeft(c.full))} giờ`} · ${bored(c)?'<b class="warnt">Đang chán</b>':`Chán sau ${Math.max(0,Math.floor(boredAfter(c)-(now()-(c.joy||0))/H))} giờ`}</p>
     <div class="catfields">${placeBox(c)}${jobBox(c,job)}</div>
     <p class="hint">Món khoái khẩu: <b>${esc(fav)}</b>. Vuốt hôm nay: ${c.petDay===dk?c.pets:0}/3.</p>
     <div class="acts">
-      <button type="button" class="btn small" data-a="stick"${c.stick===dk||!st.pantry.stick?' disabled':''}>Đút súp que${st.pantry.stick?` (còn ${st.pantry.stick})`:''}</button>
+      <button type="button" class="btn small" data-a="treat"${c.stick===dk||!TREATS.some(k=>st.pantry[k]>0)?' disabled':''}>${c.stick===dk?'Đã ăn vặt hôm nay':'Cho ăn vặt'}</button>
       ${isWeekend(G(T))?`<button type="button" class="btn small" data-a="spa"${c.spa>G(T)||st.fish<50?' disabled':''}>${c.spa>G(T)?'Đã spa tuần này':'Đi spa · 50 cá'}</button>`:''}
       <button type="button" class="btn small ghost" data-a="cake"${!st.pantry.cake||c.cake>T-365*DAY?' disabled':''}>Bánh sinh nhật</button>
     </div>
@@ -1072,6 +1184,7 @@ function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;if(pickFor!
     toast(j?(isWorkTime(gnow())?`${shortName(c.g)} sẽ đi ${j.n.toLowerCase()} từ ca sau`:`${shortName(c.g)} sẽ đi ${j.n.toLowerCase()}`):`${shortName(c.g)} ở nhà nghỉ`);openCat(id);$('sheet').scrollTop=sc});
   bind($('sheet'),'[data-a]',(el)=>{const a=el.dataset.a;
     if(a==='hosp'){if(toHosp(c)){save();syncRoom();renderRooms();toast('Mèo đã tới bệnh viện, 1 tiếng nữa về');closeSheet()}return}
+    if(a==='treat'){openTreats(c);return}
     if(a==='stick'){st.pantry.stick--;c.stick=dk;c.mood=Math.min(100,c.mood+10);st.favKnown.includes(c.g.shape)||0;toast('Mèo liếm súp que, sướng rơn');faceHappy(c);save();openCat(id)}
     if(a==='spa'){startSpa(c)}
     if(a==='cake'){st.pantry.cake--;c.cake=T;c.mood=100;toast('Chúc mừng sinh nhật! Tâm trạng đầy 100');faceHappy(c);save();openCat(id)}
@@ -1124,7 +1237,7 @@ const task=(ic,title,sub,btn,hl)=>`<div class="task${hl?' hl':''}"><div class="i
 function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
   const tabs=[['today','Hôm nay'],['sum','Tổng quan'],['jobs','Đi làm'],['cats','Mèo nhà mình']];
   let html=`<div class="sub">${tabs.map(([k,n])=>`<button type="button" data-t="${k}" class="${careTab===k?'on':''}">${n}</button>`).join('')}</div>`;
-  if(careTab==='today'){const home=st.cats.filter(c=>c.h>=0);const dk=dayKey(GT);const unfed=home.filter(c=>c.fed!==dk);
+  if(careTab==='today'){const home=st.cats.filter(c=>c.h>=0);const dk=dayKey(GT);const unfed=home.filter(c=>!c.hosp&&hungry(c));
     const sick=sickCats(),hs=st.cats.filter(c=>inHosp(c)),hcost=sick.reduce((a,c)=>a+HOSP[tierOf(c.g)],0);
     const md=Math.round(maxDirt()),lit=LITTERS.reduce((a,l)=>a+st.litter[l.id],0);
     const short=st.houses.some(h=>!h.rent&&usersOf(h)>capOf(h));
@@ -1134,9 +1247,14 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
     html+=task(ICON.mail,'Lương',st.mail?`${fmt(st.mail)} cá đang chờ${extra?' · '+extra:''}`:(isWeekday(GT)&&hourOf(GT)<17?'Về lúc 17:00 khi mèo đi làm về':'Chưa có lương mới'),
       st.mail?`<button type="button" class="btn small" id="mail">Nhận</button>`:'',st.mail);
     if(CFG&&ses&&guests&&(guests.xu>0||guests.list.length))html+=task(ICON.pet,'Khách ghé thăm',guestLine(),guests.xu>0?`<button type="button" class="btn small" id="guestclaim">Nhận ${M(guests.xu,'xu')}</button>`:'',guests.xu>0);
+    if(st.ranAway&&st.ranAway.some(r=>!r.seen))html+=task(ICON.pet,'Mèo đã bỏ nhà đi',st.ranAway.filter(r=>!r.seen).map(r=>`${r.n} (${r.why})`).join('; '),'<button type="button" class="btn small ghost" id="ranok">Đã hiểu</button>',true);
+    {const rk=atRisk();if(rk.length)html+=task(ICON.pet,'Sắp bỏ nhà đi',rk.map(c=>`${shortName(c.g)}: ${c.neg} ngày ${(c.why||[]).join(', ')}`).join('; ')+`. ${RUN_DAYS} ngày là bỏ đi`,'',true)}
+    if(st.autoFed)html+=task(FOOD_ICON.kibble,'Máy cho ăn',`Đã tự cho ${st.autoFed} lượt mèo ăn từ lần trước`,'<button type="button" class="btn small ghost" id="afok">OK</button>');
     if(st.gifts.length)html+=task(ICON.gift,'Quà mèo hoang',`${st.gifts.length} món ở hiên nhà`,`<button type="button" class="btn small" id="gifts">Nhặt</button>`,1);
-    html+=task(FOOD_ICON.kibble,'Bữa tối',`${home.length-unfed.length}/${home.length} con đã ăn · tủ còn ${pantryMeals()} phần`,
-      `<button type="button" class="btn small" id="feed"${unfed.length&&pantryMeals()?'':' disabled'}>${unfed.length?'Cho ăn':'No rồi'}</button>`,unfed.length&&ph==='evening');
+    {const ok=home.filter(c=>!c.hosp&&!hungry(c)),soon=ok.length?Math.min(...ok.map(c=>hrsLeft(c.full))):0,can=home.some(c=>!c.hosp&&canEat(c));
+    html+=task(FOOD_ICON.kibble,'Cho ăn',unfed.length?`${unfed.length} con đang đói · tủ còn ${pantryMeals()} phần`:`Cả nhà đang no, con đói sớm nhất sau ${soon<1?'chưa tới 1':Math.floor(soon)} giờ · tủ còn ${pantryMeals()} phần`,
+      `<button type="button" class="btn small" id="feed"${can&&pantryMeals()?'':' disabled'}>${can?'Cho ăn':'No rồi'}</button>`,unfed.length>0)}
+    {const bo=home.filter(c=>!c.hosp&&bored(c));if(bo.length)html+=task(ICON.pet,`${bo.length} con đang chán`,'Vuốt ve hoặc mua đồ chơi để mèo không chán. Chán lâu mèo buồn','',true)}
     html+=task(`<img src="care/tray.webp?v=2" alt="">`,'Vệ sinh',`${md>=3?`Khay bẩn ${md}%`:'Khay sạch'} · cát còn ${lit} lần${short?' · <span class="warn">thiếu khay</span>':''}`,
       `<button type="button" class="btn small" id="cleanall"${md<3?' disabled':''}>Dọn</button>`,md>=55||short);
     if(isWeekend(GT))html+=task(ICON.spa,'Ngày nghỉ: spa','Chạm vào mèo, chọn Đi spa. Lương tuần sau +15%','');
@@ -1150,11 +1268,11 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
           ${lock?'':`<button type="button" class="btn small ghost" data-pick="${j.id}">Chọn</button>`}</div>`}).join('')}</div>`}
   if(careTab==='sum'){const T=now(),dk=dayKey(GT),all=st.cats;
     const atHome=all.filter(c=>c.h>=0&&present(c,T)).length,working=all.filter(c=>away(c,T)).length,hosp=all.filter(c=>inHosp(c,T)).length,sick=sickCats().length,wait=waiting().length;
-    const home=all.filter(c=>c.h>=0),avg=home.length?Math.round(home.reduce((a,c)=>a+c.mood,0)/home.length):0,sad=home.filter(c=>c.mood<40).length,unfed=home.filter(c=>c.fed!==dk).length,jobless=home.filter(c=>!c.job).length;
+    const home=all.filter(c=>c.h>=0),avg=home.length?Math.round(home.reduce((a,c)=>a+c.mood,0)/home.length):0,sad=home.filter(c=>c.mood<40).length,unfed=home.filter(c=>!c.hosp&&hungry(c)).length,boredN=home.filter(c=>!c.hosp&&bored(c)).length,jobless=home.filter(c=>!c.job).length;
     const tile=(n,l,warn)=>`<div class="stile${warn&&n?' warn':''}"><b>${n}</b><span>${l}</span></div>`;
     html+=`<div class="stiles">${tile(all.length,'Tổng số mèo')}${tile(atHome,'Đang ở nhà')}${tile(working,'Đang đi làm')}${tile(sick+hosp,'Ốm, nằm viện',1)}${tile(wait,'Phòng chờ',1)}${tile(jobless,'Chưa có việc')}</div>
       <div class="box"><div class="row"><h3>Tâm trạng trung bình</h3><b>${avg}/100</b></div><div class="meter"><i style="width:${avg}%"></i></div>
-      <p class="hint">${[sad&&`${sad} con đang buồn`,unfed&&`${unfed} con chưa ăn hôm nay`,maxDirt()>=55&&'khay vệ sinh đang bẩn'].filter(Boolean).join(', ')||'Mèo nào cũng ổn.'}</p></div>
+      <p class="hint">${[sad&&`${sad} con đang buồn`,unfed&&`${unfed} con đang đói`,boredN&&`${boredN} con đang chán`,maxDirt()>=55&&'khay vệ sinh đang bẩn'].filter(Boolean).join(', ')||'Mèo nào cũng ổn.'}</p></div>
       <div class="box"><h3>Theo độ hiếm</h3><div class="tagrow">${TIERS.map((t,i)=>{const n=all.filter(c=>tierOf(c.g)===i).length;return n?`<span class="tag ${t.c}">${t.n} ${n}</span>`:''}).join('')||'<span class="hint">Chưa có mèo</span>'}</div></div>
       <h3>Nhà của bạn (${st.houses.length})</h3><div class="list">${st.houses.map((h,i)=>{const n=all.filter(c=>c.h===h.id).length,cap=h.rooms.length*CAP;
         return `<div class="li hcard"><div class="ic"><img src="houses/h${h.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(h))}${i===st.ch?' · đang xem':''}</b>
@@ -1170,6 +1288,8 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
   bind(P,'[data-cat]',el=>openCat(+el.dataset.cat));
   bind(P,'[data-gohome]',el=>{st.ch=+el.dataset.gohome;st.cur=0;save();view();actors.clear();syncRoom();renderRooms();closeTray();toast(`Đang ở ${houseName(curHouse())}`)});
   if($('guestclaim'))$('guestclaim').onclick=async e=>{e.currentTarget.disabled=true;try{const x=await rpc('meo_guests_claim',{p_token:ses.token});if(x>0){st.xu+=x;save();toast(`+${fmt(x)} xu từ khách ghé thăm`)}guests.xu=0}catch(err){toast('Không kết nối được, thử lại sau')}render()};
+  if($('ranok'))$('ranok').onclick=()=>{st.ranAway.forEach(r=>r.seen=1);save();render()};
+  if($('afok'))$('afok').onclick=()=>{st.autoFed=0;save();render()};
   if($('mail'))$('mail').onclick=()=>{st.fish+=st.mail;toast(`+${fmt(st.mail)} cá lương`);st.mail=0;st.mailN=0;st.offline=0;st.offXu=0;st.rentLog=0;save();render()};
   if($('gifts'))$('gifts').onclick=()=>{const sum={fish:0,pts:0,ticket:0};st.gifts.forEach(g=>sum[g.k]+=g.n);st.fish+=sum.fish;st.pts+=sum.pts;st.tickets+=sum.ticket;st.gifts=[];save();
     toast([sum.fish&&`+${fmt(sum.fish)} cá`,sum.pts&&`+${sum.pts} Điểm Hộp`,sum.ticket&&`+${sum.ticket} vé`].filter(Boolean).join(', '));render()};
@@ -1179,14 +1299,19 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
   if($('hospall'))$('hospall').onclick=e=>{const l=sickCats();const cost=l.reduce((a,c)=>a+HOSP[tierOf(c.g)],0);if(st.fish<cost)return;twoTap(e.currentTarget,'hospall',`Trả ${fmt(cost)} cá?`,()=>{l.forEach(toHosp);st.healed=0;save();syncRoom();renderRooms();toast(`${l.length} mèo đã tới bệnh viện`);render()})};
   if($('auto'))$('auto').onclick=autoAssign;
   bind(P,'[data-pick]',el=>pickJob(el.dataset.pick))}
-function openFeed(){const dk=dayKey(gnow());const hungry=st.cats.filter(c=>c.h>=0&&c.fed!==dk);const n=hungry.length;
+function openTreats(c){const dk=dayKey(gnow());const have=TREATS.filter(k=>st.pantry[k]>0);
+  sheet(`<h2>Cho ${esc(shortName(c.g))} ăn vặt</h2><p class="hint">Mỗi con một món mỗi ngày.</p><div class="list">${have.map(k=>{const f=FD[k];return `<button type="button" class="li jobpick" data-treat="${k}"><div class="ic">${FOOD_ICON[k]}</div><span class="tx"><b>${f.n}</b><small>${f.full?`No thêm ${f.full} giờ · `:k==='catnip'?'Hết chán ngay · ':''}vui +${f.mood}${f.fb?` · lương mai +${f.fb*100}%`:''} · còn ${st.pantry[k]}</small></span></button>`}).join('')}</div>
+    <button type="button" class="btn ghost" data-close>Thôi</button>`);
+  bind($('sheet'),'[data-treat]',el=>{const k=el.dataset.treat,f=FD[k];if(!st.pantry[k]||c.stick===dk)return;st.pantry[k]--;c.stick=dk;c.mood=Math.min(100,c.mood+f.mood);if(f.full)c.full=Math.max(now(),c.full||0)+f.full*H;if(k==='catnip')c.joy=now();if(f.fb)c.fb=Math.max(c.fb||0,f.fb);
+    faceHappy(c);save();toast(f.say||`${shortName(c.g)} ăn ${f.n.toLowerCase()}, sướng rơn`);openCat(c.id)})}
+function openFeed(){const hungry=st.cats.filter(c=>c.h>=0&&!c.hosp&&canEat(c));const n=hungry.length;
   const favCount=hungry.filter(c=>st.pantry[favOf(c.g.shape)]>0).length;
   const row=(k,ic,title,sub,ok)=>`<button type="button" class="task pick${st.diet===k?' hl':''}" data-feed="${k}"${ok?'':' disabled'}><div class="ic">${ic}</div><div class="tx"><b>${title}</b><small>${sub}</small></div></button>`;
   sheet(`<div class="row"><h2>Cho ${n} con ăn gì?</h2></div>
-    <p class="hint">Mỗi con ăn 1 phần. Món ngon hơn thì mèo vui hơn, lương hôm sau cao hơn.</p>
+    <p class="hint">Mỗi con ăn 1 phần. Món ngon hơn thì no lâu hơn, vui hơn, lương hôm sau cao hơn.</p>
     <div class="list">
       ${row('fav',ICON.pet,'Món mỗi con thích nhất',`Mỗi con ăn món khoái khẩu của nó, vui thêm +10. Tủ đủ món cho ${favCount}/${n} con`,pantryMeals()>0)}
-      ${MEALS.map(k=>{const f=FD[k],have=st.pantry[k];return row(k,FOOD_ICON[k],f.n,`Vui +${f.mood}${f.fb?` · lương mai +${f.fb*100}%`:''} · tủ có ${have} phần${have&&have<n?`, thiếu ${n-have} con ăn món khác`:''}`,have>0)}).join('')}
+      ${MEALS.map(k=>{const f=FD[k],have=st.pantry[k];return row(k,FOOD_ICON[k],f.n,`No ${f.full} giờ · vui +${f.mood}${f.fb?` · lương mai +${f.fb*100}%`:''} · tủ có ${have} phần${have&&have<n?`, thiếu ${n-have} con ăn món khác`:''}`,have>0)}).join('')}
     </div>
     <p class="hint">Tủ hết món đã chọn thì mèo ăn món khác còn trong tủ. Mua thêm ở Mua sắm, mục Đồ ăn.</p>
     <button type="button" class="btn ghost" data-close>Thôi</button>`);
@@ -1194,9 +1319,9 @@ function openFeed(){const dk=dayKey(gnow());const hungry=st.cats.filter(c=>c.h>=
 function takeFood(c){let want=st.diet==='fav'?favOf(c.g.shape):st.diet;let i=MEALS.indexOf(want);
   for(let k=i;k>=0;k--)if(st.pantry[MEALS[k]]>0)return MEALS[k];for(let k=i+1;k<MEALS.length;k++)if(st.pantry[MEALS[k]]>0)return MEALS[k];return null}
 function feedAll(){const dk=dayKey(gnow());let n=0,favN=0,miss=0;
-  st.cats.filter(c=>c.h>=0&&c.fed!==dk).forEach(c=>{const f=takeFood(c);if(!f){miss++;return}st.pantry[f]--;const F=FD[f];let m=F.mood;
+  st.cats.filter(c=>c.h>=0&&!c.hosp&&canEat(c)).forEach(c=>{const f=takeFood(c);if(!f){miss++;return}st.pantry[f]--;const F=FD[f];let m=F.mood;
     if(f===favOf(c.g.shape)){m+=10;favN++;if(!st.favKnown.includes(c.g.shape))st.favKnown.push(c.g.shape)}
-    c.mood=Math.min(100,c.mood+m);c.fed=dk;c.fb=F.fb||0;n++;faceHappy(c)});
+    c.mood=Math.min(100,c.mood+m);eat(c,f);c.fb=F.fb||0;n++;faceHappy(c)});
   save();toast(`${n} con đã ăn${favN?`, ${favN} con được món khoái khẩu`:''}${miss?`. ${miss} con chưa có phần, tủ hết đồ`:''}`);render()}
 const jobCount=id=>st.cats.filter(c=>c.job===id).length;
 function autoAssign(){const T=gnow();const cats=st.cats.filter(c=>c.h>=0);cats.forEach(c=>c.job=null);
@@ -1314,7 +1439,7 @@ function buyLot(l){const fit=TPL.map((t,i)=>[t,i]).filter(([t])=>t.min<=l.area);
 // ---------- Mèo hoang: bát ăn và xin ở lại ----------
 function openBowl(){const h=curHouse();const T=now();
   sheet(`<h2>Bát ăn ngoài hiên</h2>${h.bowl?`<p class="hint">Đang có ${FD[h.bowl.food].n}, còn ${dur(h.bowl.until-T)}. Mèo hoang đang ghé: ${st.strays.filter(s=>s.h===h.id&&s.arrive<=T).length} con.</p>`:'<p class="hint">Bát đang trống. Đổ 3 phần đồ ăn để mời mèo hoang ghé trong 6 tiếng ngoài đời. Đồ càng xịn, mèo hiếm càng hay ghé.</p>'}
-    <div class="list">${MEALS.map(k=>`<div class="li"><div class="ic">${FOOD_ICON[k]}</div><div class="tx"><b>${FD[k].n}</b><small>${{kibble:'Mèo Thường, Khá ghé',good:'Thỉnh thoảng có mèo Hiếm',pate:'Hay có mèo Hiếm, đôi khi Siêu hiếm',salmon:'Có cơ hội mèo Siêu hiếm'}[k]} · tủ còn ${st.pantry[k]}</small></div><button type="button" class="btn small" data-bowl="${k}"${st.pantry[k]<3||h.bowl?' disabled':''}>Đổ 3 phần</button></div>`).join('')}</div>
+    <div class="list">${BOWLF.map(k=>`<div class="li"><div class="ic">${FOOD_ICON[k]}</div><div class="tx"><b>${FD[k].n}</b><small>${{kibble:'Mèo Thường, Khá ghé',good:'Thỉnh thoảng có mèo Hiếm',pate:'Hay có mèo Hiếm, đôi khi Siêu hiếm',salmon:'Có cơ hội mèo Siêu hiếm'}[k]} · tủ còn ${st.pantry[k]}</small></div><button type="button" class="btn small" data-bowl="${k}"${st.pantry[k]<3||h.bowl?' disabled':''}>Đổ 3 phần</button></div>`).join('')}</div>
     <p class="hint">Mèo hoang ngồi chơi 1-3 giờ rồi đi, để lại quà: cá, Điểm Hộp, hiếm hơn là vé hộp. Chạm vào mèo hoang để chụp ảnh. Đôi khi có con xin ở lại.</p>
     <button type="button" class="btn ghost" data-close>Đóng</button>`);
   bind($('sheet'),'[data-bowl]',el=>{const k=el.dataset.bowl;if(st.pantry[k]<3)return;st.pantry[k]-=3;const t=now();h.bowl={food:k,at:t,until:t+6*H};h.next=t+(5+R()*10)*MIN;save();closeSheet();toast('Đã đổ đồ ăn, chờ mèo hoang ghé nhé')})}
@@ -1329,10 +1454,13 @@ const CARD_PRICE=[{p:120,c:'cá'},{p:300,c:'cá'},{p:700,c:'cá'},{p:1600,c:'cá
 function petShop(){const dk=dayKey(now());if(!st.pet||st.pet.day!==dk||!st.pet.cards){const tiers=[0,R()<.5?0:1,R()<.6?1:2,R()<.06?4:R()<.25?3:2];const used=new Set();
   st.pet={day:dk,cards:1,slots:tiers.map(t=>{let sh;do{sh=pickOne(BY_TIER[t])}while(used.has(sh));used.add(sh);return{s:sh,n:0}})};save()}return st.pet}
 const furnPrice=f=>Math.round(f.price*Math.pow(1.5,Math.min(2,(st.bought[f.id]||0))));
-const SHOPTABS=[['cats','Lá mèo'],['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['home','Nhà đất'],['market','Chợ cá']];
+const SHOPTABS=[['cats','Lá mèo'],['food','Đồ ăn'],['toilet','Vệ sinh'],['furn','Nội thất'],['toys','Đồ chơi'],['home','Nhà đất'],['market','Chợ cá']];
+function gearList(list){return `<div class="list">${list.map(f=>{const tot=totalOf(f.id),p=furnPrice(f);
+  return `<div class="li"><div class="ic"><img src="furn/${f.id}.webp?v=2" alt="" loading="lazy"></div><div class="tx"><b>${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}</b><small>${f.desc}</small></div>
+    <button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.xu<p?' disabled':''}>${M(p,'xu')}</button></div>`}).join('')}</div>`}
 function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('details.more')].map(d=>d.open);
   let html=`<div class="sub">${SHOPTABS.map(([k,n])=>`<button type="button" data-t="${k}" class="${shopTab===k?'on':''}">${n}</button>`).join('')}</div>`;
-  if(['furn','toilet','home'].includes(shopTab))html+=`<p class="hint">Nội thất, phòng, nhà và đất trả bằng xu, mỗi bậc đắt gấp 10: đồ 10-100, phòng 100-1.000, nhà 1.000-10.000, đất từ 10.000. Đồ ăn, cát và lá mèo trả bằng cá.</p>`;
+  if(['furn','toys','home'].includes(shopTab))html+=`<p class="hint">Nội thất, phòng, nhà và đất trả bằng xu, mỗi bậc đắt gấp 10: đồ 10-100, phòng 100-1.000, nhà 1.000-10.000, đất từ 10.000. Đồ ăn, cát và lá mèo trả bằng cá.</p>`;
   if(shopTab==='cats'){const ps=petShop();const T=now();const next=at(T-7*H+DAY,7);
     html+=`<p class="hint">Tiệm bán lá mèo. Gom đủ lá cùng loài rồi ghép ở Hộp mèo. Mỗi loài bán tối đa 3 lá một ngày, hàng mới sau ${dur(next-T)}.</p><div class="grid">${ps.slots.map((sl,i)=>{const sh=sl.s,t=TIER_OF[sh],P=CARD_PRICE[t];const have=P.c==='xu'?st.xu:st.fish;const n=shardsOf(sh),k=needOf(sh),left=3-(sl.n||0);
       return `<div class="ccard${left?'':' away'}">${known(sh)?'':'<span class="tag" style="position:absolute;top:4px;left:4px;background:#F26B6B;color:#fff;border-color:#F26B6B">Mới</span>'}${imgTag(plainG(sh))}<span class="nm">Lá ${esc(SPR[sh].name)}</span>${tierTag(t)}
@@ -1340,23 +1468,33 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
         ${left?`<button type="button" class="btn small" data-pet="${i}"${have<P.p?' disabled':''}>${M(P.p,P.c)}</button>`:'<em>Hết hàng hôm nay</em>'}</div>`}).join('')}</div>
       ${readyShards().length?'<button type="button" class="btn wide" id="gomerge2">Đủ lá rồi, sang Hộp mèo ghép</button>':''}`}
   else if(shopTab==='food'){const room=st.pantryCap-pantryMeals();
-    html+=`<p class="hint">Tủ đồ ăn ${pantryMeals()}/${st.pantryCap} phần. Mua 20 rẻ hơn 15%.</p><div class="list">${FOODS.map(f=>{const p20=Math.round(f.p*20*.85);const meal=MEALS.includes(f.id);
-      return `<div class="li"><div class="ic">${FOOD_ICON[f.id]}</div><div class="tx"><b>${f.n}</b><small>+${f.mood} vui${f.fb?` · lương +${f.fb*100}%`:''} · có ${st.pantry[f.id]}</small></div>
+    const frow=f=>{const p20=Math.round(f.p*20*.85);const meal=f.k==='meal';
+      return `<div class="li"><div class="ic">${FOOD_ICON[f.id]}</div><div class="tx"><b>${f.n}</b><small>${f.k==='meal'?`No ${f.full} giờ · `:f.full?`No thêm ${f.full} giờ · `:f.id==='catnip'?'Hết chán ngay · ':''}+${f.mood} vui${f.fb?` · lương +${f.fb*100}%`:''} · có ${st.pantry[f.id]}</small></div>
         <button type="button" class="btn small" data-buy="${f.id}:1"${st.fish<f.p||(meal&&room<1)?' disabled':''}>${M(f.p,'cá')}</button>
-        ${f.id!=='cake'?`<button type="button" class="btn small ghost" data-buy="${f.id}:20"${st.fish<p20||(meal&&room<20)?' disabled':''}>20: ${M(p20,'cá')}</button>`:''}</div>`}).join('')}</div>
+        ${f.id!=='cake'?`<button type="button" class="btn small ghost" data-buy="${f.id}:20"${st.fish<p20||(meal&&room<20)?' disabled':''}>20: ${M(p20,'cá')}</button>`:''}</div>`};
+    html+=`<p class="hint">Tủ đồ ăn ${pantryMeals()}/${st.pantryCap} phần. Mua 20 rẻ hơn 15%. Đồ ăn trả bằng cá, máy cho ăn trả bằng xu.</p>
+      <h3>Bữa chính</h3><div class="list">${FOODS.filter(f=>f.k==='meal').map(frow).join('')}</div>
+      <h3>Ăn vặt</h3><p class="hint">Cho trong thẻ mèo, mỗi con một món mỗi ngày.</p><div class="list">${FOODS.filter(f=>f.k==='treat').map(frow).join('')}</div>
+      <h3>Đặc biệt</h3><div class="list">${FOODS.filter(f=>f.k==='special').map(frow).join('')}</div>
+      <h3>Máy cho ăn tự động</h3><p class="hint">Đặt trong nhà, mèo đói là máy tự lấy đồ trong tủ cho ăn, kể cả lúc bạn tắt game. Nhiều máy thì cộng số bữa.</p>${gearList(FURN.filter(f=>f.feeder))}
       <div class="task"><div class="tx"><b>Tủ to hơn</b><small>+100 phần</small></div><button type="button" class="btn small ghost" id="cap"${st.xu<100*st.pantryCap/100?' disabled':''}>${M(100*st.pantryCap/100,'xu')}</button></div>`}
   else if(shopTab==='toilet'){const R0=curRoom();
-    html+=`<p class="hint">Mỗi khay cộng thêm chỗ cho mèo. Mua xong khay đặt vào ${ROOMT[curT()].n}.</p><div class="list">${TOILETS.map(f=>{const tot=totalOf(f.id);const have=f.cur==='xu'?st.xu:st.fish;
-      return `<div class="li"><div class="ic"><img src="care/${f.img}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}</b><small>Cho ${f.cap} mèo · ${f.desc}</small></div>
+    html+=`<p class="hint">Mỗi khay cộng thêm chỗ cho mèo. Số giờ là khi khay đủ mèo dùng, ít mèo hơn thì lâu bẩn hơn. Khay bẩn quá thì mèo buồn, dễ ốm. Mua xong khay đặt vào ${ROOMT[curT()].n}.</p><div class="list">${TOILETS.map(f=>{const tot=totalOf(f.id);const have=f.cur==='xu'?st.xu:st.fish;
+      return `<div class="li"><div class="ic"><img src="care/${f.img}.webp?v=2" alt=""></div><div class="tx"><b>${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}</b><small>Cho ${f.cap} mèo · đủ ${f.cap} mèo thì ${cleanH(f.rate)} giờ phải dọn · ${f.desc}</small></div>
         <button type="button" class="btn small" data-a="buy" data-id="${f.id}"${have<f.price?' disabled':''}>${M(f.price,f.cur==='xu'?'xu':'cá')}</button></div>`}).join('')}</div>
-    <h3>Cát mèo</h3><div class="list">${LITTERS.map(l=>`<div class="li${st.litterUse===l.id?' on':''}"><div class="ic"><img src="care/${l.id}.webp?v=2" alt=""></div><div class="tx"><b>${l.n}</b><small>Có ${st.litter[l.id]} lần · ${l.desc}</small>
+    <h3>Máy móc vệ sinh</h3><p class="hint">Tác dụng cho cả nhà, đặt ở phòng nào cũng được. Trùng loại không cộng thêm.</p>${gearList(FURN.filter(f=>f.gad))}
+    <h3>Cát mèo</h3><div class="list">${LITTERS.map(l=>`<div class="li${st.litterUse===l.id?' on':''}"><div class="ic"><img src="care/${l.id}.webp?v=2" alt=""></div><div class="tx"><b>${l.n}</b><small>Có ${st.litter[l.id]} lần · khay nhựa đủ mèo ${cleanH(l.rate)} giờ phải dọn${l.mood?` · +${l.mood} tâm trạng mỗi lần dọn`:''}${l.desc?' · '+l.desc:''}</small>
       <button type="button" class="link" data-lit="${l.id}">${st.litterUse===l.id?'Đang dùng khi dọn':'Dùng loại này khi dọn'}</button></div>
       <button type="button" class="btn small" data-lbuy="${l.id}:1"${st.fish<l.p?' disabled':''}>${M(l.p,'cá')}</button></div>`).join('')}</div><p class="hint">1 túi = 5 lần dọn, giá tính bằng cá.</p>`}
   else if(shopTab==='furn'){const R0=curRoom();
-    html+=`<p class="hint">Mua xong đồ đặt vào ${ROOMT[curT()].n} (đang êm ${comfort(R0)}, cá +${comfort(R0)*10}%).</p><div class="shop">${FURN.filter(f=>!f.toilet).map(f=>{const tot=totalOf(f.id);const p=furnPrice(f);const placed=false;
+    html+=`<p class="hint">Mua xong đồ đặt vào ${ROOMT[curT()].n} (đang êm ${comfort(R0)}, cá +${comfort(R0)*10}%).</p><div class="shop">${FURN.filter(f=>!f.toilet&&!f.toy&&!f.gad&&!f.feeder).map(f=>{const tot=totalOf(f.id);const p=furnPrice(f);const placed=false;
       const btn=`<button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.xu<p?' disabled':''}>${M(p,'xu')}</button>`;
       return `<div class="sitem${placed?' placed':''}"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}<small>+${f.c} êm</small></div>${btn}</div>`}).join('')}</div>
     <p class="hint">Muốn dời, cất hoặc lấy đồ từ kho ra: đóng bảng này, bấm Sắp xếp đồ trong phòng.</p>`}
+  else if(shopTab==='toys'){const h=curHouse(),fun=toyHours(h,st.cur);
+    html+=`<p class="hint">Không ai chơi cùng thì ${BORED_H} giờ mèo là chán. Mỗi món đồ chơi khác loại trong phòng giữ mèo không chán thêm vài giờ (tối đa +18). Mèo ở ${ROOMT[curT()].n} đang ${BORED_H+fun} giờ mới chán. Vuốt ve cũng hết chán.</p>
+      <div class="shop">${FURN.filter(f=>f.toy).map(f=>{const tot=totalOf(f.id);const p=furnPrice(f);
+      return `<div class="sitem"><div class="th"><img src="furn/${f.id}.webp?v=2" alt="${f.name}" loading="lazy"></div><div class="nm">${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}<small>Không chán thêm ${f.hrs} giờ</small></div><button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.xu<p?' disabled':''}>${M(p,'xu')}</button></div>`}).join('')}</div>`}
   else if(shopTab==='home')html+=homeHtml();
   else html+=marketHtml();
   P.innerHTML=html;
@@ -1415,7 +1553,9 @@ function renderBook(){const P=$('p-book');const sp=st.species.length;
   if(bookTab==='photos')html+=`<p class="hint">Chạm vào mèo hoang ghé hiên nhà để chụp ảnh. Đổ đồ ăn vào bát ngoài hiên để mời mèo ghé.</p><div class="grid">${ALLSH.map(s=>{const has=st.photos.includes(s);const g={shape:s,pattern:'plain',color:'white'};
       return has?`<div class="ccard">${imgTag(g,10)}<span class="nm">${esc(SPR[s].name)}</span></div>`:''}).join('')||'<p class="hint">Chưa có ảnh nào.</p>'}</div>`;
   html+=`<div class="box" style="margin-top:12px"><h3>Chơi lại từ đầu</h3><p class="hint">Xóa hết mèo, nhà, cá và xu trên máy này, bắt đầu lại với nhà trống. Không lấy lại được.</p><button type="button" class="btn small ghost" id="reset">Chơi lại từ đầu</button></div>${CFG&&ses?`<div class="task"><div class="tx"><b>Tài khoản: ${esc(ses.username)}</b><small>Tiến độ lưu trên mây, đổi máy vẫn chơi tiếp</small></div><div class="stack"><button type="button" class="btn small ghost" id="acct">Mật khẩu</button><button type="button" class="btn small ghost" id="logout">Đăng xuất</button></div></div>`:''}`;
+  const fOld=$('fname'),fVal=fOld?fOld.value:'',fFoc=fOld&&document.activeElement===fOld;
   P.innerHTML=html;
+  if($('fname')&&fVal){$('fname').value=fVal;if(fFoc){$('fname').focus();$('fname').setSelectionRange(fVal.length,fVal.length)}}
   if($('acct'))$('acct').onclick=openAccount;
   if($('logout'))$('logout').onclick=e=>twoTap(e.currentTarget,'logout','Bấm lần nữa để đăng xuất',logout);
   $('reset').onclick=e=>twoTap(e.currentTarget,'reset','Bấm lần nữa để xóa hết',()=>{resetting=true;try{localStorage.removeItem(KEY);localStorage.removeItem(OLD);localStorage.removeItem('meo-dbg');if(CFG)localStorage.setItem('meo.fresh','1')}catch(x){}location.reload()});
@@ -1432,7 +1572,21 @@ const ago=t=>{if(!t)return'chưa chơi';const m=(Date.now()-new Date(t).getTime(
 async function loadSocial(force){if(!CFG||!ses||socBusy)return;if(!force&&soc&&Date.now()-socAt<60000)return;socBusy=true;
   try{soc=await rpc('meo_social',{p_token:ses.token});socAt=Date.now()}catch(e){if(!soc)soc={err:1,friends:[],suggest:[]}}finally{socBusy=false}
   if(trayP==='book'&&bookTab==='friends'&&veil.hidden)render()}
-async function loadGuests(){if(!CFG||!ses||visit)return;try{guests=await rpc('meo_guests',{p_token:ses.token});guestsAt=Date.now();renderHud();if(trayP==='care'&&veil.hidden)render()}catch(e){}}
+function applyHelp(h){if(!h||(!h.feed&&!h.clean)||visit)return;const dk=dayKey(gnow());let fedN=0,boxN=0;
+    if(h.feed)st.cats.filter(c=>c.h>=0&&!c.hosp&&canEat(c)).forEach(c=>{eat(c,'good');c.mood=Math.min(100,c.mood+15);c.joy=now();fedN++});
+    if(h.clean)st.houses.forEach(hh=>boxesOf(hh).forEach(b=>{if((b.p.dirt||0)>0){b.p.dirt=0;boxN++}}));
+    const msg=`${h.names} đã ghé chăm mèo hộ: ${[h.feed&&(fedN?`cho ${fedN} con ăn`:'ghé cho ăn nhưng mèo đang no'),h.clean&&(boxN?`dọn ${boxN} khay`:'ghé dọn nhưng khay đang sạch')].filter(Boolean).join(', ')}`;logEv(msg);save();toast(msg,4000);renderHud();if(trayP)render()}
+async function loadGuests(){if(!CFG||!ses||visit||document.visibilityState!=='visible')return;try{const d=await rpc('meo_inbox',{p_token:ses.token});guests={xu:d.xu,list:d.list};applyHelp(d.help);guestsAt=Date.now();renderHud();if(trayP==='care'&&veil.hidden)render()}catch(e){}}
+function unseenN(){const s0=st.seenAt||0;return (st.events||[]).filter(e=>e.t>s0).length+((guests&&guests.list)||[]).filter(v=>new Date(v.updated_at).getTime()>s0).length}
+function openNotif(){const s0=st.seenAt||0;const L=(guests&&guests.list)||[];const ev=st.events||[];
+  const what=v=>[v.pets?`vuốt mèo ${v.pets} lần`:'',v.fed?'cho ăn hộ':'',v.cleaned?'dọn khay hộ':'',v.heart?'thả tim':''].filter(Boolean).join(', ')||'ghé chơi';
+  sheet(`<h2>Thông báo</h2>
+    ${CFG&&ses?`<div class="row"><h3>Khách ghé thăm</h3>${guests&&guests.xu>0?`<button type="button" class="btn small" id="nclaim">Nhận ${M(guests.xu,'xu')}</button>`:''}</div>
+    ${L.length?`<div class="list">${L.map(v=>`<div class="li fr${new Date(v.updated_at).getTime()>s0?' on':''}"><div class="ic av">${esc(v.username[0].toUpperCase())}</div><div class="tx"><b>${esc(v.username)}</b><small>${ago(v.updated_at)} · ${what(v)}</small></div></div>`).join('')}</div>`:'<p class="hint">Chưa có ai ghé. Rủ bạn bè vào Sổ mèo, tab Bạn bè để ghé nhà nhau.</p>'}`:''}
+    <h3>Trong nhà</h3>${ev.length?`<div class="list">${ev.slice(0,20).map(e=>`<div class="li${e.t>s0?' on':''}"><div class="tx"><b>${esc(e.txt)}</b><small>${ago(e.t)}</small></div></div>`).join('')}</div>`:'<p class="hint">Chưa có gì mới.</p>'}
+    <button type="button" class="btn ghost" data-close>Đóng</button>`);
+  st.seenAt=Date.now();save();renderHud();
+  if($('nclaim'))$('nclaim').onclick=async e=>{e.currentTarget.disabled=true;try{const x=await rpc('meo_guests_claim',{p_token:ses.token});if(x>0){st.xu+=x;save();toast(`+${fmt(x)} xu từ khách ghé thăm`)}guests.xu=0;openNotif()}catch(err){toast('Không kết nối được')}}}
 function guestLine(){const today=dayKey(now());const l=guests.list;const n=l.length;
   const names=[...new Set(l.map(v=>v.username))].slice(0,3).join(', ');
   return n?`${names}${new Set(l.map(v=>v.username)).size>3?'…':''} ghé ${n} lượt trong 7 ngày${l.some(v=>v.heart)?' · có tim':''}`:'Có xu khách để lại'}
@@ -1464,7 +1618,7 @@ async function startVisit(u){if(visit||!CFG||!ses)return;let d;
   houses.forEach(h=>h.rooms.forEach(r=>{r.furn=r.furn||{}}));
   visit={u:d.username,real,t0:now(),friend:d.friend,pets:0,heart:false,busy:false};
   document.body.classList.add('visiting');actors.clear();view();clampRoom();syncRoom();renderRooms();renderHud();updVisit();
-  try{const r=await rpc('meo_visit',{p_token:ses.token,p_username:visit.u});if(visit){visit.pets=r.pets;visit.heart=r.heart;if(r.first){visit.real.fish+=20;toast(`Chào mừng tới nhà ${visit.u}! +20 cá lần đầu ghé hôm nay`)}else toast(`Nhà của ${visit.u}. Chạm vào mèo để vuốt`);updVisit()}}catch(e){}}
+  try{const r=await rpc('meo_visit',{p_token:ses.token,p_username:visit.u});if(visit){visit.pets=r.pets;visit.heart=r.heart;visit.fed=r.fed;visit.cleaned=r.cleaned;if(r.first){visit.real.fish+=20;toast(`Chào mừng tới nhà ${visit.u}! +20 cá lần đầu ghé hôm nay`)}else toast(`Nhà của ${visit.u}. Chạm vào mèo để vuốt`);updVisit()}}catch(e){}}
 function endVisit(){if(!visit)return;const v=visit,hrs=(now()-v.t0)/H;visit=null;st=v.real;
   st.fish+=passivePerHour()*hrs;st.xu+=xuPerHour()*hrs;
   document.body.classList.remove('visiting');const vb=$('visitbar');vb.hidden=true;vb.innerHTML='';vb.dataset.h='';
@@ -1475,10 +1629,15 @@ async function guestPet(a){if(!visit||visit.busy)return;const c=a.c;a.jump=1;a.s
     if(r.petted){visit.real.fish+=5;a.expr=11;a.exprT=1.3;const [x,y]=say(a,`<b>${esc(shortName(c.g))}</b> · +5 cá`);heart(x,y)}else say(a,`<b>${esc(shortName(c.g))}</b> · hôm nay vuốt đủ 3 lần rồi`);updVisit()}
   catch(e){toast('Không kết nối được, thử lại sau')}finally{if(visit)visit.busy=false}}
 function updVisit(){const b=$('visitbar');if(!visit){b.hidden=true;return}b.hidden=false;
-  const html=`<div class="vt"><b>Nhà của ${esc(visit.u)}</b><small>Vuốt mèo ${visit.pets}/3 hôm nay · +5 cá mỗi lần</small></div>
+  const html=`<div class="vt"><b>Nhà của ${esc(visit.u)}</b><small>Vuốt mèo ${visit.pets}/3 hôm nay · +5 cá mỗi lần. Chăm hộ thì bạn ấy cũng được xu</small></div>
+    <div class="va"><button type="button" class="btn small ghost" id="vfeed"${visit.fed?' disabled':''}>${visit.fed?'Đã cho ăn hộ':'Cho ăn hộ +30 cá'}</button><button type="button" class="btn small ghost" id="vclean"${visit.cleaned?' disabled':''}>${visit.cleaned?'Đã dọn khay hộ':'Dọn khay hộ +20 cá'}</button></div>
     <div class="va">${visit.friend?'':`<button type="button" class="btn small ghost" id="vadd">Kết bạn</button>`}<button type="button" class="btn small ghost${visit.heart?' on':''}" id="vheart"${visit.heart?' disabled':''}>${visit.heart?'Đã thả tim':'Thả tim'}</button><button type="button" class="btn small" id="vhome">Về nhà</button></div>`;
   if(b.dataset.h===html)return;b.dataset.h=html;b.innerHTML=html;
   $('vhome').onclick=endVisit;
+  const help=async(kind,fish,done)=>{try{const r=await rpc('meo_visit',{p_token:ses.token,p_username:visit.u,p_help:kind});visit.fed=r.fed;visit.cleaned=r.cleaned;
+    if(r.helped){visit.real.fish+=fish;done();toast(`+${fish} cá. ${visit.u} sẽ thấy bạn đã giúp`)}updVisit()}catch(e){toast('Không kết nối được')}};
+  if(!visit.fed)$('vfeed').onclick=()=>help('feed',30,()=>{actors.forEach(a=>{a.expr=11;a.exprT=1.5;a.jump=1})});
+  if(!visit.cleaned)$('vclean').onclick=()=>help('clean',20,()=>{st.houses.forEach(h=>boxesOf(h).forEach(b=>b.p.dirt=0))});
   $('vheart').onclick=async()=>{try{const r=await rpc('meo_visit',{p_token:ses.token,p_username:visit.u,p_heart:true});visit.heart=r.heart;toast(`Đã thả tim cho nhà ${visit.u}`);updVisit()}catch(e){toast('Không kết nối được')}};
   if($('vadd'))$('vadd').onclick=async()=>{try{await rpc('meo_friend_add',{p_token:ses.token,p_username:visit.u});visit.friend=true;toast(`Đã kết bạn với ${visit.u}`);updVisit()}catch(e){toast('Không kết bạn được')}}}
 
@@ -1491,9 +1650,9 @@ if(cloud&&cloud.v===2&&Array.isArray(cloud.cats)&&Array.isArray(cloud.houses)&&c
 process();rebalance();
 if(st.cur>=curHouse().rooms.length)st.cur=0;
 resize();window.addEventListener('resize',()=>{resize();clampRoom()});view();clampRoom();renderRooms();renderHud();
-loadBases(['round','loaf',...st.cats.filter(c=>c.h===curHouse().id).map(c=>c.g.shape),...st.strays.map(x=>x.g.shape),...(st.pack?st.pack.cards.map(c=>c.s||(c.g&&c.g.shape)):[])]).then(()=>{$('loading').remove();syncRoom();render();setTimeout(loadRest,1500);
+loadBases(['round','loaf',...st.cats.filter(c=>c.h===curHouse().id).map(c=>c.g.shape),...st.strays.map(x=>x.g.shape),...(st.pack?st.pack.cards.map(c=>c.s||(c.g&&c.g.shape)):[])]).then(()=>{$('loading').remove();syncRoom();render();
   if(st.pack)setTimeout(showPack,300);
-  if(CFG&&ses){setTimeout(loadGuests,2000);setInterval(loadGuests,5*60000)}
+  if(CFG&&ses){setTimeout(loadGuests,2000);setInterval(loadGuests,5*60000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&Date.now()-guestsAt>60000)loadGuests()})}
   if(st.migrated){st.migrated=0;save();setTimeout(()=>toast('Game đã lên bản mới! Mèo và đồ đạc vẫn giữ nguyên. Thử mở Hộp mèo nhé',4200),700)}
   else if(!st.tut){st.tut=1;save();setTimeout(()=>{toast('Chào mừng về Nhà Mèo Méo! Bánh Bao và Bánh Mì đã dọn vào. Mở Hộp mèo lấy lá để ghép thêm mèo',4500)},700)}
   let sec=0;
