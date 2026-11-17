@@ -301,6 +301,15 @@ body.visiting .dock,body.visiting .notice,body.visiting #editbtn,body.visiting .
 .warnbox{border-color:#F26B6B!important;background:#FFF0F0!important}
 body.visiting .bell{display:none}
 .warnt{color:#D6453D}
+.guide{position:fixed;z-index:25;left:calc(12px + env(safe-area-inset-left,0px));right:calc(12px + env(safe-area-inset-right,0px));bottom:calc(146px + env(safe-area-inset-bottom,0px));background:#FFF6DE;border:2.5px solid var(--ink,#2A272C);border-radius:16px;padding:10px 14px;display:flex;flex-direction:column;gap:2px;box-shadow:0 4px 0 var(--ink,#2A272C);pointer-events:none}
+.guide b{font-family:var(--display);font-size:14px;color:#B4691F}.guide span{font-weight:700;font-size:16px;line-height:1.3}.guide em{font-style:normal;font-size:13px;color:#3E8A4A;font-weight:700}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(242,165,65,.9)}50%{box-shadow:0 0 0 8px rgba(242,165,65,0)}}
+.dock button.pulse{background:#FFE7B8;animation:pulse 1.2s infinite}
+@media (prefers-reduced-motion:reduce){.dock button.pulse{animation:none}}
+.dock{grid-template-columns:none!important;grid-auto-flow:column;grid-auto-columns:1fr}
+body.editing .guide,body.visiting .guide{display:none!important}
+.helpl .ic img,.helpl .ic svg{width:40px;height:40px}
+body.visiting #helpbtn{display:none}
 </style>
 
 <div class="room" id="room"><div class="loading" id="loading">Đang gọi mèo về…</div><canvas id="cv"></canvas></div>
@@ -309,7 +318,7 @@ body.visiting .bell{display:none}
     <span class="money"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12c3-5 9-6 13-3l4-3v12l-4-3c-4 3-10 2-13-3Z" fill="#9FD3F5" stroke="#2A272C" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8" cy="11" r="1.2" fill="#2A272C"/></svg><span class="vals"><b id="fish">0</b><small class="rate" id="fishrate"></small></span></span>
     <span class="money"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#FFD36B" stroke="#2A272C" stroke-width="1.8"/><path d="M9 9.5c0-1 1.3-1.8 3-1.8s3 .8 3 1.8-1.3 1.6-3 2-3 1-3 2.1 1.3 1.9 3 1.9 3-.8 3-1.8M12 6v12" fill="none" stroke="#2A272C" stroke-width="1.6" stroke-linecap="round"/></svg><span class="vals"><b id="xu">0</b><small class="rate" id="xurate"></small></span></span>
   </div>
-  <div class="topr"><button type="button" class="pill bell" id="bellbtn" aria-label="Thông báo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4Z" fill="#FFD36B" stroke="#2A272C" stroke-width="1.9" stroke-linejoin="round"/><path d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="#2A272C" stroke-width="1.9"/></svg><span class="bdot" id="bellN" hidden></span></button>
+  <div class="topr"><button type="button" class="pill bell" id="helpbtn" aria-label="Cách chơi"><b style="font-family:var(--display);font-size:24px">?</b></button><button type="button" class="pill bell" id="bellbtn" aria-label="Thông báo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 17V11a6 6 0 0 1 12 0v6l2 2H4Z" fill="#FFD36B" stroke="#2A272C" stroke-width="1.9" stroke-linejoin="round"/><path d="M10 20a2 2 0 0 0 4 0" fill="none" stroke="#2A272C" stroke-width="1.9"/></svg><span class="bdot" id="bellN" hidden></span></button>
   <div class="pill clock" id="clock"></div></div>
 </div>
 <div class="rooms hud" id="rooms"></div>
@@ -337,6 +346,7 @@ body.visiting .bell{display:none}
 <div class="veil" id="veil" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true"></div></div>
 <div class="stage" id="stage" hidden></div>
 <div class="visitbar" id="visitbar" hidden></div>
+<div class="guide" id="guide" hidden></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -546,7 +556,7 @@ FURN.push(
   {id:'g_dryer',name:'Máy sấy lông',price:55,c:0,w:150,x:820,y:250,gad:{mood:2,grace:6},desc:'Lông khô mượt, +2 tâm trạng mỗi sáng. Khay bẩn quá thêm 1 giờ mèo mới ốm'},
   {id:'g_vacuum',name:'Robot hút bụi',price:60,c:0,w:150,x:480,y:300,gad:{dirt:.85},desc:'Hút cát văng: khay nhựa đủ mèo 12 giờ mới phải dọn (thường 10 giờ)'},
   {id:'g_purifier',name:'Máy lọc không khí',price:70,c:0,w:90,x:60,y:140,gad:{grace:22,clean:1},desc:'Khay bẩn quá thêm 4 giờ mèo mới ốm, khay bẩn không làm mèo buồn'},
-  {id:'g_robot',name:'Robot dọn vệ sinh',price:100,c:0,w:140,x:360,y:250,gad:{robot:1},desc:'7 giờ sáng và 7 giờ tối trong game (cứ khoảng 2 giờ thật) tự dọn mọi khay bẩn trong nhà, dùng cát trong tủ'});
+  {id:'g_robot',name:'Robot dọn vệ sinh',price:100,c:0,w:140,x:360,y:250,gad:{robot:1},desc:'Cứ khoảng 2 tiếng tự dọn mọi khay bẩn trong nhà, dùng cát trong tủ'});
 // Đồ chơi: mèo không ai chơi cùng 6 giờ là chán; mỗi món khác loại trong phòng giữ mèo không chán thêm 1-4 giờ (tối đa +18)
 [['y_yarn','Cuộn len',5,1],['y_pingpong','Bóng bàn',5,1],['y_bag','Túi giấy sột soạt',5,1],['y_spring','Lò xo nhảy',6,1],['y_bell','Bóng chuông',6,1],
  ['y_mouse','Chuột bông',8,1],['y_carrot','Cà rốt bông',8,1],['y_banana','Chuối cỏ mèo',8,1],['y_feather','Cần câu lông vũ',10,1],['y_bird','Cần câu chim',10,1],
@@ -563,7 +573,7 @@ const TOILETS=[
   {id:'t_top',img:'top',name:'Khay cửa trên',price:60,cur:'xu',cap:4,rate:.75,w:135,x:820,y:70,desc:'Mèo chui từ nắp, cát không văng'},
   {id:'t_wood',img:'wood',name:'Tủ vệ sinh gỗ',price:80,cur:'xu',cap:5,rate:.65,w:150,x:110,y:50,desc:'Đẹp như đồ nội thất'},
   {id:'t_double',img:'double',name:'Khay đôi cỡ lớn',price:90,cur:'xu',cap:8,rate:.8,w:200,x:250,y:60,desc:'Hai ngăn, nhiều chỗ'},
-  {id:'t_auto',img:'auto',name:'Khay tự dọn',price:100,cur:'xu',cap:6,rate:.6,w:150,x:900,y:50,auto:1,desc:'Tự dọn mỗi sáng trong game nếu tủ còn cát'}];
+  {id:'t_auto',img:'auto',name:'Khay tự dọn',price:100,cur:'xu',cap:6,rate:.6,w:150,x:900,y:50,auto:1,desc:'Cứ khoảng 4 tiếng tự dọn nếu tủ còn cát'}];
 const LITTERS=[
   {id:'clay',n:'Cát đất sét',p:30,uses:5,rate:1,mood:0,desc:'Bình dân'},
   {id:'pine',n:'Cát gỗ thông',p:50,uses:5,rate:.9,mood:1,desc:'Thơm mùi gỗ'},
@@ -665,11 +675,11 @@ function fresh(){
   st={v:2,fish:300,xu:120,pts:0,cats:[],nextId:1,nextHouse:1,houses:[],ch:0,cur:0,seen:[],species:[],favKnown:[],photos:[],
     free:2,freeAt:0,buyDay:'',buyN:0,tickets:0,firstBox:1,shards:{round:2},pantry:{kibble:20,good:0,pate:0,salmon:0,stick:3,cake:0},pantryCap:100,diet:'fav',
     mail:0,mailN:0,eggs:[],nests:1,heater:0,market:{day:'',xu:0},strays:[],gifts:[],strayNext:0,claimed:[],lots:[],bought:{},
-    t:now(),last:now(),day:dayKey(now()),tut:0};
+    t:now(),last:now(),day:dayKey(now()),tut:0,startAt:now(),guide:0};
   const h=newHouse({z:0,i:-1,area:40,gift:1},0);st.houses.push(h);
   ensureToilet();ensureInv();
   // nhà mới có sẵn 2 bé mèo
-  [{shape:'round',pattern:'plain',color:'white'},{shape:'loaf',pattern:'plain',color:'ginger'}].forEach(g=>{const c=mkCat(g);c.mood=80;place(c,0,0);st.cats.push(c);see(g)});
+  [{shape:'round',pattern:'plain',color:'white'},{shape:'loaf',pattern:'plain',color:'ginger'}].forEach(g=>{const c=mkCat(g);c.mood=70;c.full=now()+.5*H;place(c,0,0);st.cats.push(c);see(g)});
 }
 function migrate(o){// bản demo cũ: giữ cá, mèo, phòng đã mở và đồ đạc
   fresh();st.cats=[];st.fish=Math.round(o.fish||0);st.xu=400;
@@ -682,7 +692,7 @@ function migrate(o){// bản demo cũ: giữ cá, mèo, phòng đã mở và đ�
 // Kho đồ chung: món đã mua mà chưa đặt trong phòng nào
 function ensureInv(){if(st.inv)return;st.inv={};const put=(id,o)=>{(st.inv[id]=st.inv[id]||[]).push(o||{})};
   st.houses.forEach(h=>h.rooms.forEach(r=>{(r.owned||[]).forEach(id=>{if(!r.furn[id])put(id,id.startsWith('t_')?{dirt:(r.tstash||{})[id]||0}:{})})}))}
-function ensureToilet(){if(!st.litter)st.litter={clay:10,tofu:0,crystal:0};if(!st.litterUse)st.litterUse='clay';LITTERS.forEach(l=>{if(st.litter[l.id]==null)st.litter[l.id]=0});if(!st.timeInit){st.timeInit=1;st.cats.forEach(c=>{c.full=now()+6*H;c.joy=now()})}if(st.pantry)FOODS.forEach(f=>{if(st.pantry[f.id]==null)st.pantry[f.id]=0});
+function ensureToilet(){if(!st.litter)st.litter={clay:10,tofu:0,crystal:0};if(!st.litterUse)st.litterUse='clay';LITTERS.forEach(l=>{if(st.litter[l.id]==null)st.litter[l.id]=0});if(st.startAt===undefined){st.startAt=0;st.unlockAll=1}if(!st.timeInit){st.timeInit=1;st.cats.forEach(c=>{c.full=now()+6*H;c.joy=now()})}if(st.pantry)FOODS.forEach(f=>{if(st.pantry[f.id]==null)st.pantry[f.id]=0});
   if(!st.toiletInit){st.toiletInit=1;const h=st.houses[0];if(h&&!boxesOf(h).length){const r=h.rooms[0];r.furn.t_tray={x:300,y:ROOMT[r.t].fl+150,dirt:0,lit:'clay'};r.owned.push('t_tray')}}}
 function load(){let s=null;try{s=JSON.parse(localStorage.getItem(KEY)||'null')}catch(e){}
   if(s&&s.v===2&&Array.isArray(s.cats)){st=s;st.cats=st.cats.filter(c=>SPR[c.g.shape]);ensureToilet();ensureInv();return}
@@ -777,7 +787,7 @@ function process(){
   if(gT>gp)accrue((gT-gp)/H);st.gt=gT;
   st.cats.forEach(c=>{if(c.hosp&&gT>=c.hosp){c.hosp=0;c.sick=0;c.mood=Math.max(c.mood,60);st.healed=(st.healed||0)+1}});
   const rd=dayKey(T);if(st.rday!==rd){if(st.rday)payRent();st.rday=rd}
-  st.t=T;feederTick();toyWear();
+  st.t=T;feederTick();toyWear();awayTick();
   while(st.free<2&&st.freeAt&&T>=st.freeAt){st.free++;st.freeAt=st.free<2?st.freeAt+12*H:0}
   strays(T);
 }
@@ -788,7 +798,7 @@ function morning(b){const slept=!lightOn();st.cats.forEach(c=>{c.mood=Math.max(0
     
     st.cats.forEach(c=>{if(c.h!==h.id||c.sick||c.hosp)return;if(d>=70&&!g.clean)c.mood=Math.max(0,c.mood-6);
       if(g.mood)c.mood=Math.min(100,c.mood+g.mood);const rt=realOf(b);if(!((c.full||0)>rt))c.mood=Math.max(0,c.mood-8);if(rt-(c.joy||0)>boredAfter(c)*H)c.mood=Math.max(0,c.mood-6);
-      if(R()<p){c.sick=b;st.newSick=(st.newSick||0)+1}})});
+      if(R()<p&&now()-(st.startAt||0)>3*DAY){c.sick=b;st.newSick=(st.newSick||0)+1}})});
   neglect(b)}
 // Mèo bị bỏ bê lâu (đói, buồn, khay bẩn) thì bỏ nhà đi. Mỗi sáng xét một lần, mỗi sáng tối đa 1 con đi.
 // Điểm danh mỗi ngày (ngày mới lúc 7 giờ sáng ngoài đời). Bỏ một ngày là về lại ngày 1.
@@ -796,6 +806,22 @@ const STREAK=[{fish:100},{fish:200},{xu:30},{fish:300},{xu:60},{fish:500},{xu:10
 const streakTxt=r=>[r.fish&&`${fmt(r.fish)} cá`,r.xu&&`${r.xu} xu`,r.tickets&&`${r.tickets} vé hộp`].filter(Boolean).join(' + ');
 function streakState(){const td=dayKey(now()),yd=dayKey(now()-DAY),s0=st.streak||{d:'',n:0};const done=s0.d===td;const n=done?s0.n:(s0.d===yd?s0.n+1:1);return{done,n,r:STREAK[(n-1)%7]}}
 function claimStreak(){const x=streakState();if(x.done)return;st.streak={d:dayKey(now()),n:x.n};const r=x.r;st.fish+=r.fish||0;st.xu+=r.xu||0;st.tickets+=r.tickets||0;save();toast(`Điểm danh ngày ${x.n}: +${streakTxt(r)}`);renderHud();render()}
+// ===== Hướng dẫn ngày đầu: 4 bước, mỗi bước có quà =====
+const GUIDE=[{k:'pet',t:'Chạm vào một bé mèo trong phòng để vuốt ve',r:{fish:50}},
+  {k:'feed',t:'Bấm Chăm mèo rồi bấm Cho ăn',p:'care',r:{fish:50}},
+  {k:'box',t:'Bấm Hộp mèo, mở lượt miễn phí để lấy lá mèo',p:'box',r:{xu:30}},
+  {k:'buy',t:'Bấm Mua sắm, mua một món đồ trang trí cho phòng',p:'shop',r:{xu:50}}];
+function guideHit(k){if(st.guide==null||st.guide>=GUIDE.length)return;st.gd=st.gd||{};st.gd[k]=1;let got=[];
+  while(st.guide<GUIDE.length&&st.gd[GUIDE[st.guide].k]){const r=GUIDE[st.guide].r;st.fish+=r.fish||0;st.xu+=r.xu||0;got.push(streakTxt(r));st.guide++}
+  if(got.length){save();toast(st.guide>=GUIDE.length?`Giỏi quá! Bạn đã biết chơi rồi. +${got.join(', ')}`:`Xong bước! +${got.join(', ')}`,3000);renderGuide();renderHud()}}
+function renderGuide(){const g=$('guide');document.querySelectorAll('.dock button').forEach(b=>b.classList.remove('pulse'));
+  if(st.guide==null||st.guide>=GUIDE.length||visit){g.hidden=true;return}const s0=GUIDE[st.guide];
+  g.hidden=!!trayP;g.innerHTML=`<b>Bước ${st.guide+1}/${GUIDE.length}</b><span>${s0.t}</span><em>+${streakTxt(s0.r)}</em>`;
+  if(s0.p&&!trayP){const b=document.querySelector(`.dock button[data-p="${s0.p}"]`);if(b)b.classList.add('pulse')}}
+// ===== Mở dần tính năng: Ấp trứng, Đi làm, Chợ cá, Nhà đất mở khi có 3 mèo =====
+const unlocked=()=>!!st.unlockAll||st.cats.length>=3;
+function checkUnlock(){if(!st.unlockAll&&st.cats.length>=3){st.unlockAll=1;save();toast('Đã mở thêm: Ấp trứng, Đi làm, Chợ cá, Nhà đất',4000);logEv('Mở thêm Ấp trứng, Đi làm, Chợ cá, Nhà đất')}
+  const eb=document.querySelector('.dock button[data-p="egg"]');if(eb)eb.hidden=!unlocked()}
 function logEv(txt){(st.events=st.events||[]).unshift({t:Date.now(),txt});if(st.events.length>40)st.events.length=40}
 const RUN_DAYS=8,WARN_DAYS=4;// ngày trong game: 6 ngày game = 1 ngày thật, nên bỏ bê khoảng 1,5 ngày thật mới đi
 const realOf=b=>GE+(b-GE)/SPEED;
@@ -803,9 +829,16 @@ function neglectWhy(c,b){const h=houseById(c.h),why=[],rt=realOf(b);if(!h)return
   if(!((c.full||0)>rt))why.push('đói');if(rt-(c.joy||0)>boredAfter(c)*H)why.push('chán');if(c.mood<25)why.push('buồn');if(houseDirt(h)>=80)why.push('khay bẩn');return why}
 function neglect(b){
   st.cats.forEach(c=>{if(c.h<0||c.hosp)return;const why=neglectWhy(c,b),h=houseById(c.h);const bad=c.mood<25||(h&&houseDirt(h)>=90);c.neg=bad?(c.neg||0)+1:Math.max(0,(c.neg||0)-2);c.why=why.length?why:['buồn']})
+  if(st.cats.length<=3)return;// nhà ít mèo thì không con nào bỏ đi
   const cand=st.cats.filter(c=>c.h>=0&&!c.hosp&&(c.neg||0)>=RUN_DAYS).sort((a,b2)=>b2.neg-a.neg)[0];
-  if(cand){st.cats=st.cats.filter(c=>c!==cand);actors.delete(cand.id);(st.ranAway=st.ranAway||[]).push({n:nameOf(cand.g),g:cand.g,why:cand.why.join(', '),at:b});if(st.ranAway.length>20)st.ranAway.shift();logEv(`${nameOf(cand.g)} bỏ nhà đi vì ${cand.why.join(', ')}`)}}
-const atRisk=()=>st.cats.filter(c=>c.h>=0&&(c.neg||0)>=WARN_DAYS);
+  if(cand){st.cats=st.cats.filter(c=>c!==cand);actors.delete(cand.id);const why=cand.why.join(', ');
+    (st.away=st.away||[]).push({c:cand,why,until:now()+2*DAY});logEv(`${nameOf(cand.g)} giận dỗi ra hiên ngồi vì ${why}. Dỗ bằng món khoái khẩu trong 2 ngày để mèo về`)}}
+// Mèo giận dỗi ngồi ngoài 2 ngày: cho món khoái khẩu là về, quá hạn mới đi hẳn
+function awayTick(){if(!st.away||!st.away.length)return;const T=now();st.away=st.away.filter(a=>{if(T<a.until)return true;
+  (st.ranAway=st.ranAway||[]).push({n:nameOf(a.c.g),g:a.c.g,why:a.why,at:T});if(st.ranAway.length>20)st.ranAway.shift();logEv(`${nameOf(a.c.g)} đã bỏ nhà đi hẳn`);return false})}
+function coax(i){const a=st.away[i];if(!a)return;const fav=favOf(a.c.g.shape);const k=st.pantry[fav]>0?fav:null;if(!k){toast(`Cần 1 phần ${FD[fav].n} để dỗ mèo về`);return}
+  st.pantry[k]--;const c=a.c;c.neg=0;c.mood=60;eat(c,k);c.joy=now();st.away.splice(i,1);home(c);st.cats.push(c);save();syncRoom(c.id);renderRooms();toast(`${shortName(c.g)} đã về nhà rồi`);logEv(`${nameOf(c.g)} được dỗ về nhà`);render()}
+const atRisk=()=>st.cats.length<=3?[]:st.cats.filter(c=>c.h>=0&&(c.neg||0)>=WARN_DAYS);
 // Đồ chơi đặt trong phòng hỏng sau vài ngày (ngoài đời): đồ rẻ 2 ngày, vừa 5 ngày, xịn 10 ngày
 function toyWear(){const T=now();let broke=[];st.houses.forEach(h=>h.rooms.forEach(r=>{for(const k in r.furn){const f=fid(k);if(!f||!f.toy)continue;const p=r.furn[k];
   if(!p.at){p.at=T;continue}if(T-p.at>f.life*DAY){delete r.furn[k];r.owned=(r.owned||[]).filter(x=>x!==k);broke.push(f.name)}}}));
@@ -920,7 +953,7 @@ function skyLevels(h){// trả về [độ đêm 0-1, độ chiều vàng 0-1, �
   return[lerp(0,1,(h-18)/3),lerp(1,0,(h-18)/3),0]}
 // Công tắc đèn: tối bật đèn thì phòng sáng ấm, mèo còn thức; tắt đèn thì tối hẳn, mèo ngủ ngon (sáng hôm sau vui thêm)
 const lightOn=()=>st.light!==false;
-const darkNow=()=>skyLevels(hourOf(gnow()))[0]>.15;
+const darkNow=()=>skyLevels(hourOf(now()))[0]>.15;
 // Bước 1, chỉ phủ nền phòng: chiều vàng, bình minh hồng. Ngoài trời ban đêm thì nền tối nhưng mèo vẫn rõ (như có đèn hiên)
 function bgTint(h,dp){const [n,g,d]=skyLevels(h);const out=!!ROOMT[curT()].out;if(!n&&!g&&!d)return;ctx.save();ctx.setTransform(dp,0,0,dp,0,0);ctx.globalCompositeOperation='multiply';
   const k=out?1:.5;
@@ -939,11 +972,11 @@ function darkTint(h,dp){const n=skyLevels(h)[0];if(!n||ROOMT[curT()].out||lightO
   ctx.fillStyle=`rgba(46,54,112,${.78*n})`;ctx.fillRect(0,0,VW,VH);ctx.restore()}
 let lastT=performance.now();
 function tick(nowp){
-  const dt=Math.min(.05,(nowp-lastT)/1000);lastT=nowp;const T=nowp/1000;const night=isNight(gnow())&&!lightOn();
+  const dt=Math.min(.05,(nowp-lastT)/1000);lastT=nowp;const T=nowp/1000;const night=isNight(now())&&!lightOn();
   const dp=cv.width/room.clientWidth;ctx.setTransform(dp,0,0,dp,0,0);ctx.fillStyle='#FBF8F2';ctx.fillRect(0,0,VW,VH);ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);
   const bg=roomImg(curT());if(bg.complete&&bg.naturalWidth){ctx.imageSmoothingQuality='high';ctx.drawImage(bg,0,0,RW*S,RH*S)}
-  {const nl=skyLevels(hourOf(gnow()))[0],sk=SKY[curT()];if(nl>0&&sk){ctx.save();ctx.globalAlpha=nl;ctx.imageSmoothingQuality='high';ctx.drawImage(sk,0,0,RW*S,RH*S);ctx.restore()}}
-  bgTint(hourOf(gnow()),dp);ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);
+  {const nl=skyLevels(hourOf(now()))[0],sk=SKY[curT()];if(nl>0&&sk){ctx.save();ctx.globalAlpha=nl;ctx.imageSmoothingQuality='high';ctx.drawImage(sk,0,0,RW*S,RH*S);ctx.restore()}}
+  bgTint(hourOf(now()),dp);ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);
   for(const a of actors.values()){const b=a.b,w=b.cw*CS/b.K;a.t-=dt;if(a.jump>0)a.jump=Math.max(0,a.jump-dt*2.2);if(a.exprT>0)a.exprT-=dt;
     a.blinkT-=dt;if(a.blinking>0)a.blinking-=dt;if(a.blinkT<=0){a.blinking=.16;a.blinkT=2.5+R()*4}
     if((night&&!a.stray)||a.c.sick||a.exprT>0){if(a.state==='walk'){a.state='idle';a.t=Math.max(a.t,a.exprT||2)}}
@@ -956,7 +989,7 @@ function tick(nowp){
   if(ROOMT[curT()].out)list.push({z:bowlPos().y,d:drawBowl});
   for(const a of actors.values())list.push({z:a.Y,d:()=>drawCat(a,T,night)});
   list.sort((p,q)=>p.z-q.z).forEach(o=>o.d());
-  darkTint(hourOf(gnow()),dp);
+  darkTint(hourOf(now()),dp);
   requestAnimationFrame(tick)}
 
 // ---------- Sắp xếp đồ ----------
@@ -984,6 +1017,17 @@ function openInv(){const ids=Object.keys(st.inv||{}).filter(id=>st.inv[id].lengt
   bind($('sheet'),'[data-put]',el=>{const id=el.dataset.put;const o=(st.inv[id]||[]).pop();if(!o)return;placeOne(id,o);save();updEditBar();openInv()})}
 $('storebtn').onclick=storeSel;$('invbtn').onclick=openInv;$('sellbtn').onclick=sellSel;
 $('bellbtn').onclick=openNotif;
+$('helpbtn').onclick=()=>sheet(`<h2>Cách chơi</h2>
+  <div class="list helpl">
+    <div class="li"><div class="ic">${FOOD_ICON.kibble}</div><div class="tx"><b>Cho mèo ăn</b><small>Mèo đói thì vào Chăm mèo, bấm Cho ăn. Món ngon thì mèo no lâu và vui hơn.</small></div></div>
+    <div class="li"><div class="ic"><img src="care/tray.webp?v=2" alt=""></div><div class="tx"><b>Dọn khay vệ sinh</b><small>Chạm vào khay để dọn. Khay bẩn lâu mèo dễ ốm.</small></div></div>
+    <div class="li"><div class="ic">${ICON.pet}</div><div class="tx"><b>Vuốt ve, chơi cùng mèo</b><small>Chạm vào mèo để vuốt. Đồ chơi giúp mèo không chán.</small></div></div>
+    <div class="li"><div class="ic">${CI['cá']}</div><div class="tx"><b>Cá</b><small>Mèo vui thì cá tự ra. Dùng cá mua đồ ăn, cát, lá mèo.</small></div></div>
+    <div class="li"><div class="ic">${CI.xu}</div><div class="tx"><b>Xu</b><small>Nhà tự ra xu. Dùng xu mua đồ đạc, đồ chơi, phòng, nhà.</small></div></div>
+    <div class="li"><div class="ic">${ICON.gift}</div><div class="tx"><b>Lá mèo</b><small>Mở Hộp mèo lấy lá. Gom đủ lá cùng loài thì ghép ra bé mèo mới.</small></div></div>
+  </div>
+  <p class="hint">Mỗi ngày vào điểm danh, cho ăn, dọn khay, vuốt mèo là đủ. Mèo bị bỏ bê lâu sẽ giận dỗi, dỗ bằng món khoái khẩu là về.</p>
+  <button type="button" class="btn" data-close>Đã hiểu</button>`);
 $('lightbtn').onclick=()=>{st.light=!lightOn();save();updLight();toast(lightOn()?'Đã bật đèn. Mèo còn thức chơi':'Đã tắt đèn. Mèo đi ngủ, sáng mai vui hơn')};
 function updLight(){const b=$('lightbtn');b.hidden=!darkNow()||edit;b.classList.toggle('on',lightOn());b.setAttribute('aria-pressed',lightOn());$('lighttxt').textContent=lightOn()?'Tắt đèn':'Bật đèn'}
 editBtn.onclick=()=>setEdit(!edit);
@@ -1018,7 +1062,7 @@ function say(a,html,ms=1800){const b=a.b,k=depth(a);const cx=a.X*S-OX,top=(a.Y-(
 function heart(cx,top){const ht=document.createElement('div');ht.className='heart';ht.style.left=(cx-11)+'px';ht.style.top=top+'px';
   ht.innerHTML='<svg viewBox="0 0 24 22"><path d="M12 20C4 14 1 10 1 6a5 5 0 0 1 11-2 5 5 0 0 1 11 2c0 4-3 8-11 14Z" fill="#F7849A" stroke="#2A272C" stroke-width="2"/></svg>';
   room.appendChild(ht);setTimeout(()=>ht.remove(),1000)}
-function tapCat(a){const c=a.c,dk=dayKey(gnow());c.joy=now();if(c.petDay!==dk){c.petDay=dk;c.pets=0}
+function tapCat(a){const c=a.c,dk=dayKey(gnow());c.joy=now();guideHit('pet');if(c.petDay!==dk){c.petDay=dk;c.pets=0}
   a.jump=1;a.state='idle';a.t=1.6;
   if(c.pets<3){c.pets++;c.mood=Math.min(100,c.mood+10);a.expr=11;a.exprT=1.3;const [x,y]=say(a,`<b>${esc(shortName(c.g))}</b> · tâm trạng ${c.mood}`);heart(x,y);save();
     if(c.pets===3)setTimeout(()=>openCat(c.id),700)}
@@ -1037,10 +1081,14 @@ function twoTap(btn,key,label,fn){// bấm hai lần để xác nhận việc m�
   if(confirmMap.get(key)){confirmMap.delete(key);fn();return}
   confirmMap.set(key,1);btn.classList.add('confirm');btn.textContent=label||'Bấm lần nữa';setTimeout(()=>{confirmMap.delete(key);if(btn.isConnected){btn.classList.remove('confirm');render()}},3000)}
 function updateWallet(){$('fish').textContent=fmt(st.fish);$('xu').textContent=fmt(st.xu);const fr=passivePerHour(),xr=xuPerHour();$('fishrate').textContent=fr?'+'+fmt(fr)+'/giờ':'';$('xurate').textContent='+'+(xr<10?xr.toLocaleString('vi-VN',{maximumFractionDigits:1}):fmt(xr))+'/giờ'}
-function clockText(){const T=now(),d=new Date(G(T)),hm=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');const p=phase(G(T));
-  const nWork=st.cats.filter(c=>away(c,T)).length;
-  const sub={night:lightOn()?'Đêm · đèn đang bật':'Đêm · mèo ngủ',morning:'Sáng · sắp đi làm',work:nWork?`${nWork} mèo đi làm`:'Giờ làm việc',evening:'Tối · cho ăn',weekend:'Ngày nghỉ'}[p];
+// Đồng hồ hiện giờ thật cho dễ hiểu; ngày trong nhà mèo vẫn trôi nhanh bên dưới
+function clockText(){const T=now(),d=new Date(T),hm=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
+  const nWork=st.cats.filter(c=>away(c,T)).length,night=isNight(T);
+  const sub=night?(lightOn()?'Đêm · đèn đang bật':'Đêm · mèo ngủ'):nWork?`${nWork} mèo đang đi làm`:'Mèo ở nhà chơi';
   return `<b>${['CN','T2','T3','T4','T5','T6','T7'][d.getDay()]} ${hm}</b><small>${sub}</small>`}
+// Lần trả lương tới (giờ thật còn lại)
+function nextPayIn(){let g=G(now());for(let i=0;i<9;i++){const c=at(g+i*DAY,17);if(c>g&&isWeekday(c))return (c-g)/SPEED}return 0}
+function nextWeekendIn(){let g=G(now());for(let i=0;i<9*24;i++){const t=g+i*H;if(isWeekend(t))return (t-g)/SPEED}return 0}
 function notices(){const n=[];const sk=sickCats().length;if(sk)n.push(`${sk} mèo bị ốm, cần đưa đi bệnh viện`);const md=maxDirt();if(md>=55)n.push(md>=75?'Khay vệ sinh bẩn lắm rồi, dọn ngay kẻo mèo ốm':'Khay vệ sinh hơi bẩn, chạm vào khay để dọn');
   if(st.cats.length&&!st.houses.some(h=>boxesOf(h).length))n.push('Nhà chưa có khay vệ sinh');if(readyShards().length)n.unshift('Đủ lá ghép mèo rồi, vào Hộp mèo để ghép');else if(!st.cats.length)n.push('Nhà chưa có mèo. Mở Hộp mèo lấy lá, đủ lá thì ghép ra mèo');if(st.mail>0)n.push(`Hòm thư có ${fmt(st.mail)} cá lương`);
   const ready=st.eggs.filter(e=>now()>=e.end).length;if(ready)n.push(`${ready} trứng đã nở`);
@@ -1049,10 +1097,10 @@ function notices(){const n=[];const sk=sickCats().length;if(sk)n.push(`${sk} mè
   const rk=atRisk();if(rk.length)n.unshift(`${rk.length} mèo sắp bỏ nhà đi vì bị bỏ bê`);
   if(ROOMT[curT()].out&&!curHouse().bowl)n.unshift('Chạm vào bát hồng để mời mèo hoang ghé');
   return n}
-function renderHud(){updateWallet();updLight();$('clock').innerHTML=clockText();{const n=unseenN();$('bellN').textContent=n>9?'9+':n||'';$('bellN').hidden=!n}
+function renderHud(){updateWallet();updLight();checkUnlock();renderGuide();$('clock').innerHTML=clockText();{const n=unseenN();$('bellN').textContent=n>9?'9+':n||'';$('bellN').hidden=!n}
   const n=notices();$('notice').textContent=n[0]||'';
   $('dot-box').textContent=readyShards().length?'!':st.free>0?st.free:'';
-  $('dot-care').textContent=(st.mail>0||!streakState().done||atRisk().length||(st.ranAway&&st.ranAway.some(r=>!r.seen))||(guests&&guests.xu>0)||st.gifts.length||sickCats().length||maxDirt()>=55)?'!':'';
+  $('dot-care').textContent=(st.mail>0||(st.away&&st.away.length)||!streakState().done||atRisk().length||(st.ranAway&&st.ranAway.some(r=>!r.seen))||(guests&&guests.xu>0)||st.gifts.length||sickCats().length||maxDirt()>=55)?'!':'';
   $('dot-egg').textContent=st.eggs.filter(e=>now()>=e.end).length||'';
   $('dot-book').textContent=claimable().length||'';
   $('dot-shop').textContent=waiting().length?waiting().length:''}
@@ -1071,10 +1119,10 @@ const houseName=h=>`${TPL[h.tpl].n} ${ZONES[h.lot.z].n}`;
 // ---------- Khay ----------
 const tray=$('tray');let trayP=null;
 const TITLES={box:'Hộp mèo',care:'Chăm mèo',egg:'Ấp trứng',shop:'Mua sắm',book:'Sổ mèo'};
-function openTray(p){trayP=p;tray.classList.add('open');setEdit(false);$('traytitle').textContent=TITLES[p];
+function openTray(p){trayP=p;tray.classList.add('open');setTimeout(renderGuide,0);setEdit(false);$('traytitle').textContent=TITLES[p];
   document.querySelectorAll('.panel').forEach(x=>x.hidden=x.id!=='p-'+p);
   document.querySelectorAll('.dock button').forEach(x=>x.classList.toggle('on',x.dataset.p===p));render();$('panels').scrollTop=0}
-function closeTray(){trayP=null;tray.classList.remove('open');document.querySelectorAll('.dock button').forEach(x=>x.classList.remove('on'))}
+function closeTray(){trayP=null;tray.classList.remove('open');setTimeout(renderGuide,0);document.querySelectorAll('.dock button').forEach(x=>x.classList.remove('on'))}
 document.querySelectorAll('.dock button').forEach(b=>b.onclick=()=>{trayP===b.dataset.p?closeTray():openTray(b.dataset.p)});
 $('trayclose').onclick=closeTray;
 const detState={};
@@ -1110,7 +1158,7 @@ function renderBox(){const P=$('p-box'),T=now();if(st.buyDay!==dayKey(T)){st.buy
     ${waitFull?'<p class="why">Phòng chờ đầy 10 con. Bán bớt mèo hoặc xây thêm phòng rồi ghép tiếp.</p>':''}</div>`:''}
   <div class="box${ready.length?'':' hl'}">
     <div class="row"><h3>Lượt miễn phí ${st.free}/2</h3><span class="hint">${st.free<2?'Lượt mới sau '+dur(st.freeAt-T):'Đầy lượt, mở đi kẻo phí'}</span></div>
-    <p class="hint">Úp 3 lá, chọn 2. Gom đủ lá cùng loài thì ghép ra mèo: Thường, Khá cần 3 lá; Hiếm trở lên cần 2 lá.</p>
+    <p class="hint">Úp 3 lá, chọn 2. Gom đủ lá cùng loài thì ghép ra một bé mèo. Mèo càng hiếm càng cần nhiều lá.</p>
     <button type="button" class="btn wide" id="openfree"${st.free<1?' disabled':''}>Mở lượt miễn phí</button>
     ${st.tickets?`<button type="button" class="btn ghost wide" id="openticket">Dùng vé (còn ${st.tickets})</button>`:''}
   </div>
@@ -1141,7 +1189,7 @@ function openBox(){// rút sẵn 3 lá, lưu lại để tắt app giữa chừn
   if(!st.shards)st.shards={};const lucky=Math.floor(R()*3);
   let cards=[0,1,2].map(i=>{let t=rollTier(i===lucky);if(i===lucky&&st.firstBox)t=Math.max(2,t);return{s:pickOne(BY_TIER[t]),lucky:i===lucky}});
   if(st.firstBox)cards=cards.map(c=>c.lucky?c:{s:'round',lucky:false});
-  st.pack={cards,picked:[],first:!!st.firstBox};st.firstBox=0;st.pts+=5;save();showPack()}
+  st.pack={cards,picked:[],first:!!st.firstBox};st.firstBox=0;st.pts+=5;guideHit('box');save();showPack()}
 const PAW='<svg viewBox="0 0 60 60"><circle cx="30" cy="38" r="12" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="14" cy="24" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="24" cy="14" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="36" cy="14" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/><circle cx="46" cy="24" r="6" fill="#fff" stroke="#2A272C" stroke-width="3"/></svg>';
 function cardFront(g,extra,foot,title){const t=tierOf(g);return `<div class="front ${TIERS[t].c}${shinyOf(g)?' sh':''}">${extra||''}${imgTag(g,11)}<b>${esc(title||shortName(g))}</b>${foot||tierTag(t)}</div>`}
 const shardFoot=(sh,n)=>{const k=needOf(sh);return `<span class="tag ${TIERS[TIER_OF[sh]].c}">${n>=k?'Đủ lá ghép!':`${n}/${k} lá`}</span>`};
@@ -1190,7 +1238,7 @@ function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;if(pickFor!
     <h2>${esc(nameOf(c.g))}</h2><p class="hint">${esc(where)}</p></div></div>
     ${inHosp(c,T)?`<div class="box hl"><h3>Đang nằm viện</h3><p class="hint">Về nhà sau ${dur((c.hosp-G(T))/SPEED)} nữa, khỏe lại và vui hơn.</p></div>`:c.sick?`<div class="box hl"><h3>Mèo đang ốm</h3><p class="hint">Khay vệ sinh bẩn quá nên mèo bị ốm. Mèo ốm không đi làm được và buồn dần. Đưa đi bệnh viện 1 tiếng ngoài đời là khỏe.</p><button type="button" class="btn" data-a="hosp"${st.fish<HOSP[t]?' disabled':''}>Đi bệnh viện · ${HOSP[t]} cá</button></div>`:''}
     <div class="row"><span class="hint" style="width:90px">Tâm trạng ${c.mood}</span><span class="bar mood" style="flex:1"><i style="width:${c.mood}%"></i></span></div>
-    ${(c.neg||0)>=WARN_DAYS?`<div class="box hl warnbox"><h3>Mèo sắp bỏ nhà đi</h3><p class="hint">${esc(shortName(c.g))} đã ${c.neg} ngày ${esc((c.why||[]).join(', '))}. Thêm ${Math.max(1,RUN_DAYS-c.neg)} ngày trong game nữa là bỏ đi. Cho ăn, dọn khay, vuốt ve ngay nhé.</p></div>`:''}
+    ${(c.neg||0)>=WARN_DAYS?`<div class="box hl warnbox"><h3>Mèo sắp bỏ nhà đi</h3><p class="hint">${esc(shortName(c.g))} đã ${c.neg} ngày ${esc((c.why||[]).join(', '))}. Khoảng ${Math.max(1,RUN_DAYS-c.neg)*4} tiếng nữa là bỏ đi. Cho ăn, dọn khay, vuốt ve ngay nhé.</p></div>`:''}
     <p class="hint">Tâm trạng ${c.mood} nên cá và lương ra ×${moodF(c).toFixed(2)} (buồn nhất ×0,6, vui nhất ×1,2)</p>
     <p class="hint">${hungry(c)?'<b class="warnt">Đang đói</b>':`No còn ${Math.floor(hrsLeft(c.full))} giờ`} · ${bored(c)?'<b class="warnt">Đang chán</b>':`Chán sau ${Math.max(0,Math.floor(boredAfter(c)-(now()-(c.joy||0))/H))} giờ`}</p>
     <div class="catfields">${placeBox(c)}${jobBox(c,job)}</div>
@@ -1200,7 +1248,7 @@ function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;if(pickFor!
       ${isWeekend(G(T))?`<button type="button" class="btn small" data-a="spa"${c.spa>G(T)||st.fish<50?' disabled':''}>${c.spa>G(T)?'Đã spa tuần này':'Đi spa · 50 cá'}</button>`:''}
       <button type="button" class="btn small ghost" data-a="cake"${!st.pantry.cake||c.cake>T-365*DAY?' disabled':''}>Bánh sinh nhật</button>
     </div>
-    ${!isWeekend(G(T))?'<p class="hint">Spa mở vào Thứ Bảy và Chủ nhật trong game.</p>':''}
+    ${!isWeekend(G(T))?`<p class="hint">Spa mở lại sau khoảng ${dur(nextWeekendIn())}.</p>`:''}
     <div class="box"><div class="row"><h3>Mèo trùng</h3><span class="hint">Có ${dup.length} con cùng loài khác</span></div>
       <div class="acts"><button type="button" class="btn small" data-a="star"${canStar?'':' disabled'}>${c.star>=3?'Đã 3 sao':'Lên sao (gộp 2 con cùng loài)'}</button>
       <button type="button" class="btn small ghost" data-a="sell">Bán · ${M(sellPrice(c),'xu')}</button></div>
@@ -1238,13 +1286,13 @@ function placeBox(c){const homes=st.houses.filter(h=>!h.rent);const multi=homes.
     <div class="list">${opt('data-place="wait"',c.h<0,c.h>=0&&waiting().length>=10,'Phòng chờ','Không đi làm, không vào nhà')}</div></div>`;
   return html}
 // Chọn việc ngay trong thẻ mèo: một danh sách chọn một, lương mỗi việc ghi sẵn
-function jobBox(c,job){const T=gnow();
+function jobBox(c,job){const T=gnow();if(!unlocked())return field('job','Đi làm','Chưa mở','Có 3 mèo thì mở Đi làm').replace('class="field-row','disabled class="field-row');
   if(c.h<0)return field('job','Đi làm','Chưa đi làm được','Mèo ở Phòng chờ, chuyển vào phòng trước').replace('class="field-row','disabled class="field-row');
   const open=JOBS.filter(j=>!j.need()).map(j=>({j,w:wageOf(c,j)})).sort((a,b)=>b.w-a.w);
   const locked=JOBS.length-open.length;const best=open.length?open[0].j.id:null;
   const late=isWorkTime(T)&&c.job&&c.jobSince>shiftStart(T);
   let html=field('job','Đi làm',job?esc(job.n):'Ở nhà nghỉ',job?`${M(Math.round(wageOf(c,job)),'cá')}/ca${late?' · từ ca sau':''}`:'Chưa có việc');
-  if(catPick==='job')html+=`<div class="pick"><p class="hint">8h-17h, Thứ 2-6. Tâm trạng cao thì lương cao hơn.</p><div class="list">${open.map(({j,w})=>{const on=c.job===j.id,full=!on&&jobCount(j.id)>=j.slots;
+  if(catPick==='job')html+=`<div class="pick"><p class="hint">Mèo đi làm từng ca ngắn, lương về hộp thư sau mỗi ca. Mèo vui thì lương cao hơn.</p><div class="list">${open.map(({j,w})=>{const on=c.job===j.id,full=!on&&jobCount(j.id)>=j.slots;
       return opt(`data-job="${j.id}"`,on,full,esc(j.n),`${full?'Hết chỗ':`${jobCount(j.id)}/${j.slots} chỗ`}${fits(c,j)?' · <span class="fit">Hợp mèo này</span>':''}${j.id===best&&!fits(c,j)?' · Lương cao nhất':''}`,`<span class="wage">${M(Math.round(w),'cá')}<small>/ca</small></span>`)}).join('')}
       ${opt('data-job=""',!job,false,'Ở nhà nghỉ','Không đi làm, không có lương')}</div>${locked?`<p class="hint">Còn ${locked} việc chưa mở.</p>`:''}</div>`;
   return html}
@@ -1269,7 +1317,7 @@ const ICON={
   pet:'<svg viewBox="0 0 48 48"><path d="M24 40C11 31 6 25 6 18a9 9 0 0 1 18-3 9 9 0 0 1 18 3c0 7-5 13-18 22Z" fill="#F7A1B4" stroke="#2A272C" stroke-width="2.4"/></svg>'};
 const task=(ic,title,sub,btn,hl)=>`<div class="task${hl?' hl':''}"><div class="ic">${ic}</div><div class="tx"><b>${title}</b><small>${sub}</small></div>${btn||''}</div>`;
 function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
-  const tabs=[['today','Hôm nay'],['sum','Tổng quan'],['jobs','Đi làm'],['cats','Mèo nhà mình']];
+  const tabs=[['today','Hôm nay'],['sum','Tổng quan'],['jobs','Đi làm'],['cats','Mèo nhà mình']].filter(t=>t[0]!=='jobs'||unlocked());if(careTab==='jobs'&&!unlocked())careTab='today';
   let html=`<div class="sub">${tabs.map(([k,n])=>`<button type="button" data-t="${k}" class="${careTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(careTab==='today'){const home=st.cats.filter(c=>c.h>=0);const dk=dayKey(GT);const unfed=home.filter(c=>!c.hosp&&hungry(c));
     const sick=sickCats(),hs=st.cats.filter(c=>inHosp(c)),hcost=sick.reduce((a,c)=>a+HOSP[tierOf(c.g)],0);
@@ -1278,16 +1326,18 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
     const extra=[st.offline>=1?`lúc vắng nhà +${fmt(st.offline)} cá, +${fmt(st.offXu||0)} xu`:'',st.rentLog?`thuê nhà +${fmt(st.rentLog)} xu`:''].filter(Boolean).join(', ');
     if(sick.length||hs.length)html+=task(ICON.hosp,sick.length?`${sick.length} con bị ốm`:'Bệnh viện',sick.length?`Khay bẩn làm mèo ốm. Nằm viện 1 tiếng là khỏe${hs.length?` · ${hs.length} con đang nằm viện`:''}`:`${hs.length} con đang nằm viện, sắp về`,
       sick.length?`<button type="button" class="btn small" id="hospall"${st.fish<hcost?' disabled':''}>Đi viện · ${M(hcost,'cá')}</button>`:'',sick.length);
+    if(CFG&&ses&&!st.codeAsk&&now()-(st.startAt||0)>6*H)html+=task(ICON.mail,'Bạn còn giữ mã khôi phục không?','Quên mật khẩu thì cần mã này để vào lại nhà mèo','<div class="stack"><button type="button" class="btn small" id="codeyes">Còn giữ</button><button type="button" class="btn small ghost" id="codenew">Tạo mã mới</button></div>',true);
     {const x=streakState();html+=task(ICON.gift,x.done?`Đã điểm danh ngày ${x.n}`:`Điểm danh ngày ${x.n}`,x.done?`Mai quay lại nhận ${streakTxt(STREAK[x.n%7])}. Bỏ một ngày là về ngày 1`:`Nhận ${streakTxt(x.r)}. Vào game liên tục 7 ngày được vé hộp`,x.done?'':`<button type="button" class="btn small" id="streak">Nhận</button>`,!x.done)}
-    html+=task(ICON.mail,'Lương',st.mail?`${fmt(st.mail)} cá đang chờ${extra?' · '+extra:''}`:(isWeekday(GT)&&hourOf(GT)<17?'Về lúc 17:00 khi mèo đi làm về':'Chưa có lương mới'),
+    if(unlocked()||st.mail)html+=task(ICON.mail,'Lương',st.mail?`${fmt(st.mail)} cá đang chờ${extra?' · '+extra:''}`:(st.cats.some(c=>c.job)?`Lương ca tới về sau khoảng ${dur(nextPayIn())}`:'Cho mèo đi làm để có lương'),
       st.mail?`<button type="button" class="btn small" id="mail">Nhận</button>`:'',st.mail);
     if(CFG&&ses&&guests&&(guests.xu>0||guests.list.length))html+=task(ICON.pet,'Khách ghé thăm',guestLine(),guests.xu>0?`<button type="button" class="btn small" id="guestclaim">Nhận ${M(guests.xu,'xu')}</button>`:'',guests.xu>0);
+    (st.away||[]).forEach((a,i)=>{const fav=favOf(a.c.g.shape);html+=task(ICON.pet,`${shortName(a.c.g)} đang giận dỗi ngoài hiên`,`Vì ${a.why}. Còn ${dur(a.until-now())} để dỗ về bằng 1 phần ${FD[fav].n} (tủ có ${st.pantry[fav]})`,`<button type="button" class="btn small" data-coax="${i}"${st.pantry[fav]>0?'':' disabled'}>Dỗ về</button>`,true)});
     if(st.ranAway&&st.ranAway.some(r=>!r.seen))html+=task(ICON.pet,'Mèo đã bỏ nhà đi',st.ranAway.filter(r=>!r.seen).map(r=>`${r.n} (${r.why})`).join('; '),'<button type="button" class="btn small ghost" id="ranok">Đã hiểu</button>',true);
-    {const rk=atRisk();if(rk.length)html+=task(ICON.pet,'Sắp bỏ nhà đi',rk.map(c=>`${shortName(c.g)}: ${c.neg} ngày ${(c.why||[]).join(', ')}`).join('; ')+`. ${RUN_DAYS} ngày là bỏ đi`,'',true)}
+    {const rk=atRisk();if(rk.length)html+=task(ICON.pet,'Sắp bỏ nhà đi',rk.map(c=>`${shortName(c.g)} đang ${(c.why||[]).join(', ')}`).join('; ')+'. Chăm ngay kẻo mèo bỏ đi','',true)}
     if(st.autoFed)html+=task(FOOD_ICON.kibble,'Máy cho ăn',`Đã tự cho ${st.autoFed} lượt mèo ăn từ lần trước`,'<button type="button" class="btn small ghost" id="afok">OK</button>');
     if(st.gifts.length)html+=task(ICON.gift,'Quà mèo hoang',`${st.gifts.length} món ở hiên nhà`,`<button type="button" class="btn small" id="gifts">Nhặt</button>`,1);
     {const ok=home.filter(c=>!c.hosp&&!hungry(c)),soon=ok.length?Math.min(...ok.map(c=>hrsLeft(c.full))):0,can=home.some(c=>!c.hosp&&canEat(c));
-    html+=task(FOOD_ICON.kibble,'Cho ăn',unfed.length?`${unfed.length} con đang đói · tủ còn ${pantryMeals()} phần`:`Cả nhà đang no, con đói sớm nhất sau ${soon<1?'chưa tới 1':Math.floor(soon)} giờ · tủ còn ${pantryMeals()} phần`,
+    html+=task(FOOD_ICON.kibble,'Cho ăn',unfed.length?`${unfed.length} con đang đói · tủ còn ${pantryMeals()} phần`:(soon<1?`Mèo sắp đói, cho ăn được rồi · tủ còn ${pantryMeals()} phần`:`Cả nhà đang no, khoảng ${Math.floor(soon)} giờ nữa mới đói · tủ còn ${pantryMeals()} phần`),
       `<button type="button" class="btn small" id="feed"${can&&pantryMeals()?'':' disabled'}>${can?'Cho ăn':'No rồi'}</button>`,unfed.length>0)}
     {const bo=home.filter(c=>!c.hosp&&bored(c));if(bo.length)html+=task(ICON.pet,`${bo.length} con đang chán`,'Vuốt ve hoặc mua đồ chơi để mèo không chán. Chán lâu mèo buồn','',true)}
     html+=task(`<img src="care/tray.webp?v=2" alt="">`,'Vệ sinh',`${md>=3?`Khay bẩn ${md}%`:'Khay sạch'} · cát còn ${lit} lần${short?' · <span class="warn">thiếu khay</span>':''}`,
@@ -1296,7 +1346,7 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
     html+=task(ICON.pet,'Vuốt ve','Chạm vào mèo trong phòng, mỗi con 3 lần một ngày','');
     if(!pantryMeals()||!lit)html+=`<p class="why">${!pantryMeals()?'Tủ hết đồ ăn. ':''}${!lit?'Hết cát mèo. ':''}Mua ở Mua sắm.</p>`}
   if(careTab==='jobs'){
-    html+=`<div class="row"><p class="hint" style="flex:1;min-width:0">Thứ Hai - Thứ Sáu, 8:00-17:00 giờ game. Hợp việc +20% lương.</p><button type="button" class="btn small" id="auto">Tự xếp việc</button></div>
+    html+=`<div class="row"><p class="hint" style="flex:1;min-width:0">Mèo đi làm từng ca ngắn, lương về sau mỗi ca. Việc hợp với mèo được thêm lương.</p><button type="button" class="btn small" id="auto">Tự xếp việc</button></div>
       <div class="list">${JOBS.map(j=>{const lock=j.need();const ws=st.cats.filter(c=>c.job===j.id);
         return `<div class="li${lock?' off':''}" data-job="${j.id}"><div class="tx"><b>${j.n} · ×${String(j.m).replace('.',',')}</b><small>${lock?esc(lock):`Hợp: ${j.fit.map(s=>SPR[s]?SPR[s].name:s).join(', ')}${j.shinyFit?', mèo lấp lánh':''}`}</small>
           ${lock?'':`<div class="chips" style="margin-top:4px">${Array.from({length:j.slots},(_,i)=>ws[i]?`<span class="mini">${imgTag(ws[i].g)}</span>`:'<span class="mini empty"></span>').join('')}</div>`}</div>
@@ -1324,6 +1374,9 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
   bind(P,'[data-gohome]',el=>{st.ch=+el.dataset.gohome;st.cur=0;save();view();actors.clear();syncRoom();renderRooms();closeTray();toast(`Đang ở ${houseName(curHouse())}`)});
   if($('guestclaim'))$('guestclaim').onclick=async e=>{e.currentTarget.disabled=true;try{const x=await rpc('meo_guests_claim',{p_token:ses.token});if(x>0){st.xu+=x;save();toast(`+${fmt(x)} xu từ khách ghé thăm`)}guests.xu=0}catch(err){toast('Không kết nối được, thử lại sau')}render()};
   if($('streak'))$('streak').onclick=claimStreak;
+  if($('codeyes'))$('codeyes').onclick=()=>{st.codeAsk=1;save();render()};
+  if($('codenew'))$('codenew').onclick=()=>{st.codeAsk=1;save();openAccount()};
+  bind(P,'[data-coax]',el=>coax(+el.dataset.coax));
   if($('ranok'))$('ranok').onclick=()=>{st.ranAway.forEach(r=>r.seen=1);save();render()};
   if($('afok'))$('afok').onclick=()=>{st.autoFed=0;save();render()};
   if($('mail'))$('mail').onclick=()=>{st.fish+=st.mail;toast(`+${fmt(st.mail)} cá lương`);st.mail=0;st.mailN=0;st.offline=0;st.offXu=0;st.rentLog=0;save();render()};
@@ -1358,7 +1411,7 @@ function feedAll(){const dk=dayKey(gnow());let n=0,favN=0,miss=0;
   st.cats.filter(c=>c.h>=0&&!c.hosp&&canEat(c)).forEach(c=>{const f=takeFood(c);if(!f){miss++;return}st.pantry[f]--;const F=FD[f];let m=F.mood;
     let ex=0;if(f===favOf(c.g.shape)){ex=10;favN++;if(!st.favKnown.includes(c.g.shape))st.favKnown.push(c.g.shape)}
     c.mood+=moodGain(c,f,ex);eat(c,f);c.fb=F.fb||0;n++;faceHappy(c)});
-  save();toast(`${n} con đã ăn${favN?`, ${favN} con được món khoái khẩu`:''}${miss?`. ${miss} con chưa có phần, tủ hết đồ`:''}`);render()}
+  if(n)guideHit('feed');save();toast(`${n} con đã ăn${favN?`, ${favN} con được món khoái khẩu`:''}${miss?`. ${miss} con chưa có phần, tủ hết đồ`:''}`);render()}
 const jobCount=id=>st.cats.filter(c=>c.job===id).length;
 function autoAssign(){const T=gnow();const cats=st.cats.filter(c=>c.h>=0);cats.forEach(c=>c.job=null);
   const open=JOBS.filter(j=>!j.need()).sort((a,b)=>b.m-a.m);
@@ -1495,7 +1548,8 @@ function gearList(list){return `<div class="list">${list.map(f=>{const tot=total
   return `<div class="li"><div class="ic"><img src="furn/${f.id}.webp?v=2" alt="" loading="lazy"></div><div class="tx"><b>${f.name}${tot?` <span class="tag t1">có ${tot}</span>`:''}</b><small>${f.desc}</small></div>
     <button type="button" class="btn small" data-a="buy" data-id="${f.id}"${st.xu<p?' disabled':''}>${M(p,'xu')}</button></div>`}).join('')}</div>`}
 function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('details.more')].map(d=>d.open);
-  let html=`<div class="sub">${SHOPTABS.map(([k,n])=>`<button type="button" data-t="${k}" class="${shopTab===k?'on':''}">${n}</button>`).join('')}</div>`;
+  if(!unlocked()&&['home','market'].includes(shopTab))shopTab='cats';
+  let html=`<div class="sub">${SHOPTABS.filter(([k])=>unlocked()||!['home','market'].includes(k)).map(([k,n])=>`<button type="button" data-t="${k}" class="${shopTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(['furn','toys','home'].includes(shopTab))html+=`<p class="hint">Nội thất, phòng, nhà và đất trả bằng xu, mỗi bậc đắt gấp 10: đồ 10-100, phòng 100-1.000, nhà 1.000-10.000, đất từ 10.000. Đồ ăn, cát và lá mèo trả bằng cá.</p>`;
   if(shopTab==='cats'){const ps=petShop();const T=now();const next=at(T-7*H+DAY,7);
     html+=`<p class="hint">Tiệm bán lá mèo. Gom đủ lá cùng loài rồi ghép ở Hộp mèo. Mỗi loài bán tối đa 3 lá một ngày, hàng mới sau ${dur(next-T)}.</p><div class="grid">${ps.slots.map((sl,i)=>{const sh=sl.s,t=TIER_OF[sh],P=CARD_PRICE[t];const have=P.c==='xu'?st.xu:st.fish;const n=shardsOf(sh),k=needOf(sh),left=3-(sl.n||0);
@@ -1546,7 +1600,7 @@ function renderShop(){const P=$('p-shop');const openDet=[...P.querySelectorAll('
   bind(P,'[data-buy]',el=>{const [id,n]=el.dataset.buy.split(':');const f=FD[id];const cost=n==='20'?Math.round(f.p*20*.85):f.p;if(st.fish<cost)return;st.fish-=cost;st.pantry[id]+=+n;save();toast(`+${n} ${f.n}`);render()});
   if($('cap'))$('cap').onclick=e=>{const c=100*st.pantryCap/100;twoTap(e.currentTarget,'cap',`Trả ${fmt(c)} xu?`,()=>{st.xu-=c;st.pantryCap+=100;save();render()})};
   bind(P,'[data-a]',el=>{const id=el.dataset.id,f=fid(id),a=el.dataset.a;
-    if(a==='buy'){if(f.toilet){const xu=f.cur==='xu';if((xu?st.xu:st.fish)<f.price)return;if(xu)st.xu-=f.price;else st.fish-=f.price}
+    if(a==='buy'){setTimeout(()=>guideHit('buy'),50);if(f.toilet){const xu=f.cur==='xu';if((xu?st.xu:st.fish)<f.price)return;if(xu)st.xu-=f.price;else st.fish-=f.price}
       else{const p=furnPrice(f);if(st.xu<p)return;st.xu-=p;st.bought[id]=(st.bought[id]||0)+1}
       placeOne(id,{});toast(`Đã đặt ${f.name} vào ${ROOMT[curT()].n}`)}
     else if(a==='place'){const o=(st.inv[id]||[]).pop();if(!o)return;placeOne(id,o)}
@@ -1576,7 +1630,7 @@ let bookTab='species';
 function renderBook(){const P=$('p-book');const sp=st.species.length;
   let html=`<div class="box"><div class="row"><h3>Đã gặp ${sp}/${ALLSH.length} loài</h3><span class="hint">${st.seen.length}/${TOTAL} kiểu lông</span></div><div class="meter"><i style="width:${(sp/ALLSH.length*100).toFixed(1)}%"></i></div>
     ${claimable().map(i=>`<button type="button" class="btn small" data-claim="${i}">Đủ trang ${TIERS[i].n}: nhận ${M(TIERS[i].book,'xu')}</button>`).join('')}</div>
-    <div class="sub">${[['species','Theo loài'],['friends','Bạn bè'],['recipes','Công thức trứng'],['photos','Ảnh mèo hoang']].map(([k,n])=>`<button type="button" data-t="${k}" class="${bookTab===k?'on':''}">${n}</button>`).join('')}</div>`;
+    <div class="sub">${[['species','Theo loài'],['friends','Bạn bè'],['recipes','Công thức trứng'],['photos','Ảnh mèo hoang']].filter(t=>t[0]!=='recipes'||unlocked()).map(([k,n])=>`<button type="button" data-t="${k}" class="${bookTab===k?'on':''}">${n}</button>`).join('')}</div>`;
   if(bookTab==='species')html+=TIERS.map((t,i)=>{const have=BY_TIER[i].filter(s=>st.species.includes(s)).length;
     return `<div class="row tierhead"><h3>${tierTag(i)}</h3><span class="hint">${have}/${BY_TIER[i].length}${st.claimed.includes(i)?' · đã nhận thưởng':` · đủ trang +${fmt(t.book)} xu`}</span></div>
     <div class="grid">${BY_TIER[i].map(s=>{const own=st.species.includes(s);const vs=st.seen.filter(k=>k.split('|')[0]===s);const last=vs.length?vs[vs.length-1].split('|'):null;
@@ -1588,7 +1642,7 @@ function renderBook(){const P=$('p-book');const sp=st.species.length;
       return `<div class="ccard${own?'':' locked'}">${own?imgTag(g):silTag(g)}<span class="nm">${own?esc(SPR[w].name):'???'}</span><em>${own?SPR[w].rec.map(x=>SPR[x].name).join(' + '):esc(SPR[w].hint||'')}</em></div>`}).join('')}</div>`;
   if(bookTab==='photos')html+=`<p class="hint">Chạm vào mèo hoang ghé hiên nhà để chụp ảnh. Đổ đồ ăn vào bát ngoài hiên để mời mèo ghé.</p><div class="grid">${ALLSH.map(s=>{const has=st.photos.includes(s);const g={shape:s,pattern:'plain',color:'white'};
       return has?`<div class="ccard">${imgTag(g,10)}<span class="nm">${esc(SPR[s].name)}</span></div>`:''}).join('')||'<p class="hint">Chưa có ảnh nào.</p>'}</div>`;
-  html+=`<div class="box" style="margin-top:12px"><h3>Chơi lại từ đầu</h3><p class="hint">Xóa hết mèo, nhà, cá và xu trên máy này, bắt đầu lại với nhà trống. Không lấy lại được.</p><button type="button" class="btn small ghost" id="reset">Chơi lại từ đầu</button></div>${CFG&&ses?`<div class="task"><div class="tx"><b>Tài khoản: ${esc(ses.username)}</b><small>Tiến độ lưu trên mây, đổi máy vẫn chơi tiếp</small></div><div class="stack"><button type="button" class="btn small ghost" id="acct">Mật khẩu</button><button type="button" class="btn small ghost" id="logout">Đăng xuất</button></div></div>`:''}`;
+  html+=`<div class="box" style="margin-top:12px"><h3>Chơi lại từ đầu</h3><p class="hint">Xóa hết mèo, nhà, cá và xu trên máy này, bắt đầu lại với nhà trống. Không lấy lại được.</p><button type="button" class="btn small ghost" id="reset">Chơi lại từ đầu</button></div>${CFG&&ses?`<div class="task"><div class="tx"><b>Tài khoản: ${esc(ses.username)}</b><small>Tiến độ lưu trên mây, đổi máy vẫn chơi tiếp. Quên mật khẩu thì cần mã khôi phục, mất mã thì bấm Mật khẩu để tạo mã mới</small></div><div class="stack"><button type="button" class="btn small ghost" id="acct">Mật khẩu</button><button type="button" class="btn small ghost" id="logout">Đăng xuất</button></div></div>`:''}`;
   const fOld=$('fname'),fVal=fOld?fOld.value:'',fFoc=fOld&&document.activeElement===fOld;
   P.innerHTML=html;
   if($('fname')&&fVal){$('fname').value=fVal;if(fFoc){$('fname').focus();$('fname').setSelectionRange(fVal.length,fVal.length)}}
