@@ -773,7 +773,7 @@ function wageOf(c,j,withMood=true){const t=tierOf(c.g);return TIERS[t].base*9*j.
 const HOME=[60,96,168,300,540];// cá mỗi giờ ngoài đời khi mèo ở nhà, bằng 1/3 lúc đi làm
 const homeRate=c=>{const h=houseById(c.h);if(!h)return 0;return HOME[tierOf(c.g)]*starF(c)*moodF(c)*(1+.1*comfort(h.rooms[c.r]))*fishBonus(h)};
 // xu tự ra: mỗi nhà đang ở 6 xu mỗi giờ, cộng thêm theo độ êm của đồ đạc
-function xuPerHour(){return st.houses.filter(h=>!h.rent).reduce((a,h)=>a+10+.5*h.rooms.reduce((b,r)=>b+comfort(r),0),0)}
+function xuPerHour(){return st.houses.filter(h=>!h.rent).reduce((a,h)=>a+15+.8*h.rooms.reduce((b,r)=>b+comfort(r),0)+st.cats.filter(c=>c.h===h.id).length,0)}
 function passivePerHour(t=now()){return st.cats.reduce((a,c)=>a+(c.h>=0&&present(c,t)&&!c.sick?homeRate(c):0),0)}
 
 // ---------- Xử lý thời gian ----------
@@ -1026,7 +1026,7 @@ $('helpbtn').onclick=()=>sheet(`<h2>Cách chơi</h2>
     <div class="li"><div class="ic"><img src="care/tray.webp?v=2" alt=""></div><div class="tx"><b>Dọn khay vệ sinh</b><small>Chạm vào khay để dọn. Khay bẩn lâu mèo dễ ốm.</small></div></div>
     <div class="li"><div class="ic">${ICON.pet}</div><div class="tx"><b>Vuốt ve, chơi cùng mèo</b><small>Chạm vào mèo để vuốt. Đồ chơi giúp mèo không chán.</small></div></div>
     <div class="li"><div class="ic">${CI['cá']}</div><div class="tx"><b>Cá</b><small>Mèo vui thì cá tự ra. Dùng cá mua đồ ăn, cát, lá mèo.</small></div></div>
-    <div class="li"><div class="ic">${CI.xu}</div><div class="tx"><b>Xu</b><small>Nhà tự ra xu. Dùng xu mua đồ đạc, đồ chơi, phòng, nhà.</small></div></div>
+    <div class="li"><div class="ic">${CI.xu}</div><div class="tx"><b>Xu</b><small>Nhà tự ra xu, nhà nhiều mèo và nhiều đồ đẹp thì ra nhiều hơn. Thừa cá thì đổi sang xu ở Chợ cá. Dùng xu mua đồ đạc, đồ chơi, phòng, nhà.</small></div></div>
     <div class="li"><div class="ic">${ICON.gift}</div><div class="tx"><b>Lá mèo</b><small>Mở Hộp mèo lấy lá. Gom đủ lá cùng loài thì ghép ra bé mèo mới.</small></div></div>
   </div>
   <p class="hint">Mỗi ngày vào điểm danh, cho ăn, dọn khay, vuốt mèo là đủ. Mèo bị bỏ bê lâu sẽ giận dỗi, dỗ bằng món khoái khẩu là về.</p>
@@ -1493,7 +1493,7 @@ function hatch(id){const e=st.eggs.find(x=>x.id===id);if(!e||eggMs(e))return;con
 
 // ---------- Nhà đất ----------
 let zoneOpen=-1;
-function marketLeft(){const dk=dayKey(now());if(st.market.day!==dk){st.market={day:dk,xu:0}}return 150-st.market.xu}
+function marketLeft(){const dk=dayKey(now());if(st.market.day!==dk){st.market={day:dk,xu:0}}return 300-st.market.xu}
 function homeHtml(){const h=curHouse(),tp=TPL[h.tpl];const inside=h.rooms.filter(r=>!ROOMT[r.t].out).length;const w=waiting();const up=TPL[h.tpl+1];
   let html=`${w.length?`<p class="why">Phòng chờ có ${w.length} mèo. Xây thêm phòng, mèo tự dọn vào.</p>`:''}
     <div class="task hl"><div class="ic big"><img src="houses/h${h.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(h))}</b><small>${h.lot.area} m² · ${inside}/${tp.rooms} phòng · ${zoneOf(h).perk}${h.lot.trait?' · '+h.lot.trait.n:''}</small></div></div>`;
@@ -1510,7 +1510,7 @@ function homeHtml(){const h=curHouse(),tp=TPL[h.tpl];const inside=h.rooms.filter
       return `<div class="li${own?' off':''}"><div class="tx"><b>Lô ${l.i+1} · ${l.area} m²${l.trait?' · '+l.trait.n:''}</b><small>${own?'Của bạn':`Tới ${fit.n}`}</small></div>${own?'':`<button type="button" class="btn small" data-lot="${i}:${l.i}"${st.xu<l.price||st.houses.length>=5?' disabled':''}>${M(l.price,'xu')}</button>`}</div>`}).join('')}</div>`:''}`}).join('')}</div></details>`;
   return html}
 function marketHtml(){const left=marketLeft();
-  return `<div class="box hl"><div class="row"><h3>Đổi cá lấy xu</h3><span class="hint">20 cá = 1 xu</span></div><p class="hint">Hôm nay còn đổi được <b>${left} xu</b>. Xu dùng mua đất, xây phòng.</p>
+  return `<div class="box hl"><div class="row"><h3>Đổi cá lấy xu</h3><span class="hint">20 cá = 1 xu</span></div><p class="hint">Hôm nay còn đổi được <b>${left} xu</b> (mỗi ngày 300 xu). Xu dùng mua đồ, xây phòng, mua nhà.</p>
     <div class="acts">${[10,50,left].filter((v,i,a)=>v>0&&a.indexOf(v)===i).map(v=>`<button type="button" class="btn small" data-mk="${v}"${st.fish<v*20||v>left?' disabled':''}>${fmt(v*20)} cá → ${v} xu</button>`).join('')}</div></div>
     <p class="hint">Xu còn có từ bán mèo trùng, cho thuê nhà và đủ trang Sổ mèo.</p>`}
 function bindHome(P){const h=curHouse();
