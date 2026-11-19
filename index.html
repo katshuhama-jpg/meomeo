@@ -312,6 +312,14 @@ body.editing .guide,body.visiting .guide{display:none!important}
 body.visiting #helpbtn{display:none}
 .workpill{position:fixed;z-index:12;left:50%;transform:translateX(-50%);top:calc(150px + env(safe-area-inset-top,0px));background:rgba(42,39,44,.88);color:#fff;font-weight:700;font-size:14px;padding:8px 14px;border-radius:999px;max-width:calc(100% - 32px);text-align:center;pointer-events:none}
 body.editing .workpill,body.visiting .workpill{display:none!important}
+/* thanh trên cùng vừa màn hình điện thoại hẹp */
+.hud.top{left:calc(8px + env(safe-area-inset-left,0px))!important;right:calc(8px + env(safe-area-inset-right,0px))!important;gap:4px!important;justify-content:space-between}
+.hud.top>.pill:first-child{padding:4px 8px;gap:8px;min-width:0;flex:0 1 auto}
+.topr{gap:4px!important;min-width:0}
+.pill.bell{width:40px!important;min-height:44px!important}
+.pill.bell svg{width:22px;height:22px}
+.clock{padding:3px 8px!important;min-width:0}
+.clock small{font-size:10.5px}
 </style>
 
 <div class="room" id="room"><div class="loading" id="loading">Đang gọi mèo về…</div><canvas id="cv"></canvas></div>
@@ -1124,12 +1132,12 @@ const confirmMap=new Map();
 function twoTap(btn,key,label,fn){// bấm hai lần để xác nhận việc mất tiền hoặc mất mèo
   if(confirmMap.get(key)){confirmMap.delete(key);fn();return}
   confirmMap.set(key,1);btn.classList.add('confirm');btn.textContent=label||'Bấm lần nữa';setTimeout(()=>{confirmMap.delete(key);if(btn.isConnected){btn.classList.remove('confirm');render()}},3000)}
-function updateWallet(){$('fish').textContent=fmt(st.fish);$('xu').textContent=fmt(st.xu);const fr=passivePerHour(),xr=xuPerHour();$('fishrate').textContent=fr?'+'+fmt(fr)+'/giờ':'';$('xurate').textContent='+'+(xr<10?xr.toLocaleString('vi-VN',{maximumFractionDigits:1}):fmt(xr))+'/giờ'}
+const short=n=>{n=Math.floor(n);if(n<10000)return fmt(n);if(n<1e6)return (n/1e3).toLocaleString('vi-VN',{maximumFractionDigits:n<1e5?1:0})+'K';return (n/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1})+'Tr'};
+function updateWallet(){$('fish').textContent=short(st.fish);$('xu').textContent=short(st.xu);const fr=passivePerHour(),xr=xuPerHour();$('fishrate').textContent=fr?'+'+fmt(fr)+'/giờ':'';$('xurate').textContent='+'+(xr<10?xr.toLocaleString('vi-VN',{maximumFractionDigits:1}):fmt(xr))+'/giờ'}
 // Đồng hồ hiện giờ thật cho dễ hiểu; ngày trong nhà mèo vẫn trôi nhanh bên dưới
-function clockText(){const T=now(),d=new Date(T),hm=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
-  const nWork=st.cats.filter(c=>away(c,T)).length,night=isNight(T);
-  const sub=nWork?`${nWork} mèo đang đi làm`:night?(lightOn()?'Đêm · đèn đang bật':'Đêm · mèo ngủ'):'Mèo ở nhà chơi';
-  return `<b>${['CN','T2','T3','T4','T5','T6','T7'][d.getDay()]} ${hm}</b><small>${sub}</small>`}
+function clockText(){const T=now(),d=new Date(T),g=new Date(G(T)),W=['CN','T2','T3','T4','T5','T6','T7'];
+  const hm=x=>x.getHours()+':'+String(x.getMinutes()).padStart(2,'0');
+  return `<b>${W[d.getDay()]} ${hm(d)}</b><small>Nhà mèo: ${W[g.getDay()]} ${hm(g)}</small>`}
 // Lần trả lương tới (giờ thật còn lại)
 const backIn=()=>{const g=G(now());return Math.max(0,(at(g,17)-g)/SPEED)};
 function nextPayIn(){let g=G(now());for(let i=0;i<9;i++){const c=at(g+i*DAY,17);if(c>g&&isWeekday(c))return (c-g)/SPEED}return 0}
