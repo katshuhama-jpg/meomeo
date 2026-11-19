@@ -310,6 +310,8 @@ body.visiting .bell{display:none}
 body.editing .guide,body.visiting .guide{display:none!important}
 .helpl .ic img,.helpl .ic svg{width:40px;height:40px}
 body.visiting #helpbtn{display:none}
+.workpill{position:fixed;z-index:12;left:50%;transform:translateX(-50%);top:calc(150px + env(safe-area-inset-top,0px));background:rgba(42,39,44,.88);color:#fff;font-weight:700;font-size:14px;padding:8px 14px;border-radius:999px;max-width:calc(100% - 32px);text-align:center;pointer-events:none}
+body.editing .workpill,body.visiting .workpill{display:none!important}
 </style>
 
 <div class="room" id="room"><div class="loading" id="loading">Đang gọi mèo về…</div><canvas id="cv"></canvas></div>
@@ -347,6 +349,7 @@ body.visiting #helpbtn{display:none}
 <div class="stage" id="stage" hidden></div>
 <div class="visitbar" id="visitbar" hidden></div>
 <div class="guide" id="guide" hidden></div>
+<div class="workpill" id="workpill" hidden></div>
 <div class="toast" id="toast" role="status"></div>
 
 <script>
@@ -1084,9 +1087,10 @@ function updateWallet(){$('fish').textContent=fmt(st.fish);$('xu').textContent=f
 // Đồng hồ hiện giờ thật cho dễ hiểu; ngày trong nhà mèo vẫn trôi nhanh bên dưới
 function clockText(){const T=now(),d=new Date(T),hm=d.getHours()+':'+String(d.getMinutes()).padStart(2,'0');
   const nWork=st.cats.filter(c=>away(c,T)).length,night=isNight(T);
-  const sub=night?(lightOn()?'Đêm · đèn đang bật':'Đêm · mèo ngủ'):nWork?`${nWork} mèo đang đi làm`:'Mèo ở nhà chơi';
+  const sub=nWork?`${nWork} mèo đang đi làm`:night?(lightOn()?'Đêm · đèn đang bật':'Đêm · mèo ngủ'):'Mèo ở nhà chơi';
   return `<b>${['CN','T2','T3','T4','T5','T6','T7'][d.getDay()]} ${hm}</b><small>${sub}</small>`}
 // Lần trả lương tới (giờ thật còn lại)
+const backIn=()=>{const g=G(now());return Math.max(0,(at(g,17)-g)/SPEED)};
 function nextPayIn(){let g=G(now());for(let i=0;i<9;i++){const c=at(g+i*DAY,17);if(c>g&&isWeekday(c))return (c-g)/SPEED}return 0}
 function nextWeekendIn(){let g=G(now());for(let i=0;i<9*24;i++){const t=g+i*H;if(isWeekend(t))return (t-g)/SPEED}return 0}
 function notices(){const n=[];const sk=sickCats().length;if(sk)n.push(`${sk} mèo bị ốm, cần đưa đi bệnh viện`);const md=maxDirt();if(md>=55)n.push(md>=75?'Khay vệ sinh bẩn lắm rồi, dọn ngay kẻo mèo ốm':'Khay vệ sinh hơi bẩn, chạm vào khay để dọn');
@@ -1105,11 +1109,12 @@ function renderHud(){updateWallet();updLight();checkUnlock();renderGuide();$('cl
   $('dot-book').textContent=claimable().length||'';
   $('dot-shop').textContent=waiting().length?waiting().length:''}
 function renderRooms(){const h=curHouse();
-  const chips=h.rooms.map((r,i)=>{const n=catsIn(h,i).length;return `<button type="button" class="rchip${i===st.cur?' on':''}${ROOMT[r.t].out?' out':''}" data-i="${i}"><b>${ROOMT[r.t].n}</b><span>${n}/${CAP} mèo</span></button>`});
+  const chips=h.rooms.map((r,i)=>{const L=catsIn(h,i),n=L.length,w=visit?0:L.filter(c=>away(c)).length;return `<button type="button" class="rchip${i===st.cur?' on':''}${ROOMT[r.t].out?' out':''}" data-i="${i}"><b>${ROOMT[r.t].n}</b><span>${n}/${CAP} mèo${w?` · ${w} đi làm`:''}</span></button>`});
   const inside=h.rooms.filter(r=>!ROOMT[r.t].out).length;
   if(!visit&&inside<TPL[h.tpl].rooms)chips.push(`<button type="button" class="rchip add" data-add="1"><b>+ Xây phòng</b><span>${inside}/${TPL[h.tpl].rooms} phòng</span></button>`);
   if(st.houses.length>1)chips.unshift(`<button type="button" class="rchip add" data-house="1"><b>${esc(houseName(h))}</b><span>đổi nhà</span></button>`);
   $('rooms').innerHTML=chips.join('');
+  {const L=catsIn(h,st.cur),w=visit?0:L.filter(c=>away(c)).length,wb=$('workpill');wb.hidden=!w;if(w)wb.textContent=w===L.length?`Cả ${w} mèo phòng này đang đi làm, về sau ${dur(backIn())}`:`${w} mèo phòng này đang đi làm, về sau ${dur(backIn())}`}
   $('rooms').querySelectorAll('.rchip').forEach(b=>b.onclick=()=>{
     if(visit&&b.dataset.house){st.ch=(st.ch+1)%st.houses.length;st.cur=0;view();actors.clear();syncRoom();renderRooms();return}
     if(b.dataset.add||b.dataset.house){shopTab='home';openTray('shop');return}
