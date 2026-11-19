@@ -1005,7 +1005,7 @@ function skyLevels(h){// trả về [độ đêm 0-1, độ chiều vàng 0-1, �
   return[lerp(0,1,(h-18)/3),lerp(1,0,(h-18)/3),0]}
 // Công tắc đèn: tối bật đèn thì phòng sáng ấm, mèo còn thức; tắt đèn thì tối hẳn, mèo ngủ ngon (sáng hôm sau vui thêm)
 const lightOn=()=>st.light!==false;
-const darkNow=()=>skyLevels(hourOf(now()))[0]>.15;
+const darkNow=()=>skyLevels(hourOf(gnow()))[0]>.15;
 // Bước 1, chỉ phủ nền phòng: chiều vàng, bình minh hồng. Ngoài trời ban đêm thì nền tối nhưng mèo vẫn rõ (như có đèn hiên)
 function bgTint(h,dp){const [n,g,d]=skyLevels(h);const out=!!ROOMT[curT()].out;if(!n&&!g&&!d)return;ctx.save();ctx.setTransform(dp,0,0,dp,0,0);ctx.globalCompositeOperation='multiply';
   const k=out?1:.5;
@@ -1024,11 +1024,11 @@ function darkTint(h,dp){const n=skyLevels(h)[0];if(!n||ROOMT[curT()].out||lightO
   ctx.fillStyle=`rgba(46,54,112,${.78*n})`;ctx.fillRect(0,0,VW,VH);ctx.restore()}
 let lastT=performance.now();
 function tick(nowp){
-  const dt=Math.min(.05,(nowp-lastT)/1000);lastT=nowp;const T=nowp/1000;const night=isNight(now())&&!lightOn();
+  const dt=Math.min(.05,(nowp-lastT)/1000);lastT=nowp;const T=nowp/1000;const night=isNight(gnow())&&!lightOn();
   const dp=cv.width/room.clientWidth;ctx.setTransform(dp,0,0,dp,0,0);ctx.fillStyle='#FBF8F2';ctx.fillRect(0,0,VW,VH);ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);
   const bg=roomImg(curT());if(bg.complete&&bg.naturalWidth){ctx.imageSmoothingQuality='high';ctx.drawImage(bg,0,0,RW*S,RH*S)}
-  {const nl=skyLevels(hourOf(now()))[0],sk=SKY[curT()];if(nl>0&&sk){ctx.save();ctx.globalAlpha=nl;ctx.imageSmoothingQuality='high';ctx.drawImage(sk,0,0,RW*S,RH*S);ctx.restore()}}
-  bgTint(hourOf(now()),dp);ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);
+  {const nl=skyLevels(hourOf(gnow()))[0],sk=SKY[curT()];if(nl>0&&sk){ctx.save();ctx.globalAlpha=nl;ctx.imageSmoothingQuality='high';ctx.drawImage(sk,0,0,RW*S,RH*S);ctx.restore()}}
+  bgTint(hourOf(gnow()),dp);ctx.setTransform(dp,0,0,dp,-OX*dp,-OY*dp);
   for(const a of actors.values()){const b=a.b,w=b.cw*CS/b.K;a.t-=dt;if(a.jump>0)a.jump=Math.max(0,a.jump-dt*2.2);if(a.exprT>0)a.exprT-=dt;
     a.blinkT-=dt;if(a.blinking>0)a.blinking-=dt;if(a.blinkT<=0){a.blinking=.16;a.blinkT=2.5+R()*4}
     if((night&&!a.stray)||a.c.sick||a.exprT>0){if(a.state==='walk'){a.state='idle';a.t=Math.max(a.t,a.exprT||2)}}
@@ -1041,7 +1041,7 @@ function tick(nowp){
   if(ROOMT[curT()].out)list.push({z:bowlPos().y,d:drawBowl});
   for(const a of actors.values())list.push({z:a.Y,d:()=>drawCat(a,T,night)});
   list.sort((p,q)=>p.z-q.z).forEach(o=>o.d());
-  darkTint(hourOf(now()),dp);
+  darkTint(hourOf(gnow()),dp);
   requestAnimationFrame(tick)}
 
 // ---------- Sắp xếp đồ ----------
@@ -1135,9 +1135,11 @@ function twoTap(btn,key,label,fn){// bấm hai lần để xác nhận việc m�
 const short=n=>{n=Math.floor(n);if(n<10000)return fmt(n);if(n<1e6)return (n/1e3).toLocaleString('vi-VN',{maximumFractionDigits:n<1e5?1:0})+'K';return (n/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1})+'Tr'};
 function updateWallet(){$('fish').textContent=short(st.fish);$('xu').textContent=short(st.xu);const fr=passivePerHour(),xr=xuPerHour();$('fishrate').textContent=fr?'+'+fmt(fr)+'/giờ':'';$('xurate').textContent='+'+(xr<10?xr.toLocaleString('vi-VN',{maximumFractionDigits:1}):fmt(xr))+'/giờ'}
 // Đồng hồ hiện giờ thật cho dễ hiểu; ngày trong nhà mèo vẫn trôi nhanh bên dưới
-function clockText(){const T=now(),d=new Date(T),g=new Date(G(T)),W=['CN','T2','T3','T4','T5','T6','T7'];
-  const hm=x=>x.getHours()+':'+String(x.getMinutes()).padStart(2,'0');
-  return `<b>${W[d.getDay()]} ${hm(d)}</b><small>Nhà mèo: ${W[g.getDay()]} ${hm(g)}</small>`}
+// Đồng hồ chỉ hiện giờ trong nhà mèo (1 ngày ngoài đời = 6 ngày trong game)
+function clockText(){const T=now(),g=new Date(G(T)),W=['CN','T2','T3','T4','T5','T6','T7'];
+  const nWork=st.cats.filter(c=>away(c,T)).length,night=isNight(G(T));
+  const sub=nWork?`${nWork} mèo đang đi làm`:night?(lightOn()?'Đêm · đèn đang bật':'Đêm · mèo ngủ'):isWeekend(G(T))?'Ngày nghỉ':'Mèo ở nhà chơi';
+  return `<b>${W[g.getDay()]} ${g.getHours()}:${String(g.getMinutes()).padStart(2,'0')}</b><small>${sub}</small>`}
 // Lần trả lương tới (giờ thật còn lại)
 const backIn=()=>{const g=G(now());return Math.max(0,(at(g,17)-g)/SPEED)};
 function nextPayIn(){let g=G(now());for(let i=0;i<9;i++){const c=at(g+i*DAY,17);if(c>g&&isWeekday(c))return (c-g)/SPEED}return 0}
@@ -1163,7 +1165,7 @@ function renderRooms(){const h=curHouse();
   if(!visit&&inside<TPL[h.tpl].rooms)chips.push(`<button type="button" class="rchip add" data-add="1"><b>+ Xây phòng</b><span>${inside}/${TPL[h.tpl].rooms} phòng</span></button>`);
   if(st.houses.length>1)chips.unshift(`<button type="button" class="rchip add" data-house="1"><b>${esc(houseName(h))}</b><span>đổi nhà</span></button>`);
   $('rooms').innerHTML=chips.join('');
-  {const L=catsIn(h,st.cur),w=visit?0:L.filter(c=>away(c)).length,wb=$('workpill');wb.hidden=!w;if(w)wb.textContent=w===L.length?`Cả ${w} mèo phòng này đang đi làm, về sau ${dur(backIn())}`:`${w} mèo phòng này đang đi làm, về sau ${dur(backIn())}`}
+  {const L=catsIn(h,st.cur),w=visit?0:L.filter(c=>away(c)).length,wb=$('workpill');wb.hidden=!w;if(w)wb.textContent=w===L.length?`Cả ${w} mèo phòng này đang đi làm, 17:00 về`:`${w} mèo phòng này đang đi làm, 17:00 về`}
   $('rooms').querySelectorAll('.rchip').forEach(b=>b.onclick=()=>{
     if(visit&&b.dataset.house){st.ch=(st.ch+1)%st.houses.length;st.cur=0;view();actors.clear();syncRoom();renderRooms();return}
     if(b.dataset.add||b.dataset.house){shopTab='home';openTray('shop');return}
@@ -1302,7 +1304,7 @@ function openCat(id){const c=st.cats.find(x=>x.id===id);if(!c)return;if(pickFor!
       ${isWeekend(G(T))?`<button type="button" class="btn small" data-a="spa"${c.spa>G(T)||st.fish<50?' disabled':''}>${c.spa>G(T)?'Đã spa tuần này':'Đi spa · 50 cá'}</button>`:''}
       <button type="button" class="btn small ghost" data-a="cake"${!st.pantry.cake||c.cake>T-365*DAY?' disabled':''}>Bánh sinh nhật</button>
     </div>
-    ${!isWeekend(G(T))?`<p class="hint">Spa mở lại sau khoảng ${dur(nextWeekendIn())}.</p>`:''}
+    ${!isWeekend(G(T))?'<p class="hint">Spa mở Thứ 7 và Chủ nhật.</p>':''}
     <div class="box"><div class="row"><h3>Mèo trùng</h3><span class="hint">Có ${dup.length} con cùng loài khác</span></div>
       <div class="acts"><button type="button" class="btn small" data-a="star"${canStar?'':' disabled'}>${c.star>=3?'Đã 3 sao':'Lên sao (gộp 2 con cùng loài)'}</button>
       <button type="button" class="btn small ghost" data-a="sell">Bán · ${M(sellPrice(c),'xu')}</button></div>
@@ -1346,7 +1348,7 @@ function jobBox(c,job){const T=gnow();if(!unlocked())return field('job','Đi là
   const locked=JOBS.length-open.length;const best=open.length?open[0].j.id:null;
   const late=isWorkTime(T)&&c.job&&c.jobSince>shiftStart(T);
   let html=field('job','Đi làm',job?esc(job.n):'Ở nhà nghỉ',job?(c.mood<TIRED?`<span class="warnt">Mệt quá, đang nghỉ (tâm trạng dưới ${TIRED})</span>`:`${M(Math.round(wageOf(c,job)),'cá')}/ca · mệt -${tireOf(c,job)}${late?' · từ ca sau':''}`):'Chưa có việc');
-  if(catPick==='job')html+=`<div class="pick"><p class="hint">Mỗi ca mèo mệt đi một chút, việc lương cao thì mệt hơn. Dưới ${TIRED} tâm trạng mèo nghỉ ở nhà. Việc hợp mèo được thêm lương và đỡ mệt.</p><div class="list">${open.map(({j,w})=>{const on=c.job===j.id,full=!on&&jobCount(j.id)>=j.slots;
+  if(catPick==='job')html+=`<div class="pick"><p class="hint">Đi làm 8:00-17:00, Thứ 2 đến Thứ 6. Mỗi ca mèo mệt đi một chút, việc lương cao thì mệt hơn. Dưới ${TIRED} tâm trạng mèo nghỉ ở nhà. Việc hợp mèo được thêm lương và đỡ mệt.</p><div class="list">${open.map(({j,w})=>{const on=c.job===j.id,full=!on&&jobCount(j.id)>=j.slots;
       return opt(`data-job="${j.id}"`,on,full,esc(j.n),`${full?'Hết chỗ':`${jobCount(j.id)}/${j.slots} chỗ`} · mệt -${tireOf(c,j)}/ca${fits(c,j)?' · <span class="fit">Hợp mèo này</span>':''}${j.id===best&&!fits(c,j)?' · Lương cao nhất':''}`,`<span class="wage">${M(Math.round(w),'cá')}<small>/ca</small></span>`)}).join('')}
       ${opt('data-job=""',!job,false,'Ở nhà nghỉ','Không đi làm, không có lương')}</div>${locked?`<p class="hint">Còn ${locked} việc chưa mở hoặc cần mèo hiếm hơn.</p>`:''}</div>`;
   return html}
@@ -1382,7 +1384,7 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
       sick.length?`<button type="button" class="btn small" id="hospall"${st.fish<hcost?' disabled':''}>Đi viện · ${M(hcost,'cá')}</button>`:'',sick.length);
     if(CFG&&ses&&!st.codeAsk&&now()-(st.startAt||0)>6*H)html+=task(ICON.mail,'Bạn còn giữ mã khôi phục không?','Quên mật khẩu thì cần mã này để vào lại nhà mèo','<div class="stack"><button type="button" class="btn small" id="codeyes">Còn giữ</button><button type="button" class="btn small ghost" id="codenew">Tạo mã mới</button></div>',true);
     {const x=streakState();html+=task(ICON.gift,x.done?`Đã điểm danh ngày ${x.n}`:`Điểm danh ngày ${x.n}`,x.done?`Mai quay lại nhận ${streakTxt(STREAK[x.n%7])}. Bỏ một ngày là về ngày 1`:`Nhận ${streakTxt(x.r)}. Vào game liên tục 7 ngày được vé hộp`,x.done?'':`<button type="button" class="btn small" id="streak">Nhận</button>`,!x.done)}
-    if(unlocked()||st.mail)html+=task(ICON.mail,'Lương',st.mail?`${fmt(st.mail)} cá đang chờ${extra?' · '+extra:''}`:(st.cats.some(c=>c.job)?`Lương ca tới về sau khoảng ${dur(nextPayIn())}`:'Cho mèo đi làm để có lương'),
+    if(unlocked()||st.mail)html+=task(ICON.mail,'Lương',st.mail?`${fmt(st.mail)} cá đang chờ${extra?' · '+extra:''}`:(st.cats.some(c=>c.job)?'Lương về lúc 17:00 các ngày Thứ 2 đến Thứ 6':'Cho mèo đi làm để có lương'),
       st.mail?`<button type="button" class="btn small" id="mail">Nhận</button>`:'',st.mail);
     if(CFG&&ses&&guests&&(guests.xu>0||guests.list.length))html+=task(ICON.pet,'Khách ghé thăm',guestLine(),guests.xu>0?`<button type="button" class="btn small" id="guestclaim">Nhận ${M(guests.xu,'xu')}</button>`:'',guests.xu>0);
     (st.away||[]).forEach((a,i)=>{const fav=favOf(a.c.g.shape);html+=task(ICON.pet,`${shortName(a.c.g)} đang giận dỗi ngoài hiên`,`Vì ${a.why}. Còn ${dur(a.until-now())} để dỗ về bằng 1 phần ${FD[fav].n} (tủ có ${st.pantry[fav]})`,`<button type="button" class="btn small" data-coax="${i}"${st.pantry[fav]>0?'':' disabled'}>Dỗ về</button>`,true)});
