@@ -436,15 +436,56 @@ function rollFur(shape,shinyP=.05){
 const recipeOf=(a,b)=>WEIRD.find(w=>{const r=SPR[w].rec;return r&&((r[0]===a&&r[1]===b)||(r[0]===b&&r[1]===a))});
 
 // ---------- Công việc ----------
+// Nghề: minT = độ hiếm tối thiểu của mèo (0 Thường ... 4 Huyền thoại), tire = tâm trạng mất mỗi ca (hợp việc mất ít hơn),
+// slots = số chỗ. Việc lương cao thì ít chỗ, mệt hơn, cần mèo hiếm. Mèo dưới 30 tâm trạng thì nghỉ, không đi làm.
 const JOBS=[
-  {id:'market',n:'Bán cá ngoài chợ',m:1.0,slots:4,fit:['fish','teapot'],need:()=>null},
-  {id:'shop',n:'Trông tiệm tạp hóa',m:1.0,slots:4,fit:['box','square'],need:()=>null},
-  {id:'model',n:'Làm mẫu chụp ảnh',m:1.1,slots:3,fit:['lips','winged'],shinyFit:1,need:()=>null},
-  {id:'deliver',n:'Giao hàng',m:1.2,slots:4,fit:['stilt','balloon','duckfeet'],need:()=>st.cats.length>=10?null:'Mở khi có 10 mèo'},
-  {id:'kitchen',n:'Phụ bếp quán mì',m:1.2,slots:3,fit:['noodle','egg','mushroom'],need:()=>hasRoomType(2)?null:'Mở khi xây Phòng bếp'},
-  {id:'tester',n:'Thử nệm, thử ghế',m:1.3,slots:3,fit:['liquid','mochi','flat'],need:()=>furnCount()>=5?null:'Mở khi có 5 món đồ'},
-  {id:'office',n:'Văn phòng',m:1.5,slots:2,fit:['suit','hand','washer'],need:()=>st.cats.some(c=>tierOf(c.g)>=3)?null:'Mở khi có 1 mèo Siêu hiếm'},
-  {id:'haunt',n:'Nhà ma Halloween',m:1.8,slots:2,fit:['ghost','bone','manyeyes'],need:()=>st.cats.some(c=>tierOf(c.g)>=4)?null:'Mở khi có 1 mèo Huyền thoại'}];
+  // Bậc 1: mèo nào cũng làm được
+  {id:'market',n:'Bán cá ngoài chợ',m:1.0,slots:4,minT:0,tire:2,fit:['fish','teapot'],need:()=>null},
+  {id:'shop',n:'Trông tiệm tạp hóa',m:1.0,slots:4,minT:0,tire:2,fit:['box','square'],need:()=>null},
+  {id:'flyer',n:'Phát tờ rơi',m:.95,slots:5,minT:0,tire:2,fit:['stilt','tower','neck'],need:()=>null},
+  {id:'cleaner',n:'Dọn quán cà phê',m:1.0,slots:4,minT:0,tire:2,fit:['round','loaf'],need:()=>null},
+  {id:'guard',n:'Gác cổng chung cư',m:1.0,slots:3,minT:0,tire:1,fit:['giant','gorilla','square'],need:()=>null},
+  {id:'laundry',n:'Giặt ủi',m:1.0,slots:3,minT:0,tire:2,fit:['washer','square'],need:()=>null},
+  {id:'florist',n:'Bán hoa',m:1.05,slots:3,minT:0,tire:2,fit:['pear','winged'],need:()=>null},
+  {id:'garden',n:'Làm vườn',m:1.05,slots:3,minT:0,tire:2,fit:['snail','caterpillar','mushroom'],need:()=>null},
+  {id:'library',n:'Xếp sách thư viện',m:1.05,slots:3,minT:0,tire:1,fit:['bighead','manyeyes'],need:()=>null},
+  {id:'model',n:'Làm mẫu chụp ảnh',m:1.1,slots:3,minT:0,tire:3,fit:['lips','winged'],shinyFit:1,need:()=>null},
+  {id:'fishing',n:'Câu cá',m:1.1,slots:4,minT:0,tire:2,fit:['fish','octopus'],need:()=>null},
+  {id:'bakery',n:'Nhào bột tiệm bánh',m:1.1,slots:3,minT:0,tire:3,fit:['toast','onigiri','loaf'],need:()=>hasRoomType(2)?null:'Mở khi xây Phòng bếp'},
+  {id:'cafe',n:'Mèo quán cà phê',m:1.15,slots:3,minT:0,tire:3,fit:['mochi','round','liquid'],need:()=>null},
+  {id:'deliver',n:'Giao hàng',m:1.2,slots:4,minT:0,tire:4,fit:['stilt','balloon','duckfeet'],need:()=>st.cats.length>=10?null:'Mở khi có 10 mèo'},
+  {id:'kitchen',n:'Phụ bếp quán mì',m:1.2,slots:3,minT:0,tire:4,fit:['noodle','egg','mushroom'],need:()=>hasRoomType(2)?null:'Mở khi xây Phòng bếp'},
+  {id:'tester',n:'Thử nệm, thử ghế',m:1.3,slots:3,minT:0,tire:2,fit:['liquid','mochi','flat'],need:()=>furnCount()>=5?null:'Mở khi có 5 món đồ'},
+  // Bậc 2: cần mèo Khá trở lên
+  {id:'teacher',n:'Cô giáo mẫu giáo',m:1.35,slots:2,minT:1,tire:4,fit:['round','mochi','standing'],need:()=>null},
+  {id:'tailor',n:'Thợ may',m:1.35,slots:2,minT:1,tire:4,fit:['hand','caterpillar'],need:()=>null},
+  {id:'nurse',n:'Y tá thú y',m:1.4,slots:2,minT:1,tire:4,fit:['pill','bulb'],need:()=>null},
+  {id:'barista',n:'Pha chế',m:1.4,slots:2,minT:1,tire:4,fit:['teapot','egg'],need:()=>null},
+  {id:'photo',n:'Thợ chụp ảnh',m:1.4,slots:2,minT:1,tire:4,fit:['manyeyes','neck','springneck'],need:()=>null},
+  {id:'stream',n:'Livestream bán hàng',m:1.45,slots:2,minT:1,tire:5,fit:['lips','winged','bighead'],need:()=>null},
+  {id:'dj',n:'DJ quán bar',m:1.5,slots:2,minT:1,tire:5,fit:['lips','bigtail'],need:()=>hasFurn('f_dj')?null:'Mở khi có Bàn DJ mèo'},
+  {id:'gamer',n:'Tuyển thủ game',m:1.5,slots:2,minT:1,tire:5,fit:['boxhead','hand'],need:()=>hasFurn('f_arcade')?null:'Mở khi có Máy game thùng'},
+  {id:'chef',n:'Đầu bếp nhà hàng',m:1.55,slots:2,minT:1,tire:5,fit:['noodle','onigiri','egg'],need:()=>hasRoomType(2)?null:'Mở khi xây Phòng bếp'},
+  // Bậc 3: cần mèo Hiếm trở lên
+  {id:'office',n:'Văn phòng',m:1.65,slots:2,minT:2,tire:6,fit:['suit','hand','washer'],need:()=>null},
+  {id:'architect',n:'Kiến trúc sư',m:1.75,slots:1,minT:2,tire:6,fit:['square','tower','box'],need:()=>st.houses.length>=2?null:'Mở khi có 2 nhà'},
+  {id:'doctor',n:'Bác sĩ thú y',m:1.8,slots:1,minT:2,tire:7,fit:['pill','bulb','hand'],need:()=>null},
+  {id:'lawyer',n:'Luật sư',m:1.8,slots:1,minT:2,tire:7,fit:['suit','bighead'],need:()=>null},
+  {id:'starchef',n:'Bếp trưởng 3 sao',m:1.85,slots:1,minT:2,tire:7,fit:['noodle','mushroom'],need:()=>hasRoomType(2)&&st.cats.length>=20?null:'Mở khi có Phòng bếp và 20 mèo'},
+  {id:'idol',n:'Ca sĩ thần tượng',m:1.9,slots:1,minT:2,tire:8,fit:['lips','king','winged'],need:()=>null},
+  {id:'pilot',n:'Phi công',m:1.95,slots:1,minT:2,tire:8,fit:['winged','balloon','astro'],need:()=>null},
+  // Bậc 4: cần mèo Siêu hiếm trở lên
+  {id:'haunt',n:'Nhà ma Halloween',m:2.1,slots:2,minT:3,tire:8,fit:['ghost','bone','manyeyes'],need:()=>null},
+  {id:'scientist',n:'Nhà khoa học',m:2.2,slots:1,minT:3,tire:9,fit:['bulb','manyeyes','octopus'],need:()=>null},
+  {id:'ceo',n:'Giám đốc công ty',m:2.3,slots:1,minT:3,tire:9,fit:['suit','king','giant'],need:()=>null},
+  {id:'astronaut',n:'Phi hành gia',m:2.5,slots:1,minT:3,tire:10,fit:['astro','balloon'],need:()=>hasRoomType(9)?null:'Mở khi xây Phòng vũ trụ'},
+  // Bậc 5: chỉ mèo Huyền thoại
+  {id:'dragonpost',n:'Cưỡi rồng đưa thư',m:2.8,slots:1,minT:4,tire:10,fit:['dragon','winged'],need:()=>null},
+  {id:'royal',n:'Mèo hoàng gia',m:3.0,slots:1,minT:4,tire:10,fit:['king','giant'],need:()=>null}];
+const canDo=(c,j)=>tierOf(c.g)>=(j.minT||0);
+const TIRED=30,tireOf=(c,j)=>Math.round(j.tire*(fits(c,j)?.6:1));
+const hasFurn=id=>st.houses.some(h=>h.rooms.some(r=>Object.keys(r.furn).some(k=>baseId(k)===id)));
+const JOB_LV=['Bậc 1 · mèo nào cũng làm','Bậc 2 · cần mèo Khá trở lên','Bậc 3 · cần mèo Hiếm trở lên','Bậc 4 · cần mèo Siêu hiếm trở lên','Bậc 5 · chỉ mèo Huyền thoại'];
 const JID=Object.fromEntries(JOBS.map(j=>[j.id,j]));
 
 // ---------- Đồ ăn ----------
@@ -729,7 +770,7 @@ const isWorkTime=t=>isWeekday(t)&&hourOf(t)>=8&&hourOf(t)<17;
 const isNight=t=>{const h=hourOf(t);return h>=22||h<7};
 const isWeekend=t=>!isWeekday(t);
 const shiftStart=t=>at(t,8);
-function away(c,t=now()){const g=G(t);return !!c.job&&c.h>=0&&!c.sick&&!(c.hosp>g)&&isWorkTime(g)&&c.jobSince<=shiftStart(g)}
+function away(c,t=now()){const g=G(t);return !!c.job&&c.h>=0&&!c.sick&&c.mood>=TIRED&&!(c.hosp>g)&&isWorkTime(g)&&c.jobSince<=shiftStart(g)}
 const inHosp=(c,t=now())=>c.hosp>G(t);
 const present=(c,t=now())=>!away(c,t)&&!inHosp(c,t);
 // khay vệ sinh của một nhà
@@ -769,7 +810,7 @@ function phase(t=gnow()){const h=hourOf(t);if(isNight(t))return'night';if(isWeek
 const moodF=c=>.6+.6*c.mood/100;
 const starF=c=>1+.3*c.star;
 const fits=(c,j)=>j.fit.includes(c.g.shape)||(j.shinyFit&&shinyOf(c.g));
-function wageOf(c,j,withMood=true){const t=tierOf(c.g);return TIERS[t].base*9*j.m*(fits(c,j)?1.2:1)*(withMood?moodF(c):1)*starF(c)*furOf(c.g)*(1+(c.fb||0))*(c.spa>gnow()?1.15:1)}
+function wageOf(c,j,withMood=true){const t=tierOf(c.g);return TIERS[t].base*9*j.m*(fits(c,j)?1.35:1)*(withMood?moodF(c):1)*starF(c)*furOf(c.g)*(1+(c.fb||0))*(c.spa>gnow()?1.15:1)}
 const HOME=[60,96,168,300,540];// cá mỗi giờ ngoài đời khi mèo ở nhà, bằng 1/3 lúc đi làm
 const homeRate=c=>{const h=houseById(c.h);if(!h)return 0;return HOME[tierOf(c.g)]*starF(c)*moodF(c)*(1+.1*comfort(h.rooms[c.r]))*fishBonus(h)};
 // xu tự ra: mỗi nhà đang ở 6 xu mỗi giờ, cộng thêm theo độ êm của đồ đạc
@@ -856,7 +897,7 @@ function feederTick(){const dk=dayKey(now());if(!st.feedDay||st.feedDay.d!==dk)s
 function robotClean(){st.houses.forEach(h=>{if(!gadOf(h).robot)return;boxesOf(h).forEach(bx=>{if((bx.p.dirt||0)>=20)cleanBox(h,bx,true)})})}
 function payRent(){st.houses.forEach(h=>{if(h.rent){const xu=rentOf(h);st.xu+=xu;st.rentLog=(st.rentLog||0)+xu}})}
 function payday(b){let sum=0,n=0;
-  st.cats.forEach(c=>{if(!c.job||c.h<0||c.sick||c.hosp||c.jobSince>at(b,8))return;const j=JID[c.job];if(!j)return;sum+=wageOf(c,j);n++;c.fb=0});
+  st.cats.forEach(c=>{if(!c.job||c.h<0||c.sick||c.hosp||c.jobSince>at(b,8))return;const j=JID[c.job];if(!j)return;if(c.mood<TIRED){c.tired=1;return}c.tired=0;sum+=wageOf(c,j);n++;c.fb=0;c.mood=Math.max(0,c.mood-tireOf(c,j))});
   if(n){st.mail+=Math.round(sum);st.mailN=(st.mailN||0)+n}}
 
 // ---------- Mèo hoang ----------
@@ -1293,13 +1334,13 @@ function placeBox(c){const homes=st.houses.filter(h=>!h.rent);const multi=homes.
 // Chọn việc ngay trong thẻ mèo: một danh sách chọn một, lương mỗi việc ghi sẵn
 function jobBox(c,job){const T=gnow();if(!unlocked())return field('job','Đi làm','Chưa mở','Có 3 mèo thì mở Đi làm').replace('class="field-row','disabled class="field-row');
   if(c.h<0)return field('job','Đi làm','Chưa đi làm được','Mèo ở Phòng chờ, chuyển vào phòng trước').replace('class="field-row','disabled class="field-row');
-  const open=JOBS.filter(j=>!j.need()).map(j=>({j,w:wageOf(c,j)})).sort((a,b)=>b.w-a.w);
+  const open=JOBS.filter(j=>!j.need()&&canDo(c,j)).map(j=>({j,w:wageOf(c,j)})).sort((a,b)=>b.w-a.w);
   const locked=JOBS.length-open.length;const best=open.length?open[0].j.id:null;
   const late=isWorkTime(T)&&c.job&&c.jobSince>shiftStart(T);
-  let html=field('job','Đi làm',job?esc(job.n):'Ở nhà nghỉ',job?`${M(Math.round(wageOf(c,job)),'cá')}/ca${late?' · từ ca sau':''}`:'Chưa có việc');
-  if(catPick==='job')html+=`<div class="pick"><p class="hint">Mèo đi làm từng ca ngắn, lương về hộp thư sau mỗi ca. Mèo vui thì lương cao hơn.</p><div class="list">${open.map(({j,w})=>{const on=c.job===j.id,full=!on&&jobCount(j.id)>=j.slots;
-      return opt(`data-job="${j.id}"`,on,full,esc(j.n),`${full?'Hết chỗ':`${jobCount(j.id)}/${j.slots} chỗ`}${fits(c,j)?' · <span class="fit">Hợp mèo này</span>':''}${j.id===best&&!fits(c,j)?' · Lương cao nhất':''}`,`<span class="wage">${M(Math.round(w),'cá')}<small>/ca</small></span>`)}).join('')}
-      ${opt('data-job=""',!job,false,'Ở nhà nghỉ','Không đi làm, không có lương')}</div>${locked?`<p class="hint">Còn ${locked} việc chưa mở.</p>`:''}</div>`;
+  let html=field('job','Đi làm',job?esc(job.n):'Ở nhà nghỉ',job?(c.mood<TIRED?`<span class="warnt">Mệt quá, đang nghỉ (tâm trạng dưới ${TIRED})</span>`:`${M(Math.round(wageOf(c,job)),'cá')}/ca · mệt -${tireOf(c,job)}${late?' · từ ca sau':''}`):'Chưa có việc');
+  if(catPick==='job')html+=`<div class="pick"><p class="hint">Mỗi ca mèo mệt đi một chút, việc lương cao thì mệt hơn. Dưới ${TIRED} tâm trạng mèo nghỉ ở nhà. Việc hợp mèo được thêm lương và đỡ mệt.</p><div class="list">${open.map(({j,w})=>{const on=c.job===j.id,full=!on&&jobCount(j.id)>=j.slots;
+      return opt(`data-job="${j.id}"`,on,full,esc(j.n),`${full?'Hết chỗ':`${jobCount(j.id)}/${j.slots} chỗ`} · mệt -${tireOf(c,j)}/ca${fits(c,j)?' · <span class="fit">Hợp mèo này</span>':''}${j.id===best&&!fits(c,j)?' · Lương cao nhất':''}`,`<span class="wage">${M(Math.round(w),'cá')}<small>/ca</small></span>`)}).join('')}
+      ${opt('data-job=""',!job,false,'Ở nhà nghỉ','Không đi làm, không có lương')}</div>${locked?`<p class="hint">Còn ${locked} việc chưa mở hoặc cần mèo hiếm hơn.</p>`:''}</div>`;
   return html}
 function faceHappy(c){const a=actors.get(c.id);if(a){a.expr=11;a.exprT=1.5;a.jump=1}}
 
@@ -1351,11 +1392,12 @@ function renderCare(){const P=$('p-care'),T=now(),GT=G(T);const ph=phase(GT);
     html+=task(ICON.pet,'Vuốt ve','Chạm vào mèo trong phòng, mỗi con 3 lần một ngày','');
     if(!pantryMeals()||!lit)html+=`<p class="why">${!pantryMeals()?'Tủ hết đồ ăn. ':''}${!lit?'Hết cát mèo. ':''}Mua ở Mua sắm.</p>`}
   if(careTab==='jobs'){
-    html+=`<div class="row"><p class="hint" style="flex:1;min-width:0">Mèo đi làm từng ca ngắn, lương về sau mỗi ca. Việc hợp với mèo được thêm lương.</p><button type="button" class="btn small" id="auto">Tự xếp việc</button></div>
-      <div class="list">${JOBS.map(j=>{const lock=j.need();const ws=st.cats.filter(c=>c.job===j.id);
-        return `<div class="li${lock?' off':''}" data-job="${j.id}"><div class="tx"><b>${j.n} · ×${String(j.m).replace('.',',')}</b><small>${lock?esc(lock):`Hợp: ${j.fit.map(s=>SPR[s]?SPR[s].name:s).join(', ')}${j.shinyFit?', mèo lấp lánh':''}`}</small>
+    html+=`<div class="row"><p class="hint" style="flex:1;min-width:0">Việc lương cao cần mèo hiếm, ít chỗ và mệt hơn. Mèo dưới ${TIRED} tâm trạng nghỉ ở nhà. Việc hợp mèo +35% lương, đỡ mệt.</p><button type="button" class="btn small" id="auto">Tự xếp việc</button></div>
+      ${JOB_LV.map((lv,L)=>{const js=JOBS.filter(j=>(j.minT||0)===L);const have=st.cats.some(c=>tierOf(c.g)>=L);
+        return `<details class="box more"${L===0||(have&&L<=1)?' open':''}><summary><span><b>${lv}</b> · ${js.length} việc</span></summary><div class="list">${js.map(j=>{const lock=j.need()||(have?null:'Chưa có mèo đủ hiếm');const ws=st.cats.filter(c=>c.job===j.id);
+        return `<div class="li${lock?' off':''}"><div class="tx"><b>${j.n} · ×${String(j.m).replace('.',',')}</b><small>${lock?esc(lock):`Mệt -${j.tire}/ca · hợp: ${j.fit.map(s=>SPR[s]?SPR[s].name:s).join(', ')}${j.shinyFit?', mèo lấp lánh':''}`}</small>
           ${lock?'':`<div class="chips" style="margin-top:4px">${Array.from({length:j.slots},(_,i)=>ws[i]?`<span class="mini">${imgTag(ws[i].g)}</span>`:'<span class="mini empty"></span>').join('')}</div>`}</div>
-          ${lock?'':`<button type="button" class="btn small ghost" data-pick="${j.id}">Chọn</button>`}</div>`}).join('')}</div>`}
+          ${lock?'':`<button type="button" class="btn small ghost" data-pick="${j.id}">Chọn</button>`}</div>`}).join('')}</div></details>`}).join('')}`}
   if(careTab==='sum'){const T=now(),dk=dayKey(GT),all=st.cats;
     const atHome=all.filter(c=>c.h>=0&&present(c,T)).length,working=all.filter(c=>away(c,T)).length,hosp=all.filter(c=>inHosp(c,T)).length,sick=sickCats().length,wait=waiting().length;
     const home=all.filter(c=>c.h>=0),avg=home.length?Math.round(home.reduce((a,c)=>a+c.mood,0)/home.length):0,sad=home.filter(c=>c.mood<40).length,unfed=home.filter(c=>!c.hosp&&hungry(c)).length,boredN=home.filter(c=>!c.hosp&&bored(c)).length,jobless=home.filter(c=>!c.job).length;
@@ -1420,13 +1462,13 @@ function feedAll(){const dk=dayKey(gnow());let n=0,favN=0,miss=0;
 const jobCount=id=>st.cats.filter(c=>c.job===id).length;
 function autoAssign(){const T=gnow();const cats=st.cats.filter(c=>c.h>=0);cats.forEach(c=>c.job=null);
   const open=JOBS.filter(j=>!j.need()).sort((a,b)=>b.m-a.m);
-  const pairs=[];cats.forEach(c=>open.forEach(j=>pairs.push([wageOf(c,j,false),c,j])));pairs.sort((a,b)=>b[0]-a[0]);
+  const pairs=[];cats.forEach(c=>{if(c.mood<TIRED)return;open.forEach(j=>{if(canDo(c,j))pairs.push([wageOf(c,j,false),c,j])})});pairs.sort((a,b)=>b[0]-a[0]);
   const used=new Set();for(const [,c,j] of pairs){if(used.has(c.id)||jobCount(j.id)>=j.slots)continue;c.job=j.id;c.jobSince=T;used.add(c.id)}
   if(isWorkTime(T))cats.forEach(c=>{if(c.job)c.jobSince=T});
-  save();syncRoom();toast(`Đã xếp ${used.size} mèo đi làm${isWorkTime(T)?', bắt đầu từ mai':''}`);render()}
+  save();syncRoom();toast(`Đã xếp ${used.size} mèo đi làm${isWorkTime(T)?', bắt đầu từ ca sau':''}${cats.some(c=>c.mood<TIRED)?'. Mèo mệt (dưới '+TIRED+' tâm trạng) được nghỉ':''}`);render()}
 function pickJob(id){const j=JID[id];
-  const list=st.cats.filter(c=>c.h>=0).sort((a,b)=>wageOf(b,j)-wageOf(a,j));
-  sheet(`<div class="row"><h2>${esc(j.n)}</h2><span class="hint">${jobCount(id)}/${j.slots} chỗ</span></div><p class="hint">Chạm để thêm hoặc bỏ. Số dưới mỗi con là lương một ca ở việc này.</p>
+  const list=st.cats.filter(c=>c.h>=0&&canDo(c,j)).sort((a,b)=>wageOf(b,j)-wageOf(a,j));
+  sheet(`<div class="row"><h2>${esc(j.n)}</h2><span class="hint">${jobCount(id)}/${j.slots} chỗ</span></div><p class="hint">Chạm để thêm hoặc bỏ. Số dưới mỗi con là lương một ca. ${j.minT?`Chỉ mèo ${TIERS[j.minT].n} trở lên làm được.`:''}</p>
     <div class="grid">${list.map(c=>catCard(c,`<em>${fmt(wageOf(c,j))} cá${fits(c,j)?' · hợp việc':''}${c.job&&c.job!==id?' · đang '+JID[c.job].n.toLowerCase():''}</em>`).replace('class="ccard','class="ccard'+(c.job===id?' sel':''))).join('')}</div>
     <button type="button" class="btn" data-close>Xong</button>`);
   bind($('sheet'),'[data-cat]',el=>{const c=st.cats.find(x=>x.id==el.dataset.cat);
