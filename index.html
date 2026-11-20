@@ -822,7 +822,7 @@ function wageOf(c,j,withMood=true){const t=tierOf(c.g);return TIERS[t].base*9*j.
 const HOME=[60,96,168,300,540];// cá mỗi giờ ngoài đời khi mèo ở nhà, bằng 1/3 lúc đi làm
 const homeRate=c=>{const h=houseById(c.h);if(!h)return 0;return HOME[tierOf(c.g)]*starF(c)*moodF(c)*(1+.1*comfort(h.rooms[c.r]))*fishBonus(h)};
 // xu tự ra: mỗi nhà đang ở 6 xu mỗi giờ, cộng thêm theo độ êm của đồ đạc
-function xuPerHour(){return st.houses.filter(h=>!h.rent).reduce((a,h)=>a+15+.8*h.rooms.reduce((b,r)=>b+comfort(r),0)+st.cats.filter(c=>c.h===h.id).length,0)}
+function xuPerHour(){return st.houses.filter(h=>!h.rent).reduce((a,h)=>a+20+.8*h.rooms.reduce((b,r)=>b+comfort(r),0)+1.5*st.cats.filter(c=>c.h===h.id).length,0)}
 function passivePerHour(t=now()){return st.cats.reduce((a,c)=>a+(c.h>=0&&present(c,t)&&!c.sick?homeRate(c):0),0)}
 
 // ---------- Xử lý thời gian ----------
@@ -1075,7 +1075,7 @@ $('helpbtn').onclick=()=>sheet(`<h2>Cách chơi</h2>
     <div class="li"><div class="ic"><img src="care/tray.webp?v=2" alt=""></div><div class="tx"><b>Dọn khay vệ sinh</b><small>Chạm vào khay để dọn. Khay bẩn lâu mèo dễ ốm.</small></div></div>
     <div class="li"><div class="ic">${ICON.pet}</div><div class="tx"><b>Vuốt ve, chơi cùng mèo</b><small>Chạm vào mèo để vuốt. Đồ chơi giúp mèo không chán.</small></div></div>
     <div class="li"><div class="ic">${CI['cá']}</div><div class="tx"><b>Cá</b><small>Mèo vui thì cá tự ra. Dùng cá mua đồ ăn, cát, lá mèo.</small></div></div>
-    <div class="li"><div class="ic">${CI.xu}</div><div class="tx"><b>Xu</b><small>Nhà tự ra xu, nhà nhiều mèo và nhiều đồ đẹp thì ra nhiều hơn. Thừa cá thì đổi sang xu ở Chợ cá. Dùng xu mua đồ đạc, đồ chơi, phòng, nhà.</small></div></div>
+    <div class="li"><div class="ic">${CI.xu}</div><div class="tx"><b>Xu</b><small>Nhà tự ra xu, nhà nhiều mèo và nhiều đồ đẹp thì ra nhiều hơn. Cá và xu đổi qua lại ở Chợ cá. Đang mở game chơi thì cá, xu ra gấp đôi. Dùng xu mua đồ đạc, đồ chơi, phòng, nhà.</small></div></div>
     <div class="li"><div class="ic">${ICON.gift}</div><div class="tx"><b>Lá mèo</b><small>Mở Hộp mèo lấy lá. Gom đủ lá cùng loài thì ghép ra bé mèo mới.</small></div></div>
   </div>
   <p class="hint">Mỗi ngày vào điểm danh, cho ăn, dọn khay, vuốt mèo là đủ. Mèo bị bỏ bê lâu sẽ giận dỗi, dỗ bằng món khoái khẩu là về.</p>
@@ -1132,8 +1132,11 @@ const confirmMap=new Map();
 function twoTap(btn,key,label,fn){// bấm hai lần để xác nhận việc mất tiền hoặc mất mèo
   if(confirmMap.get(key)){confirmMap.delete(key);fn();return}
   confirmMap.set(key,1);btn.classList.add('confirm');btn.textContent=label||'Bấm lần nữa';setTimeout(()=>{confirmMap.delete(key);if(btn.isConnected){btn.classList.remove('confirm');render()}},3000)}
+// Đang chơi (mở game, có chạm trong 3 phút gần nhất) thì cá và xu ra gấp đôi
+let lastTouch=Date.now();['pointerdown','keydown','touchstart'].forEach(ev=>addEventListener(ev,()=>{lastTouch=Date.now()},{passive:true}));
+const ONLINE_X=2,boost=()=>document.visibilityState==='visible'&&Date.now()-lastTouch<3*60000?ONLINE_X:1;
 const short=n=>{n=Math.floor(n);if(n<10000)return fmt(n);if(n<1e6)return (n/1e3).toLocaleString('vi-VN',{maximumFractionDigits:n<1e5?1:0})+'K';return (n/1e6).toLocaleString('vi-VN',{maximumFractionDigits:1})+'Tr'};
-function updateWallet(){$('fish').textContent=short(st.fish);$('xu').textContent=short(st.xu);const fr=passivePerHour(),xr=xuPerHour();$('fishrate').textContent=fr?'+'+fmt(fr)+'/giờ':'';$('xurate').textContent='+'+(xr<10?xr.toLocaleString('vi-VN',{maximumFractionDigits:1}):fmt(xr))+'/giờ'}
+function updateWallet(){$('fish').textContent=short(st.fish);$('xu').textContent=short(st.xu);const bx=boost(),fr=passivePerHour()*bx,xr=xuPerHour()*bx;$('fishrate').textContent=fr?'+'+fmt(fr)+'/giờ'+(bx>1?' ×2':''):'';$('xurate').textContent='+'+(xr<10?xr.toLocaleString('vi-VN',{maximumFractionDigits:1}):fmt(xr))+'/giờ'+(bx>1?' ×2':'')}
 // Đồng hồ hiện giờ thật cho dễ hiểu; ngày trong nhà mèo vẫn trôi nhanh bên dưới
 // Đồng hồ chỉ hiện giờ trong nhà mèo (1 ngày ngoài đời = 6 ngày trong game)
 function clockText(){const T=now(),g=new Date(G(T)),W=['CN','T2','T3','T4','T5','T6','T7'];
@@ -1545,7 +1548,8 @@ function hatch(id){const e=st.eggs.find(x=>x.id===id);if(!e||eggMs(e))return;con
 
 // ---------- Nhà đất ----------
 let zoneOpen=-1;
-function marketLeft(){const dk=dayKey(now());if(st.market.day!==dk){st.market={day:dk,xu:0}}return 300-st.market.xu}
+const BUY_XU=20,SELL_XU=15;// 20 cá mua 1 xu, bán 1 xu được 15 cá
+function marketLeft(){return Infinity}
 function homeHtml(){const h=curHouse(),tp=TPL[h.tpl];const inside=h.rooms.filter(r=>!ROOMT[r.t].out).length;const w=waiting();const up=TPL[h.tpl+1];
   let html=`${w.length?`<p class="why">Phòng chờ có ${w.length} mèo. Xây thêm phòng, mèo tự dọn vào.</p>`:''}
     <div class="task hl"><div class="ic big"><img src="houses/h${h.tpl}.webp" alt=""></div><div class="tx"><b>${esc(houseName(h))}</b><small>${h.lot.area} m² · ${inside}/${tp.rooms} phòng · ${zoneOf(h).perk}${h.lot.trait?' · '+h.lot.trait.n:''}</small></div></div>`;
@@ -1561,10 +1565,13 @@ function homeHtml(){const h=curHouse(),tp=TPL[h.tpl];const inside=h.rooms.filter
     ${zoneOpen===i?`<div class="list" style="padding-left:10px">${LOTS[i].map(l=>{const own=st.lots.some(x=>x.z===i&&x.i===l.i);const fit=TPL.filter(t=>t.min<=l.area).pop();
       return `<div class="li${own?' off':''}"><div class="tx"><b>Lô ${l.i+1} · ${l.area} m²${l.trait?' · '+l.trait.n:''}</b><small>${own?'Của bạn':`Tới ${fit.n}`}</small></div>${own?'':`<button type="button" class="btn small" data-lot="${i}:${l.i}"${st.xu<l.price||st.houses.length>=5?' disabled':''}>${M(l.price,'xu')}</button>`}</div>`}).join('')}</div>`:''}`}).join('')}</div></details>`;
   return html}
-function marketHtml(){const left=marketLeft();
-  return `<div class="box hl"><div class="row"><h3>Đổi cá lấy xu</h3><span class="hint">20 cá = 1 xu</span></div><p class="hint">Hôm nay còn đổi được <b>${left} xu</b> (mỗi ngày 300 xu). Xu dùng mua đồ, xây phòng, mua nhà.</p>
-    <div class="acts">${[10,50,left].filter((v,i,a)=>v>0&&a.indexOf(v)===i).map(v=>`<button type="button" class="btn small" data-mk="${v}"${st.fish<v*20||v>left?' disabled':''}>${fmt(v*20)} cá → ${v} xu</button>`).join('')}</div></div>
-    <p class="hint">Xu còn có từ bán mèo trùng, cho thuê nhà và đủ trang Sổ mèo.</p>`}
+function marketHtml(){const maxBuy=Math.floor(st.fish/BUY_XU),maxSell=Math.floor(st.xu);
+  const btns=(kind,max,lab)=>[10,100,1000].filter(v=>v<max).concat(max>0?[max]:[]).map((v,i,a)=>`<button type="button" class="btn small${i===a.length-1&&a.length>1?'':' ghost'}" data-mk="${kind}:${v}"${v>max||v<1?' disabled':''}>${i===a.length-1&&v===max?'Tất cả · ':''}${lab(v)}</button>`).join('')||'<span class="hint">Chưa đủ để đổi</span>';
+  return `<div class="box hl"><div class="row"><h3>Đổi cá lấy xu</h3><span class="hint">${BUY_XU} cá = 1 xu</span></div>
+    <div class="acts">${btns('buy',maxBuy,v=>`${short(v*BUY_XU)} cá → ${short(v)} xu`)}</div></div>
+    <div class="box"><div class="row"><h3>Đổi xu lấy cá</h3><span class="hint">1 xu = ${SELL_XU} cá</span></div>
+    <div class="acts">${btns('sell',maxSell,v=>`${short(v)} xu → ${short(v*SELL_XU)} cá`)}</div></div>
+    <p class="hint">Đổi bao nhiêu cũng được, tới khi hết cá hoặc hết xu. Mở game và chơi thì cá, xu ra gấp đôi.</p>`}
 function bindHome(P){const h=curHouse();
   bind(P,'[data-build]',el=>{const t=+el.dataset.build,T=ROOMT[t];twoTap(el,'b'+t,`Xây ${T.n}?`,()=>{st.xu-=T.xu;h.rooms.push(newRoom(t));syncOutdoor(h);rebalance();st.cur=h.rooms.lastIndexOf(h.rooms.filter(r=>r.t===t).pop());
     save();view();actors.clear();syncRoom();renderRooms();toast(`Đã xây ${T.n}`);render()})});
@@ -1573,7 +1580,9 @@ function bindHome(P){const h=curHouse();
   bind(P,'[data-rent]',el=>{const x=st.houses[+el.dataset.rent];x.rent=!x.rent;if(x.rent&&st.ch===+el.dataset.rent){st.ch=st.houses.findIndex(y=>!y.rent);st.cur=0;actors.clear();syncRoom();renderRooms()}save();render()});
   bind(P,'[data-zone]',el=>{const z=+el.dataset.zone;zoneOpen=zoneOpen===z?-1:z;render();const d=P.querySelectorAll('details.more');d[d.length-1].open=true});
   bind(P,'[data-lot]',el=>{const [z,i]=el.dataset.lot.split(':').map(Number);const l=LOTS[z][i];if(st.xu<l.price)return;twoTap(el,'lot'+z+i,`Mua lô ${fmt(l.price)} xu?`,()=>buyLot(l))});
-  bind(P,'[data-mk]',el=>{const v=+el.dataset.mk;if(st.fish<v*20||v>marketLeft())return;st.fish-=v*20;st.xu+=v;st.market.xu+=v;save();toast(`+${v} xu`);render()})}
+  bind(P,'[data-mk]',el=>{const [k,n]=el.dataset.mk.split(':'),v=+n;if(!(v>0))return;
+    if(k==='buy'){if(st.fish<v*BUY_XU)return;st.fish-=v*BUY_XU;st.xu+=v;toast(`+${fmt(v)} xu`)}else{if(st.xu<v)return;st.xu-=v;st.fish+=v*SELL_XU;toast(`+${fmt(v*SELL_XU)} cá`)}
+    save();renderHud();render()})}
 const rentOf=x=>Math.round(zoneOf(x).rent*(x.lot.z===3?1.5:1)*TPL[x.tpl].rooms/2);
 function buyLot(l){const fit=TPL.map((t,i)=>[t,i]).filter(([t])=>t.min<=l.area);
   sheet(`<h2>Lô ${l.i+1} · ${ZONES[l.z].n}</h2><p class="hint">${l.area} m². Chọn mẫu nhà để xây ngay (giá lô ${fmt(l.price)} xu cộng giá xây).</p>
@@ -1803,7 +1812,7 @@ loadBases(['round','loaf',...st.cats.filter(c=>c.h===curHouse().id).map(c=>c.g.s
   if(st.migrated){st.migrated=0;save();setTimeout(()=>toast('Game đã lên bản mới! Mèo và đồ đạc vẫn giữ nguyên. Thử mở Hộp mèo nhé',4200),700)}
   else if(!st.tut){st.tut=1;save();setTimeout(()=>{toast('Chào mừng về Nhà Mèo Méo! Bánh Bao và Bánh Mì đã dọn vào. Mở Hộp mèo lấy lá để ghép thêm mèo',4500)},700)}
   let sec=0;
-  setInterval(()=>{if(visit){updVisit();return}const T=now();st.fish+=passivePerHour(T)/3600;st.xu+=xuPerHour()/3600;sec++;
+  setInterval(()=>{if(visit){updVisit();return}const T=now(),bx=boost();st.fish+=passivePerHour(T)*bx/3600;st.xu+=xuPerHour()*bx/3600;sec++;
     if(sec%10===0){const before=st.t;process();syncRoom();renderRooms()}
     renderHud();if(sec%5===0){save();if(trayP&&!document.querySelector('.confirm')&&veil.hidden)render()}},1000);
   requestAnimationFrame(tick)})
